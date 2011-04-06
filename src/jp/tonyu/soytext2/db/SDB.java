@@ -34,6 +34,7 @@ public class SDB extends SqlJetOpenHelper {
 			    "   lastupdate INTEGER NOT NULL,\n"+
 			    "   createdate INTEGER NOT NULL, \n"+
 			    "   lastaccessed INTEGER NOT NULL,\n"+
+			    "   language TEXT,\n"+
 			    "   summary TEXT,\n"+
 			    "   content TEXT,\n"+
 			    "   owner TEXT,\n"+
@@ -95,9 +96,9 @@ public class SDB extends SqlJetOpenHelper {
 			    ISqlJetTable t = db.getTable(DOCUMENT_CUR);
 			    ISqlJetCursor cur = t.lookup(null, d.id);
 			    if (!cur.eof()) {
-			    	cur.update(d.id,d.lastUpdate,d.createDate,d.lastAccessed,d.summary,d.content,d.owner,d.group,d.permission);
+			    	cur.update(d.id,d.lastUpdate,d.createDate,d.lastAccessed,"javascript",d.summary,d.content,d.owner,d.group,d.permission);
 			    } else {
-			    	t.insert(d.id,d.lastUpdate,d.createDate,d.lastAccessed,d.summary,d.content,d.owner,d.group,d.permission);
+			    	t.insert(d.id,d.lastUpdate,d.createDate,d.lastAccessed,"javascript",d.summary,d.content,d.owner,d.group,d.permission);
 			    }				
 				cache.put(d.id, d);
 			}
