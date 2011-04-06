@@ -52,7 +52,9 @@ public class SqlJetOpenHelper {
 	private void commit() throws SqlJetException {
 		db.commit();
 		transaction=null;
-		while(reserve)
+		while(reserved.size()>0) {
+			reserved.remove(0).run(db);
+		}
 	}
 	private void create(SqlJetDb db,int newVersion) throws SqlJetException {
 		onCreate(db);
