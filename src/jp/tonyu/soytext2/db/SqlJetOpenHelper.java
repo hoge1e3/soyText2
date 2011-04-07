@@ -27,34 +27,99 @@ public class SqlJetOpenHelper {
 						upgrade(dbVer,version);
 					}				
 				}
-			});			
+			},0);			
 		} catch (SqlJetException e) {
 			e.printStackTrace();
 		}
 		
 	}
-	SqlJetTransactionMode transaction=null;
-	public synchronized void writeTransaction(DBAction action) throws SqlJetException {
-		db.beginTransaction(transaction=SqlJetTransactionMode.WRITE);
+	int readCount=0;
+	//SqlJetTransactionMode transaction=null;
+	public void writeTransaction(DBAction action, int timeOut) throws SqlJetException {
+		waitForTransaction(SqlJetTransactionMode.WRITE, timeOut);
 		action.run(db);
 		commit();
 	}
-	List<DBAction> reserved= new Vector<DBAction>();
-	public synchronized void reserveWriteTransaction(DBAction action) throws SqlJetException {
-		if (transaction==null) writeTransaction(action);
-		else reserved.add(action); 
+	List<DBAction> reservedWriteTransaction= new Vector<DBAction>();
+	public void reserveWriteTransaction(DBAction action) throws SqlJetException {
+		reservedWriteTransaction.add(action); 
+		runReservedTransactionThread();
 	}
-	public synchronized void readTransaction(DBAction action) throws SqlJetException {
-		db.beginTransaction(transaction=SqlJetTransactionMode.READ_ONLY);
-		action.run(db);
-		commit();
-	}
-	private void commit() throws SqlJetException {
-		db.commit();
-		transaction=null;
-		while(reserved.size()>0) {
-			reserved.remove(0).run(db);
+	public void waitForTransaction(SqlJetTransactionMode mode,int timeOut) throws SqlJetException  {
+		if (timeOut<0) timeOut=-1;
+		else timeOut=timeOut/100;
+		while (!beginTransaction(mode)) {
+			try {
+				Thread.sleep(100);
+				if (timeOut==0) throw new SqlJetException("waitForTransaction: Timed out ");
+				timeOut--;
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
 		}
+	}
+	/*public void joinReadTransaction(DBAction action) throws SqlJetException {
+		if (transaction==SqlJetTransactionMode.READ_ONLY) {
+			readCount++;
+			action.run(db);
+			readCount--;
+			if (readCount==0) commit();
+			
+		}
+		else {
+			readTransaction(action);	
+		}
+	}*/
+	SqlJetTransactionMode mode;
+	public synchronized boolean beginTransaction(SqlJetTransactionMode mode) throws SqlJetException {
+		if (this.mode==null) {
+			this.mode=mode;
+			db.beginTransaction(mode);
+			if (mode==SqlJetTransactionMode.READ_ONLY) readCount++;
+			return true;
+		}
+		if (this.mode==mode && mode==SqlJetTransactionMode.READ_ONLY) {
+			readCount++;
+			return true;
+		}
+		return false;
+	}
+	public void readTransaction(DBAction action, int timeOut) throws SqlJetException {
+		waitForTransaction(SqlJetTransactionMode.READ_ONLY, timeOut);
+		action.run(db);
+		commit();
+	}
+	Thread reservedTransactionThread=null;
+	public void runReservedTransactionThread() {
+		if (reservedTransactionThread!=null) return;
+		reservedTransactionThread=new Thread() {
+			@Override
+			public void run() {
+				while(true) {
+					while(reservedWriteTransaction.size()>0) {
+						try {
+							writeTransaction(  reservedWriteTransaction.remove(0),-1 );
+						} catch (SqlJetException e) {
+							e.printStackTrace();
+						}
+					}
+					try {
+						Thread.sleep(100);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}					
+				}
+			}
+		};
+		reservedTransactionThread.run();
+	}
+	private synchronized void commit() throws SqlJetException {
+		if (mode==SqlJetTransactionMode.READ_ONLY) {
+			readCount--;
+			if (readCount>0) return;;
+		}
+		db.commit();
+		mode=null;
 	}
 	private void create(SqlJetDb db,int newVersion) throws SqlJetException {
 		onCreate(db);
