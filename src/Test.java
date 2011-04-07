@@ -20,10 +20,9 @@ public class Test {
 						
 						@Override
 						public boolean run(Document d) {
-							System.out.println(d);
-							System.out.println(d.content);
+							System.out.println(d.id+" "+d.lastUpdate+" "+d.content);
 							try {
-								Thread.sleep(1000);
+								Thread.sleep(0);
 							} catch (InterruptedException e) {
 								e.printStackTrace();
 							}
@@ -39,7 +38,7 @@ public class Test {
 		Work t1=new Work(),t2=new Work();
 		t1.start();
 		try {
-			Thread.sleep(500);
+			Thread.sleep(0);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
@@ -51,6 +50,9 @@ public class Test {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
+		
+		s.printLog();
+		
 		s.close();
 	}
 }

@@ -5,13 +5,15 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Vector;
 
+import jp.tonyu.debug.Log;
+
 import org.tmatesoft.sqljet.core.SqlJetException;
 import org.tmatesoft.sqljet.core.SqlJetTransactionMode;
 import org.tmatesoft.sqljet.core.table.SqlJetDb;
 
-public class SqlJetOpenHelper {
+public class SqlJetHelper {
 	SqlJetDb db;
-	public SqlJetOpenHelper(File file, final int version) throws SqlJetException {
+	public SqlJetHelper(File file, final int version) throws SqlJetException {
 		if (version<=0) {
 			throw new RuntimeException("Version must be >0");
 		}
@@ -40,14 +42,14 @@ public class SqlJetOpenHelper {
 	}
 	List<DBAction> reservedWriteTransaction= new Vector<DBAction>();
 	public void reserveWriteTransaction(DBAction action) {
-		reservedWriteTransaction.add(action); 
+		reservedWriteTransaction.add(action); 			
 		runReservedTransactionThread();
 	}
 	public void waitForTransaction(SqlJetTransactionMode mode,int timeOut) throws SqlJetException  {
 		if (timeOut<0) timeOut=-1;
 		else timeOut=timeOut/100;
 		while (!beginTransaction(mode)) {
-			System.out.println("Wait for trans "+mode);
+			Log.d(this,"Wait for trans "+mode);
 			try {
 				Thread.sleep(100);
 				if (timeOut==0) throw new SqlJetException("waitForTransaction: Timed out ");
@@ -98,8 +100,7 @@ public class SqlJetOpenHelper {
 				while(true) {
 					while(reservedWriteTransaction.size()>0) {
 						try {
-							writeTransaction(  reservedWriteTransaction.get(0),-1 );
-							reservedWriteTransaction.remove(0);
+							writeTransaction(  reservedWriteTransaction.remove(0),-1 );
 						} catch (SqlJetException e) {
 							e.printStackTrace();
 						}
@@ -139,25 +140,20 @@ public class SqlJetOpenHelper {
 		//System.out.println("Created");
 	}
 	public static void main(String[] args) throws SqlJetException {
-		new SqlJetOpenHelper(new File("empty.db"), 3);
+		new SqlJetHelper(new File("empty.db"), 3);
 	}
 	boolean closing=false;
 	public void close() throws SqlJetException {
-		System.out.println("Closing..");
+		Log.d(this,"Closing..");
 		closing=true;
-		/*while (reservedWriteTransaction.size()>0) {
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}*/
+
 		try {
 			reservedTransactionThread.join();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 		db.close();
+		Log.d(this,"Closed");
 	}
 
 }

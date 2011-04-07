@@ -3,7 +3,9 @@ package jp.tonyu.soytext2.db;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.LogManager;
 
+import jp.tonyu.debug.Log;
 import jp.tonyu.soytext2.document.Document;
 import jp.tonyu.soytext2.document.DocumentAction;
 import jp.tonyu.soytext2.document.SLog;
@@ -14,7 +16,7 @@ import org.tmatesoft.sqljet.core.table.ISqlJetCursor;
 import org.tmatesoft.sqljet.core.table.ISqlJetTable;
 import org.tmatesoft.sqljet.core.table.SqlJetDb;
 
-public class SDB extends SqlJetOpenHelper {
+public class SDB extends SqlJetHelper {
 	static final int version=1;
 	static final String DOCUMENT_1="document_1";
 	static final String LOG_1="log_1";
@@ -69,7 +71,12 @@ public class SDB extends SqlJetOpenHelper {
 			@Override
 			public void run(SqlJetDb db) throws SqlJetException {
 				ISqlJetTable t = docTable();
-				ISqlJetCursor cur = t.scope(DOCUMENT_CUR_LASTUPDATE, new Object[]{0}, new Object[]{null});
+				//ISqlJetCursor cur = t.order(DOCUMENT_CUR_LASTUPDATE);
+				//ISqlJetCursor cur = t.scope(DOCUMENT_CUR_LASTUPDATE, new Object[]{24}, new Object[]{36});
+			    
+				
+				ISqlJetCursor cur = t.order(DOCUMENT_CUR_LASTUPDATE); //, new Object[]{null}, new Object[]{null});
+				//Log.d("ALL", "Disp - "+cur.getRowCount());
 				cur=cur.reverse();
 				while (!cur.eof()) {
 					String id=cur.getString("id");
@@ -124,14 +131,27 @@ public class SDB extends SqlJetOpenHelper {
 			public void run(SqlJetDb db) throws SqlJetException {
 			    ISqlJetTable t = docTable();
 			    ISqlJetCursor cur = t.lookup(null, d.id);
+			    SLog log=logManager.write("save",d.id);
+			    d.lastUpdate=log.id;
+			    Log.d("SAVE", d);
+			    //Log.d("SAVE", "Before - "+docCount());
 			    if (!cur.eof()) {
 			    	cur.update(d.id,d.lastUpdate,d.createDate,d.lastAccessed,"javascript",d.summary,d.content,d.owner,d.group,d.permission);
 			    } else {
 			    	t.insert(d.id,d.lastUpdate,d.createDate,d.lastAccessed,"javascript",d.summary,d.content,d.owner,d.group,d.permission);
 			    }				
+			    Log.d("SAVE", d+": done");
+			    cur.close();
 				cache.put(d.id, d);
 			}
 		});
+	}
+	public int docCount() throws SqlJetException {
+		ISqlJetTable t=docTable();
+		ISqlJetCursor cur2= t.order(null);
+		int res=(int) cur2.getRowCount();
+	    cur2.close();
+	    return res;
 	}
 	public ISqlJetTable docTable() throws SqlJetException {
 		return db.getTable(DOCUMENT_CUR);
@@ -141,10 +161,14 @@ public class SDB extends SqlJetOpenHelper {
 	}
 	public Document newDocument() throws SqlJetException {
 		Document d=new Document();
-		SLog log = logManager.create();
+		SLog log = logManager.write("create","<sameAsThisId>");
 		d.id=log.id+"";
-		logManager.save(log);
+		d.lastUpdate=log.id;
+		d.lastAccessed=log.id;
 		return d;
+	}
+	public void printLog () {
+		logManager.printAll();
 	}
 	
 }

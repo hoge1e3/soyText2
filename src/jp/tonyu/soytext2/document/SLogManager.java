@@ -9,6 +9,7 @@ import org.tmatesoft.sqljet.core.table.ISqlJetCursor;
 import org.tmatesoft.sqljet.core.table.ISqlJetTable;
 import org.tmatesoft.sqljet.core.table.SqlJetDb;
 
+import jp.tonyu.debug.Log;
 import jp.tonyu.soytext2.db.DBAction;
 import jp.tonyu.soytext2.db.SDB;
 
@@ -30,6 +31,24 @@ public class SLogManager {
 				}			
 			}
 		},-1);
+	}
+	public void printAll() {
+		try {
+			sdb.readTransaction(new DBAction () {
+				@Override
+				public void run(SqlJetDb db) throws SqlJetException {
+					ISqlJetTable t = sdb.logTable();
+					ISqlJetCursor c = t.order(null);
+					while (!c.eof()) {
+						Log.d("LOG", c.getValue("id")+","+c.getValue("date")+","+c.getValue("action")+","+c.getValue("target") );
+						c.next();
+					}
+					c.close();
+				}
+			}, -1);
+		} catch (SqlJetException e) {
+			e.printStackTrace();
+		}
 	}
 	Map<Integer, SLog> cache=new HashMap<Integer, SLog>(); 
 	public SLog byId(final int id) throws SqlJetException {
@@ -59,6 +78,13 @@ public class SLogManager {
 		SLog res=new SLog(lastNumber);
 		res.date=new Date().toString();
 		return res;
+	}
+	public SLog write(String action, String target) {
+		SLog l=create();
+		l.action=action;
+		l.target=target;
+		save(l);
+		return l;
 	}
 	public void save(final SLog log) {
 		sdb.reserveWriteTransaction(new DBAction() {
