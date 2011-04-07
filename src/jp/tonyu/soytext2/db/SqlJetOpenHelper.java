@@ -11,27 +11,24 @@ import org.tmatesoft.sqljet.core.table.SqlJetDb;
 
 public class SqlJetOpenHelper {
 	SqlJetDb db;
-	public SqlJetOpenHelper(File file, final int version) {
+	public SqlJetOpenHelper(File file, final int version) throws SqlJetException {
 		if (version<=0) {
 			throw new RuntimeException("Version must be >0");
 		}
-		try {
-			db=SqlJetDb.open(file, true);
-			writeTransaction(new DBAction() {
-				@Override
-				public void run(SqlJetDb db) throws SqlJetException {
-					int dbVer=db.getOptions().getUserVersion();
-					if (dbVer==0) {
-						create(db,version);
-					} else if (dbVer!=version) {
-						upgrade(dbVer,version);
-					}				
-				}
-			},0);			
-		} catch (SqlJetException e) {
-			e.printStackTrace();
-		}
-		
+		db=SqlJetDb.open(file, true);
+		writeTransaction(new DBAction() {
+			@Override
+			public void run(SqlJetDb db) throws SqlJetException {
+				int dbVer=db.getOptions().getUserVersion();
+				if (dbVer==0) {
+					create(db,version);
+				} else if (dbVer!=version) {
+					upgrade(dbVer,version);
+				}				
+			}
+		},0);			
+
+
 	}
 	int readCount=0;
 	//SqlJetTransactionMode transaction=null;
@@ -41,7 +38,7 @@ public class SqlJetOpenHelper {
 		commit();
 	}
 	List<DBAction> reservedWriteTransaction= new Vector<DBAction>();
-	public void reserveWriteTransaction(DBAction action) throws SqlJetException {
+	public void reserveWriteTransaction(DBAction action) {
 		reservedWriteTransaction.add(action); 
 		runReservedTransactionThread();
 	}
@@ -136,7 +133,7 @@ public class SqlJetOpenHelper {
 	protected void onCreate(SqlJetDb db) throws SqlJetException {
 		//System.out.println("Created");
 	}
-	public static void main(String[] args) {
+	public static void main(String[] args) throws SqlJetException {
 		new SqlJetOpenHelper(new File("empty.db"), 3);
 	}
 }

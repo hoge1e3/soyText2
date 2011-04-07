@@ -5,6 +5,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import jp.tonyu.soytext2.document.Document;
+import jp.tonyu.soytext2.document.DocumentAction;
+import jp.tonyu.soytext2.document.SLog;
+import jp.tonyu.soytext2.document.SLogManager;
 
 import org.tmatesoft.sqljet.core.SqlJetException;
 import org.tmatesoft.sqljet.core.table.ISqlJetCursor;
@@ -24,8 +27,9 @@ public class SDB extends SqlJetOpenHelper {
 	static final String DOCUMENT_CUR=DOCUMENT_1;
 	static final String LOG_CUR=LOG_1;
 
-	public SDB(File file) {
+	public SDB(File file) throws SqlJetException {
 		super(file, version);
+		logManager=new SLogManager(this);
 	}
 	@Override
 	protected void onCreate(SqlJetDb db) throws SqlJetException {
@@ -57,26 +61,50 @@ public class SDB extends SqlJetOpenHelper {
 		
 	}
 	Map<String,Document> cache=new HashMap<String, Document>();
+	private SLogManager logManager;
 	
-	public Iterator<Document> all() {
-		
+	public void all(final DocumentAction action) throws SqlJetException {
+		readTransaction(new DBAction() {
+			
+			@Override
+			public void run(SqlJetDb db) throws SqlJetException {
+				ISqlJetTable t = docTable();
+				ISqlJetCursor cur = t.scope(DOCUMENT_CUR_LASTUPDATE, new Object[]{0}, new Object[]{null});
+				cur=cur.reverse();
+				while (!cur.eof()) {
+					String id=cur.getString("id");
+					Document d=null;
+					synchronized (cache) {
+						d=cache.get(id);
+						if (d==null) {
+							d=fromCursor(cur);
+							cache.put(id,d);
+						}
+					}
+					if (action.run(d)) break;					
+				}
+				cur.close();
+			}
+		},-1);
 	}
 	public Document byId(final String id) throws SqlJetException {
-		if (!cache.containsKey(id)) {
-			readTransaction(new DBAction() {
-				@Override
-				public void run(SqlJetDb db) throws SqlJetException {
-					ISqlJetTable t = db.getTable(DOCUMENT_CUR);
-					ISqlJetCursor cur = t.lookup(null, id);
-					if (!cur.eof()) {
-						cache.put(id, fromCursor(cur));
+		synchronized (cache) {
+			if (!cache.containsKey(id)) {
+				readTransaction(new DBAction() {
+					@Override
+					public void run(SqlJetDb db) throws SqlJetException {
+						ISqlJetTable t = docTable();
+						ISqlJetCursor cur = t.lookup(null, id);
+						if (!cur.eof()) {
+							cache.put(id, fromCursor(cur));
+						}
 					}
-				}
-			});
+				},-1);
+			}
+			return cache.get(id);			
 		}
-		return cache.get(id);
 	}
-	public Document fromCursor(ISqlJetCursor cur) throws SqlJetException {
+	private Document fromCursor(ISqlJetCursor cur) throws SqlJetException {
     	Document d = new Document();
 		d.id=cur.getString("id");
     	d.lastUpdate=cur.getInteger("lastupdate");
@@ -90,10 +118,10 @@ public class SDB extends SqlJetOpenHelper {
     	return d;
 	}
 	public void save(final Document d) throws SqlJetException {
-		writeTransaction(new DBAction() {
+		reserveWriteTransaction(new DBAction() {
 			@Override
 			public void run(SqlJetDb db) throws SqlJetException {
-			    ISqlJetTable t = db.getTable(DOCUMENT_CUR);
+			    ISqlJetTable t = docTable();
 			    ISqlJetCursor cur = t.lookup(null, d.id);
 			    if (!cur.eof()) {
 			    	cur.update(d.id,d.lastUpdate,d.createDate,d.lastAccessed,"javascript",d.summary,d.content,d.owner,d.group,d.permission);
@@ -104,4 +132,18 @@ public class SDB extends SqlJetOpenHelper {
 			}
 		});
 	}
+	public ISqlJetTable docTable() throws SqlJetException {
+		return db.getTable(DOCUMENT_CUR);
+	}
+	public ISqlJetTable logTable() throws SqlJetException {
+		return db.getTable(LOG_CUR);
+	}
+	public Document newDocument() throws SqlJetException {
+		Document d=new Document();
+		SLog log = logManager.create();
+		d.id=log.id+"";
+		logManager.save(log);
+		return d;
+	}
+	
 }
