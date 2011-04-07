@@ -1,5 +1,8 @@
 package jp.tonyu.soytext2.document;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.tmatesoft.sqljet.core.SqlJetException;
 import org.tmatesoft.sqljet.core.table.ISqlJetCursor;
 import org.tmatesoft.sqljet.core.table.ISqlJetTable;
@@ -26,6 +29,29 @@ public class SLogManager {
 				}			
 			}
 		},-1);
+	}
+	Map<Integer, SLog> cache=new HashMap<Integer, SLog>(); 
+	public SLog byId(final int id) throws SqlJetException {
+		if (!cache.containsKey(id)) {
+			sdb.readTransaction(new DBAction() {
+
+				@Override
+				public void run(SqlJetDb db) throws SqlJetException {
+					ISqlJetTable t = sdb.logTable();
+					ISqlJetCursor cur = t.lookup(null, id);
+					SLog res=new SLog(id);
+					if (!cur.eof()) {
+						cache.put(id, res);
+						res.action=cur.getString("action");
+						res.date=cur.getString("date");
+						res.target=cur.getString("target");
+						res.option=cur.getString("option");
+					}
+
+				}
+			},-1);
+		}
+		return cache.get(id);
 	}
 	public synchronized SLog create() {
 		lastNumber++;

@@ -95,7 +95,8 @@ public class SqlJetOpenHelper {
 				while(true) {
 					while(reservedWriteTransaction.size()>0) {
 						try {
-							writeTransaction(  reservedWriteTransaction.remove(0),-1 );
+							writeTransaction(  reservedWriteTransaction.get(0),-1 );
+							reservedWriteTransaction.remove(0);
 						} catch (SqlJetException e) {
 							e.printStackTrace();
 						}
@@ -136,4 +137,17 @@ public class SqlJetOpenHelper {
 	public static void main(String[] args) throws SqlJetException {
 		new SqlJetOpenHelper(new File("empty.db"), 3);
 	}
+	
+	public void close() throws SqlJetException {
+		while (reservedWriteTransaction.size()>0) {
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		db.close();
+	}
+
 }
