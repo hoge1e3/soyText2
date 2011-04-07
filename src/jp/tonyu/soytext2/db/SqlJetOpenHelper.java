@@ -36,6 +36,7 @@ public class SqlJetOpenHelper {
 		waitForTransaction(SqlJetTransactionMode.WRITE, timeOut);
 		action.run(db);
 		commit();
+		action.afterCommit(db);
 	}
 	List<DBAction> reservedWriteTransaction= new Vector<DBAction>();
 	public void reserveWriteTransaction(DBAction action) {
@@ -46,6 +47,7 @@ public class SqlJetOpenHelper {
 		if (timeOut<0) timeOut=-1;
 		else timeOut=timeOut/100;
 		while (!beginTransaction(mode)) {
+			System.out.println("Wait for trans "+mode);
 			try {
 				Thread.sleep(100);
 				if (timeOut==0) throw new SqlJetException("waitForTransaction: Timed out ");
@@ -85,6 +87,7 @@ public class SqlJetOpenHelper {
 		waitForTransaction(SqlJetTransactionMode.READ_ONLY, timeOut);
 		action.run(db);
 		commit();
+		action.afterCommit(db);
 	}
 	Thread reservedTransactionThread=null;
 	public void runReservedTransactionThread() {
@@ -101,6 +104,7 @@ public class SqlJetOpenHelper {
 							e.printStackTrace();
 						}
 					}
+					if (closing && reservedWriteTransaction.size()==0) break;
 					try {
 						Thread.sleep(100);
 					} catch (InterruptedException e) {
@@ -109,7 +113,7 @@ public class SqlJetOpenHelper {
 				}
 			}
 		};
-		reservedTransactionThread.run();
+		reservedTransactionThread.start();
 	}
 	private synchronized void commit() throws SqlJetException {
 		if (mode==SqlJetTransactionMode.READ_ONLY) {
@@ -137,15 +141,21 @@ public class SqlJetOpenHelper {
 	public static void main(String[] args) throws SqlJetException {
 		new SqlJetOpenHelper(new File("empty.db"), 3);
 	}
-	
+	boolean closing=false;
 	public void close() throws SqlJetException {
-		while (reservedWriteTransaction.size()>0) {
+		System.out.println("Closing..");
+		closing=true;
+		/*while (reservedWriteTransaction.size()>0) {
 			try {
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+		}*/
+		try {
+			reservedTransactionThread.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 		db.close();
 	}

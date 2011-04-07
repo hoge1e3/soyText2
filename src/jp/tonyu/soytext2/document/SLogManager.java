@@ -1,5 +1,6 @@
 package jp.tonyu.soytext2.document;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,6 +57,7 @@ public class SLogManager {
 	public synchronized SLog create() {
 		lastNumber++;
 		SLog res=new SLog(lastNumber);
+		res.date=new Date().toString();
 		return res;
 	}
 	public void save(final SLog log) {
@@ -71,9 +73,9 @@ public class SLogManager {
 	public String action,target,option;
 			     */
 				if (!cur.eof()) {
-			    	cur.update(log.id,log.date,log.action,log.action,log.target,log.option);
+			    	cur.update(log.id,log.date,log.action,log.target,log.option);
 			    } else {
-			    	t.insert(log.id,log.date,log.action,log.action,log.target,log.option);
+			    	t.insert(log.id,log.date,log.action,log.target,log.option);
 			    }
 			}
 		});

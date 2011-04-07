@@ -81,7 +81,8 @@ public class SDB extends SqlJetOpenHelper {
 							cache.put(id,d);
 						}
 					}
-					if (action.run(d)) break;					
+					if (action.run(d)) break;
+					cur.next();
 				}
 				cur.close();
 			}

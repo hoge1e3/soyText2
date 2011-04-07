@@ -17,4 +17,9 @@ public class Document {
 	public long lastUpdate,createDate,lastAccessed;
 	public String summary,content;
 	public String owner,group,permission;
+	
+	@Override
+	public String toString() {
+		return "(Document "+id+")";
+	}
 }
