@@ -15,23 +15,19 @@ public class Test {
 		s.save(d);
 		class Work extends Thread {
 			public void run() {
-				try {
-					s.all(new DocumentAction() {
-						
-						@Override
-						public boolean run(Document d) {
-							System.out.println(d.id+" "+d.lastUpdate+" "+d.content);
-							try {
-								Thread.sleep(0);
-							} catch (InterruptedException e) {
-								e.printStackTrace();
-							}
-							return false;
+				s.all(new DocumentAction() {
+					
+					@Override
+					public boolean run(Document d) {
+						System.out.println(d.id+" "+d.lastUpdate+" "+d.content);
+						try {
+							Thread.sleep(0);
+						} catch (InterruptedException e) {
+							e.printStackTrace();
 						}
-					});
-				} catch (SqlJetException e) {
-					e.printStackTrace();
-				}				
+						return false;
+					}
+				});				
 			}
 			
 		};

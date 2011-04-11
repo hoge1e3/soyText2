@@ -8,6 +8,7 @@ import java.util.logging.LogManager;
 import jp.tonyu.debug.Log;
 import jp.tonyu.soytext2.document.Document;
 import jp.tonyu.soytext2.document.DocumentAction;
+import jp.tonyu.soytext2.document.DocumentSet;
 import jp.tonyu.soytext2.document.SLog;
 import jp.tonyu.soytext2.document.SLogManager;
 
@@ -16,7 +17,7 @@ import org.tmatesoft.sqljet.core.table.ISqlJetCursor;
 import org.tmatesoft.sqljet.core.table.ISqlJetTable;
 import org.tmatesoft.sqljet.core.table.SqlJetDb;
 
-public class SDB extends SqlJetHelper {
+public class SDB extends SqlJetHelper implements DocumentSet {
 	static final int version=1;
 	static final String DOCUMENT_1="document_1";
 	static final String LOG_1="log_1";
@@ -65,56 +66,57 @@ public class SDB extends SqlJetHelper {
 	Map<String,Document> cache=new HashMap<String, Document>();
 	private SLogManager logManager;
 	
-	public void all(final DocumentAction action) throws SqlJetException {
-		readTransaction(new DBAction() {
-			
-			@Override
-			public void run(SqlJetDb db) throws SqlJetException {
-				ISqlJetTable t = docTable();
-				//ISqlJetCursor cur = t.order(DOCUMENT_CUR_LASTUPDATE);
-				//ISqlJetCursor cur = t.scope(DOCUMENT_CUR_LASTUPDATE, new Object[]{24}, new Object[]{36});
-			    
-				
-				ISqlJetCursor cur = t.order(DOCUMENT_CUR_LASTUPDATE); //, new Object[]{null}, new Object[]{null});
-				//Log.d("ALL", "Disp - "+cur.getRowCount());
-				cur=cur.reverse();
-				while (!cur.eof()) {
-					String id=cur.getString("id");
-					Document d=null;
-					synchronized (cache) {
-						d=cache.get(id);
-						if (d==null) {
-							d=fromCursor(cur);
-							cache.put(id,d);
+	public void all(final DocumentAction action) {
+		try {
+			readTransaction(new DBAction() {
+				@Override
+				public void run(SqlJetDb db) throws SqlJetException {
+					ISqlJetTable t = docTable();
+					ISqlJetCursor cur = t.order(DOCUMENT_CUR_LASTUPDATE);
+					cur=cur.reverse();
+					while (!cur.eof()) {
+						String id=cur.getString("id");
+						Document d=null;
+						synchronized (cache) {
+							d=cache.get(id);
+							if (d==null) {
+								d=fromCursor(cur);
+								cache.put(id,d);
+							}
 						}
+						if (action.run(d)) break;
+						cur.next();
 					}
-					if (action.run(d)) break;
-					cur.next();
+					cur.close();
 				}
-				cur.close();
-			}
-		},-1);
+			},-1);
+		} catch (SqlJetException e) {
+			e.printStackTrace();
+		}
 	}
-	public Document byId(final String id) throws SqlJetException {
+	public Document byId(final String id) {
 		synchronized (cache) {
 			if (!cache.containsKey(id)) {
-				readTransaction(new DBAction() {
-					@Override
-					public void run(SqlJetDb db) throws SqlJetException {
-						ISqlJetTable t = docTable();
-						ISqlJetCursor cur = t.lookup(null, id);
-						if (!cur.eof()) {
-							cache.put(id, fromCursor(cur));
+				try {
+					readTransaction(new DBAction() {
+						@Override
+						public void run(SqlJetDb db) throws SqlJetException {
+							ISqlJetTable t = docTable();
+							ISqlJetCursor cur = t.lookup(null, id);
+							if (!cur.eof()) {
+								cache.put(id, fromCursor(cur));
+							}
 						}
-					}
-				},-1);
+					},-1);
+				} catch (SqlJetException e) {
+					e.printStackTrace();
+				}
 			}
 			return cache.get(id);			
 		}
 	}
 	private Document fromCursor(ISqlJetCursor cur) throws SqlJetException {
-    	Document d = new Document();
-		d.id=cur.getString("id");
+    	Document d = new Document(this, cur.getString("id"));
     	d.lastUpdate=cur.getInteger("lastupdate");
     	d.createDate=cur.getInteger("createdate");
     	d.lastAccessed=cur.getInteger("lastaccessed");
@@ -125,7 +127,7 @@ public class SDB extends SqlJetHelper {
     	d.permission=cur.getString("permission");
     	return d;
 	}
-	public void save(final Document d) throws SqlJetException {
+	public void save(final Document d) {
 		reserveWriteTransaction(new DBAction() {
 			@Override
 			public void run(SqlJetDb db) throws SqlJetException {
@@ -159,10 +161,9 @@ public class SDB extends SqlJetHelper {
 	public ISqlJetTable logTable() throws SqlJetException {
 		return db.getTable(LOG_CUR);
 	}
-	public Document newDocument() throws SqlJetException {
-		Document d=new Document();
+	public Document newDocument() {
 		SLog log = logManager.write("create","<sameAsThisId>");
-		d.id=log.id+"";
+		Document d=new Document(this, log.id+"");
 		d.lastUpdate=log.id;
 		d.lastAccessed=log.id;
 		return d;

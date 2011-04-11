@@ -3,7 +3,7 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="lib" path="lib/antlr-runtime-3.1.3.jar"/>
-	<classpathentry kind="lib" path="lib/org.mozilla.javascript.jar"/>
+	<classpathentry kind="lib" path="lib/org.mozilla.javascript.jar" sourcepath="/Rhino/src"/>
 	<classpathentry kind="lib" path="lib/servlet-api.jar"/>
 	<classpathentry kind="lib" path="lib/sqljet.1.0.3.b914.jar" sourcepath="/SQLiteTest/lib/sqljet.1.0.3.b914.src.zip"/>
 	<classpathentry kind="output" path="bin"/>
