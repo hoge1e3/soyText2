@@ -2,7 +2,6 @@ package jp.tonyu.soytext2.db;
 
 import java.io.File;
 import java.util.List;
-import java.util.Queue;
 import java.util.Vector;
 
 import jp.tonyu.debug.Log;

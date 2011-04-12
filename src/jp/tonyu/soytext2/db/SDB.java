@@ -3,7 +3,6 @@ package jp.tonyu.soytext2.db;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.LogManager;
 
 import jp.tonyu.debug.Log;
 import jp.tonyu.soytext2.document.Document;
@@ -65,7 +64,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	}
 	Map<String,Document> cache=new HashMap<String, Document>();
 	private SLogManager logManager;
-	
+	@Override
 	public void all(final DocumentAction action) {
 		try {
 			readTransaction(new DBAction() {
@@ -94,6 +93,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 			e.printStackTrace();
 		}
 	}
+	@Override
 	public Document byId(final String id) {
 		synchronized (cache) {
 			if (!cache.containsKey(id)) {
@@ -127,6 +127,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
     	d.permission=cur.getString("permission");
     	return d;
 	}
+	@Override
 	public void save(final Document d) {
 		reserveWriteTransaction(new DBAction() {
 			@Override
@@ -161,9 +162,19 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	public ISqlJetTable logTable() throws SqlJetException {
 		return db.getTable(LOG_CUR);
 	}
+	@Override
 	public Document newDocument() {
 		SLog log = logManager.write("create","<sameAsThisId>");
 		Document d=new Document(this, log.id+"");
+		d.lastUpdate=log.id;
+		d.lastAccessed=log.id;
+		return d;
+	}
+	@Override
+	public Document newDocument(String id) {
+		if (byId(id)!=null) return null;
+		SLog log = logManager.write("create",id);
+		Document d=new Document(this, id);
 		d.lastUpdate=log.id;
 		d.lastAccessed=log.id;
 		return d;
