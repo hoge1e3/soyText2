@@ -10,9 +10,9 @@ import jp.tonyu.soytext2.document.DocumentAction;
 public class Test {
 	public static void main(String[] args) throws SqlJetException {
 		final SDB s=new SDB(new File("test.db"));
-		Document d=s.newDocument();
+		/*Document d=s.newDocument();
 		d.content="test"+d.id;
-		s.save(d);
+		s.save(d);*/
 		class Work extends Thread {
 			public void run() {
 				s.all(new DocumentAction() {

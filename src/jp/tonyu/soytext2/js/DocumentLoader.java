@@ -5,14 +5,16 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import jp.tonyu.debug.Log;
 import jp.tonyu.soytext2.db.SDB;
 import jp.tonyu.soytext2.document.Document;
+import jp.tonyu.soytext2.document.DocumentAction;
 import jp.tonyu.soytext2.document.DocumentSet;
 
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
 
-public class DocumentLoader {
+public class DocumentLoader implements Wrappable {
 	//private static final Object LOADING = "LOADING";
 	public static final Pattern idpatWiki=Pattern.compile("\\[\\[([^\\]]+)\\]\\]");
 		//Map<String, Scriptable>objs=new HashMap<String, Scriptable>();
@@ -22,8 +24,9 @@ public class DocumentLoader {
 		super();
 		this.documentSet = documentSet;
 	}
-	public DocumentScriptable byId(String id) {
+	public Object byId(String id) {
 		Document src=documentSet.byId(id);
+		if (src==null) return "[[ERROR:Missing:"+id+"]]";
 		DocumentScriptable o=objs.get(id);
 		if (o!=null) return o;
 		o=new DocumentScriptable(src);
@@ -31,7 +34,12 @@ public class DocumentLoader {
 		Map<String, Object> vars=new HashMap<String, Object>();
 		vars.put("$", this);
 		vars.put("_", o);
-		RunScript.eval(src.content, vars);
+		try {
+			RunScript.eval(src.content, vars);
+		} catch (Exception e) {
+			e.printStackTrace();
+			Log.die(src.id+" has invalid content "+src.content);
+		}
 		return o;
 	}
 	public DocumentScriptable newDocument(Scriptable hash) {
@@ -45,6 +53,21 @@ public class DocumentLoader {
 		DocumentScriptable res=new DocumentScriptable(d);
 		extend(res,hash);
 		return res;
+	}
+	public void search(String cond, Scriptable tmpl, final Function iter) {
+		documentSet.all(new DocumentAction() {
+			
+			@Override
+			public boolean run(Document d) {
+				DocumentScriptable s=(DocumentScriptable) byId(d.id);
+				Object brk=RunScript.call(iter, new Object[]{s});
+				if (brk instanceof Boolean) {
+					Boolean b = (Boolean) brk;
+					if (b.booleanValue()) return true;
+				}
+				return false;
+			}
+		});
 	}
 	public void extend(DocumentScriptable dst, Scriptable hash) {
 		for (Object key:hash.getIds()) {

@@ -29,7 +29,7 @@ public class SqlJetHelper {
 			}
 		},0);			
 
-
+		runReservedTransactionThread();
 	}
 	int readCount=0;
 	//SqlJetTransactionMode transaction=null;
@@ -90,29 +90,28 @@ public class SqlJetHelper {
 		commit();
 		action.afterCommit(db);
 	}
-	Thread reservedTransactionThread=null;
+	Thread reservedTransactionThread=new Thread() {
+		@Override
+		public void run() {
+			while(true) {
+				while(reservedWriteTransaction.size()>0) {
+					try {
+						writeTransaction(  reservedWriteTransaction.remove(0),-1 );
+					} catch (SqlJetException e) {
+						e.printStackTrace();
+					}
+				}
+				if (closing && reservedWriteTransaction.size()==0) break;
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}					
+			}
+		}
+	};
 	public void runReservedTransactionThread() {
 		if (reservedTransactionThread!=null) return;
-		reservedTransactionThread=new Thread() {
-			@Override
-			public void run() {
-				while(true) {
-					while(reservedWriteTransaction.size()>0) {
-						try {
-							writeTransaction(  reservedWriteTransaction.remove(0),-1 );
-						} catch (SqlJetException e) {
-							e.printStackTrace();
-						}
-					}
-					if (closing && reservedWriteTransaction.size()==0) break;
-					try {
-						Thread.sleep(100);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}					
-				}
-			}
-		};
 		reservedTransactionThread.start();
 	}
 	private synchronized void commit() throws SqlJetException {
