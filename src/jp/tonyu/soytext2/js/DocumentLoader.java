@@ -18,15 +18,15 @@ public class DocumentLoader implements Wrappable {
 	//private static final Object LOADING = "LOADING";
 	public static final Pattern idpatWiki=Pattern.compile("\\[\\[([^\\]]+)\\]\\]");
 		//Map<String, Scriptable>objs=new HashMap<String, Scriptable>();
-	final DocumentSet documentSet;
+	private final DocumentSet documentSet;
 	Map<String, DocumentScriptable> objs=new HashMap<String, DocumentScriptable>();
 	public DocumentLoader(DocumentSet documentSet) {
 		super();
 		this.documentSet = documentSet;
 	}
-	public Object byId(String id) {
-		Document src=documentSet.byId(id);
-		if (src==null) return "[[ERROR:Missing:"+id+"]]";
+	public DocumentScriptable byId(String id) {
+		Document src=getDocumentSet().byId(id);
+		if (src==null) return null;
 		DocumentScriptable o=objs.get(id);
 		if (o!=null) return o;
 		o=new DocumentScriptable(src);
@@ -43,19 +43,19 @@ public class DocumentLoader implements Wrappable {
 		return o;
 	}
 	public DocumentScriptable newDocument(Scriptable hash) {
-		Object id = hash.get("id", hash);
+		Object id = hash!=null ? hash.get("id", hash) : null;
 		Document d;
 		if (id instanceof String) {
-			d=documentSet.newDocument((String)id);
+			d=getDocumentSet().newDocument((String)id);
 		} else {
-			d=documentSet.newDocument();
+			d=getDocumentSet().newDocument();
 		}
 		DocumentScriptable res=new DocumentScriptable(d);
 		extend(res,hash);
 		return res;
 	}
 	public void search(String cond, Scriptable tmpl, final Function iter) {
-		documentSet.all(new DocumentAction() {
+		getDocumentSet().all(new DocumentAction() {
 			
 			@Override
 			public boolean run(Document d) {
@@ -77,7 +77,7 @@ public class DocumentLoader implements Wrappable {
 				Object value = hash.get(str, null);
 				if (m.matches()) {
 					String id=m.group(1);
-					dst.put(documentSet.byId(id), value);
+					dst.put(getDocumentSet().byId(id), value);
 				} else {
 					dst.put(key, value);
 				}
@@ -105,5 +105,8 @@ public class DocumentLoader implements Wrappable {
 			e.printStackTrace();
 		}
 		return null;
+	}
+	public DocumentSet getDocumentSet() {
+		return documentSet;
 	}
 }

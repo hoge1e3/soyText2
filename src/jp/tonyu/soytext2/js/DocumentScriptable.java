@@ -14,16 +14,19 @@ public class DocumentScriptable implements Scriptable {
 	private static final Object GETTERKEY = "GETTERKEY";
 	Map<Object, Object>binds=new HashMap<Object, Object>();
 	Document d;
+	public Document getDocument() {
+		return d;
+	}
 	public DocumentScriptable(final Document d) {
-		put("id",d.id);
-		put("lastUpdate",d.lastUpdate);
-		put("save",new BuiltinFunc() {
+		put("id",this , d.id );
+		put("lastUpdate",this, d.lastUpdate);
+		put("save",this, new BuiltinFunc() {
 			
 			@Override
 			public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 					Object[] args) {
-				d.save();
-				return d;
+				save();
+				return DocumentScriptable.this;
 			}
 		});
 	}
@@ -141,6 +144,10 @@ public class DocumentScriptable implements Scriptable {
 	@Override
 	public void setPrototype(Scriptable prototype) {
 		// TODO Auto-generated method stub
+		
+	}
+	public void save() {
+		d.save();
 		
 	}
 
