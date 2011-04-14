@@ -29,7 +29,7 @@ public class SqlJetHelper {
 			}
 		},0);			
 
-		runReservedTransactionThread();
+		reservedTransactionThread.start();
 	}
 	int readCount=0;
 	//SqlJetTransactionMode transaction=null;
@@ -42,7 +42,6 @@ public class SqlJetHelper {
 	List<DBAction> reservedWriteTransaction= new Vector<DBAction>();
 	public void reserveWriteTransaction(DBAction action) {
 		reservedWriteTransaction.add(action); 			
-		runReservedTransactionThread();
 	}
 	public void waitForTransaction(SqlJetTransactionMode mode,int timeOut) throws SqlJetException  {
 		if (timeOut<0) timeOut=-1;
@@ -110,10 +109,7 @@ public class SqlJetHelper {
 			}
 		}
 	};
-	public void runReservedTransactionThread() {
-		if (reservedTransactionThread!=null) return;
-		reservedTransactionThread.start();
-	}
+	
 	private synchronized void commit() throws SqlJetException {
 		if (mode==SqlJetTransactionMode.READ_ONLY) {
 			readCount--;

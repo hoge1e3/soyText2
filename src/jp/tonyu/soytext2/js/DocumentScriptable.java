@@ -13,11 +13,12 @@ import org.mozilla.javascript.Scriptable;
 public class DocumentScriptable implements Scriptable {
 	private static final Object GETTERKEY = "GETTERKEY";
 	Map<Object, Object>binds=new HashMap<Object, Object>();
-	Document d;
+	final Document d;
 	public Document getDocument() {
 		return d;
 	}
 	public DocumentScriptable(final Document d) {
+		this.d=d;
 		put("id",this , d.id );
 		put("lastUpdate",this, d.lastUpdate);
 		put("save",this, new BuiltinFunc() {

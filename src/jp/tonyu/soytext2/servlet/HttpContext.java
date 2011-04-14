@@ -377,12 +377,14 @@ public class HttpContext {
     private void search(String cstr, Object object) throws IOException {
     	final StringBuffer buf = new StringBuffer(isAjaxRequest() ? "" : menuBar());
         loader.search(cstr, null, new BuiltinFunc() {		
+        	int c=0;
 			@Override
 			public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 					Object[] args) {
 				DocumentScriptable s=(DocumentScriptable)args[0];
 				buf.append(linkBar(s ));
-				return null;
+				c++;
+				return c>100;
 			}
 		});   	
     	res.setContentType ("text/html; charset=utf-8");

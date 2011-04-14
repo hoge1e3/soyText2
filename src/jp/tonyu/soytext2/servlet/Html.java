@@ -21,9 +21,9 @@ public class Html {
 			m=p.matcher(tmplPat);
 			if (m.lookingAt()) {
 				if (m.group().equals("%a") && i<params.length) {
-					res.append("\""+HTMLDecoder.encode(params[i])+"\"");
+					res.append("\""+HTMLDecoder_encode(params[i])+"\"");
 				} else if (m.group().equals("%t") && i<params.length) {
-					res.append(HTMLDecoder.encode(params[i]));
+					res.append(HTMLDecoder_encode(params[i]));
 				} else if (m.group().equals("%u")  && i<params.length){
 					try {
 						res.append(URLEncoder.encode(params[i],"utf-8"));
@@ -37,6 +37,10 @@ public class Html {
 			} else break;
 		}
 		return res.toString();
+	}
+	private static String HTMLDecoder_encode(String string) {
+		if (string==null) return "null";
+		return HTMLDecoder.encode(string);
 	}
 	public static void main(String[] args) {
 		System.out.println(Html.p("test %a desu", "a"));
