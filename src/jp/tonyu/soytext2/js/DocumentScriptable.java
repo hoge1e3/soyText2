@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import jp.tonyu.soytext.Origin;
 import jp.tonyu.soytext.js.BuiltinFunc;
 import jp.tonyu.soytext2.document.Document;
 
@@ -11,7 +12,7 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
 public class DocumentScriptable implements Scriptable {
-	private static final Object GETTERKEY = "GETTERKEY";
+	private static final Object GETTERKEY = "[[110414_051952@"+Origin.uid+"]]";
 	Map<Object, Object>binds=new HashMap<Object, Object>();
 	final Document d;
 	public Document getDocument() {

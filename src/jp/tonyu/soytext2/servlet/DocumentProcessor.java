@@ -17,7 +17,7 @@ import jp.tonyu.soytext2.js.DocumentScriptable;
 
 
 public class DocumentProcessor {
-	private static final String STRICTLY_PARSED = "_strictlyParsed";
+	//private static final String STRICTLY_PARSED = "_strictlyParsed";
 	DocumentScriptable d;
 	HttpContext ctx;
 	public DocumentProcessor(DocumentScriptable d, HttpContext ctx) {
@@ -48,7 +48,7 @@ public class DocumentProcessor {
 
 		ctx.frobidden(d+" is not execable");
 	}*/
-	public static final String ARGUMENTORDER = "arguments";
+	//public static final String ARGUMENTORDER = "arguments";
 	public static final Pattern docPat=Pattern.compile("\\[\\[([^\\[\\]]+)*\\]\\]");
 	
 	public void execHtml() throws IOException {

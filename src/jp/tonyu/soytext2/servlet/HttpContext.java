@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import jp.tonyu.debug.Log;
+import jp.tonyu.soytext.Origin;
 import jp.tonyu.soytext.js.BuiltinFunc;
 import jp.tonyu.soytext2.document.Document;
 import jp.tonyu.soytext2.document.DocumentAction;
@@ -76,8 +77,8 @@ public class HttpContext {
 
 	
 	static final String OP_="OP_";
-	public static final String headAttr="_head";
-	public static final String contentAttr="_content";
+	//public static final String headAttr="_head";
+	public static final String contentAttr="[[110414_052728@"+Origin.uid+"]]";
 	public static final String bodyAttr = "_body";
 	public static final String AJAXTAG = "AJAXTAG:";
 
@@ -265,12 +266,10 @@ public class HttpContext {
 		} else {
 			Httpd.respondByString(res, Html.p("<html><title>New Document</title>"+
 					"<body><form action=\"./new\" method=\"POST\">"+
-					"ヘッダ Header:<Br/>"+
-					"<textarea name=\"_head\" rows=5 cols=60></textarea>"+
-					"<br/>\nボディ　Body: <br/>\n"+
-					"<textarea name=\"_body\" rows=5 cols=40></textarea>"+
+					"<br/>\nContent: <br/>\n"+
+					"<textarea name=%a rows=5 cols=40></textarea>"+
 					"<input type=submit>"+
-					"</form></body></html>")
+					"</form></body></html>", contentAttr)
 			);
 		}
 	}

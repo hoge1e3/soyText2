@@ -70,6 +70,7 @@ public class DocumentLoader implements Wrappable {
 		});
 	}
 	public void extend(DocumentScriptable dst, Scriptable hash) {
+		if (hash==null) return;
 		for (Object key:hash.getIds()) {
 			if (key instanceof String) {
 				String str = (String) key;
