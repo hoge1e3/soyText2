@@ -16,7 +16,7 @@ public class ImportTest {
 		// TODO Auto-generated method stub
 		SDB s=new SDB(new File("test.db"));
 		Importer i=new Importer(s);
-		i.importDocuments(new File("import/import.js"));
+		i.importDocuments(new File("import/import.txt"));
 		s.close();
 	}
 

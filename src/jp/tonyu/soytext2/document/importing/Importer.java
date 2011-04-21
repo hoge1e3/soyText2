@@ -17,10 +17,13 @@ public class Importer {
 		while (s.hasNextLine()) {
 			String id=s.nextLine();
 			if (id==null) break;
+			String sum=s.nextLine();
+			if (sum==null) break;
 			String content=s.nextLine();
 			if (content==null) break;
 			Document d=documentSet.newDocument(id);
 			d.content=content;
+			d.summary=sum;
 			d.save();
 		} 
 		s.close();

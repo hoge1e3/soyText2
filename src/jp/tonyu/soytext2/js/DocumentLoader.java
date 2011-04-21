@@ -10,9 +10,14 @@ import jp.tonyu.soytext2.db.SDB;
 import jp.tonyu.soytext2.document.Document;
 import jp.tonyu.soytext2.document.DocumentAction;
 import jp.tonyu.soytext2.document.DocumentSet;
+import jp.tonyu.soytext2.search.Query;
+import jp.tonyu.soytext2.search.QueryBuilder;
+import jp.tonyu.soytext2.search.QueryResult;
+import jp.tonyu.soytext2.search.expr.AttrOperator;
 
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
+
 
 public class DocumentLoader implements Wrappable {
 	//private static final Object LOADING = "LOADING";
@@ -55,15 +60,35 @@ public class DocumentLoader implements Wrappable {
 		return res;
 	}
 	public void search(String cond, Scriptable tmpl, final Function iter) {
+		QueryBuilder qb=QueryBuilder.create(cond);
+		for (Object n:tmpl.getIds()) {
+			if (n instanceof String) {
+				String name = (String) n;
+				Object value=tmpl.get(name, tmpl);
+				AttrOperator op=AttrOperator.ge;
+				if (value instanceof String) {
+					String svalue = (String) value;
+					if (svalue.startsWith("=")) {
+						op=AttrOperator.exact;
+						value=svalue.substring(1);
+					}
+				}
+				qb.tmpl(name, value, op);				
+			}
+		}
+		final Query q=qb.toQuery();
 		getDocumentSet().all(new DocumentAction() {
 			
 			@Override
 			public boolean run(Document d) {
 				DocumentScriptable s=(DocumentScriptable) byId(d.id);
-				Object brk=RunScript.call(iter, new Object[]{s});
-				if (brk instanceof Boolean) {
-					Boolean b = (Boolean) brk;
-					if (b.booleanValue()) return true;
+				QueryResult r = q.matches(s);
+				if (r.filterMatched) {
+					Object brk=RunScript.call(iter, new Object[]{s});
+					if (brk instanceof Boolean) {
+						Boolean b = (Boolean) brk;
+						if (b.booleanValue()) return true;
+					}
 				}
 				return false;
 			}
