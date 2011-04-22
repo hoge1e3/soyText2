@@ -149,7 +149,8 @@ public class DocumentProcessor {
 	    }
 	    else
 	    {*/
-	        Httpd.respondByString(res, d.get(HttpContext.bodyAttr).toString());
+	        Object body = d.get(HttpContext.bodyAttr);
+			Httpd.respondByString(res, body+"");
 	    //}
 	}
 	/*void feedHead() throws IOException

@@ -1,4 +1,4 @@
-package soytext.parser;
+package jp.tonyu.soytext.parser;
 
 public class MetaParser extends Parser {
 	public MetaParser(CharSequence src) {

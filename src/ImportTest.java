@@ -14,7 +14,7 @@ public class ImportTest {
 	 */
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		SDB s=new SDB(new File("test.db"));
+		SDB s=new SDB(new File("main.db"));
 		Importer i=new Importer(s);
 		i.importDocuments(new File("import/import.txt"));
 		s.close();

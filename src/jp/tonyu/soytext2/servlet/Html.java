@@ -5,7 +5,8 @@ import java.net.URLEncoder;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import soytext.parser.Parser;
+import jp.tonyu.soytext.parser.Parser;
+
 
 public class Html {
 	static Pattern raw=Pattern.compile("[^%]*");

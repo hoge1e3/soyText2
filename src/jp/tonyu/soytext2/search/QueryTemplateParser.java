@@ -6,6 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import jp.tonyu.debug.Log;
+import jp.tonyu.soytext.parser.Parser;
 import jp.tonyu.soytext2.search.expr.AndExpr;
 import jp.tonyu.soytext2.search.expr.AttrExpr;
 import jp.tonyu.soytext2.search.expr.AttrOperator;
@@ -13,7 +14,6 @@ import jp.tonyu.soytext2.search.expr.KeywordExpr;
 import jp.tonyu.soytext2.search.expr.NotExpr;
 import jp.tonyu.soytext2.search.expr.QueryExpression;
 import jp.tonyu.soytext2.search.expr.TemplateExpr;
-import soytext.parser.Parser;
 
 public class QueryTemplateParser {
 	Parser p;

@@ -34,7 +34,7 @@ public class SMain extends HttpServlet {
 	SDB sdb;
 	DocumentLoader loader;
 	public SMain() throws Exception{
-		sdb=new SDB(new File("test.db"));
+		sdb=new SDB(new File("main.db"));
 		loader=new DocumentLoader(sdb);
 		NanoServlet n=new NanoServlet(3002, this);
 		System.out.println( "Listening on port 3002. Hit Enter to stop.\n" );

@@ -1,4 +1,4 @@
-package soytext.parser;
+package jp.tonyu.soytext.parser;
 
 import java.util.Stack;
 import java.util.regex.Matcher;

@@ -61,19 +61,21 @@ public class DocumentLoader implements Wrappable {
 	}
 	public void search(String cond, Scriptable tmpl, final Function iter) {
 		QueryBuilder qb=QueryBuilder.create(cond);
-		for (Object n:tmpl.getIds()) {
-			if (n instanceof String) {
-				String name = (String) n;
-				Object value=tmpl.get(name, tmpl);
-				AttrOperator op=AttrOperator.ge;
-				if (value instanceof String) {
-					String svalue = (String) value;
-					if (svalue.startsWith("=")) {
-						op=AttrOperator.exact;
-						value=svalue.substring(1);
+		if (tmpl!=null) {
+			for (Object n:tmpl.getIds()) {
+				if (n instanceof String) {
+					String name = (String) n;
+					Object value=tmpl.get(name, tmpl);
+					AttrOperator op=AttrOperator.ge;
+					if (value instanceof String) {
+						String svalue = (String) value;
+						if (svalue.startsWith("=")) {
+							op=AttrOperator.exact;
+							value=svalue.substring(1);
+						}
 					}
+					qb.tmpl(name, value, op);				
 				}
-				qb.tmpl(name, value, op);				
 			}
 		}
 		final Query q=qb.toQuery();

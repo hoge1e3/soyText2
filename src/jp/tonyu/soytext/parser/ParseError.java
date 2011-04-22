@@ -1,4 +1,4 @@
-package soytext.parser;
+package jp.tonyu.soytext.parser;
 
 import jp.tonyu.soytext2.js.Wrappable;
 

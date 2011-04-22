@@ -133,9 +133,9 @@ public class SqlJetHelper {
 	protected void onCreate(SqlJetDb db) throws SqlJetException {
 		//System.out.println("Created");
 	}
-	public static void main(String[] args) throws SqlJetException {
+	/*public static void main(String[] args) throws SqlJetException {
 		new SqlJetHelper(new File("empty.db"), 3);
-	}
+	}*/
 	boolean closing=false;
 	public void close() throws SqlJetException {
 		Log.d(this,"Closing..");
