@@ -60,6 +60,25 @@ public class DocumentLoader implements Wrappable {
 		return res;
 	}
 	public void search(String cond, Scriptable tmpl, final Function iter) {
+		final Query q = newQuery(cond, tmpl);
+		getDocumentSet().all(new DocumentAction() {
+			
+			@Override
+			public boolean run(Document d) {
+				DocumentScriptable s=(DocumentScriptable) byId(d.id);
+				QueryResult r = q.matches(s);
+				if (r.filterMatched) {
+					Object brk=RunScript.call(iter, new Object[]{s});
+					if (brk instanceof Boolean) {
+						Boolean b = (Boolean) brk;
+						if (b.booleanValue()) return true;
+					}
+				}
+				return false;
+			}
+		});
+	}
+	public Query newQuery(String cond, Scriptable tmpl) {
 		QueryBuilder qb=QueryBuilder.create(cond);
 		if (tmpl!=null) {
 			for (Object n:tmpl.getIds()) {
@@ -79,22 +98,7 @@ public class DocumentLoader implements Wrappable {
 			}
 		}
 		final Query q=qb.toQuery();
-		getDocumentSet().all(new DocumentAction() {
-			
-			@Override
-			public boolean run(Document d) {
-				DocumentScriptable s=(DocumentScriptable) byId(d.id);
-				QueryResult r = q.matches(s);
-				if (r.filterMatched) {
-					Object brk=RunScript.call(iter, new Object[]{s});
-					if (brk instanceof Boolean) {
-						Boolean b = (Boolean) brk;
-						if (b.booleanValue()) return true;
-					}
-				}
-				return false;
-			}
-		});
+		return q;
 	}
 	public void extend(DocumentScriptable dst, Scriptable hash) {
 		if (hash==null) return;

@@ -6,7 +6,7 @@ public class Log {
 		System.out.println("["+tag+"]"+content);
 	}
 
-	public static void die(String string) {
+	public static Object die(String string) {
 		throw new RuntimeException(string);
 		
 	}

@@ -45,7 +45,7 @@ public class HttpContext {
 	public ApplicationContext applicationContext() {
 		return currentSession().applicationContext();
 	}*/
-	final DocumentLoader loader;
+	public final DocumentLoader loader;
 	public DocumentSet documentSet() {
 		/*Session s= currentSession();
 		if (s==null) return appCtx.documentSet;
