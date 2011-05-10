@@ -1,4 +1,4 @@
-package jp.tonyu.soytext.js;
+package jp.tonyu.js;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;

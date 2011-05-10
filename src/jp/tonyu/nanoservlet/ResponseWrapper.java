@@ -12,8 +12,8 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
 
+import jp.tonyu.js.Wrappable;
 import jp.tonyu.nanoservlet.NanoHTTPD.Response;
-import jp.tonyu.soytext2.js.Wrappable;
 
 
 public class ResponseWrapper implements HttpServletResponse,Wrappable {

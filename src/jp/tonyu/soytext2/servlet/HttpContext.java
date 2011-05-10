@@ -11,16 +11,23 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import jp.tonyu.debug.Log;
+import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.soytext.Origin;
-import jp.tonyu.soytext.js.BuiltinFunc;
 import jp.tonyu.soytext2.document.Document;
 import jp.tonyu.soytext2.document.DocumentAction;
 import jp.tonyu.soytext2.document.DocumentSet;
+import jp.tonyu.soytext2.js.CompileResult;
+import jp.tonyu.soytext2.js.CompilerResolver;
+import jp.tonyu.soytext2.js.DefaultCompiler;
 import jp.tonyu.soytext2.js.DocumentLoader;
 import jp.tonyu.soytext2.js.DocumentScriptable;
+import jp.tonyu.soytext2.js.JSSession;
+import jp.tonyu.soytext2.value.Value;
+import jp.tonyu.soytext2.value.Values;
 import jp.tonyu.util.Util;
 
 import org.mozilla.javascript.Context;
+import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
 
 
@@ -232,11 +239,24 @@ public class HttpContext {
 			throws IOException {
 		//Map<String,String> params=params();
         String[] s=args();
+        
+        
 		String id=s[2];
 		DocumentScriptable d= loader.byId(id);
-		if (d==null) {	d=loader.byId(id+"@system"); }
+        
 		if (d!=null) {
-			documentProcessor(d).execHtml();
+	        CompileResult o=CompilerResolver.compile(d);
+	        boolean e=false;
+	        if (o!=null) {
+	        	SWebApplication app=o.value(SWebApplication.class);
+	        	if (app!=null) {
+	        		app.run(params());
+	        		e=true;
+	        	}
+			}
+	        if (!e) {
+	        	print(id+" is not executable ");
+	        }
 		} else {
 			 notfound(id);
 		}

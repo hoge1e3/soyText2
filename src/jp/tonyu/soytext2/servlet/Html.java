@@ -5,7 +5,7 @@ import java.net.URLEncoder;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import jp.tonyu.soytext.parser.Parser;
+import jp.tonyu.parser.Parser;
 
 
 public class Html {

@@ -1,6 +1,6 @@
-package jp.tonyu.soytext.parser;
+package jp.tonyu.parser;
 
-import jp.tonyu.soytext2.js.Wrappable;
+import jp.tonyu.js.Wrappable;
 
 
 

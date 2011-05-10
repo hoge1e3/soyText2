@@ -6,6 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import jp.tonyu.debug.Log;
+import jp.tonyu.js.Wrappable;
 import jp.tonyu.soytext2.db.SDB;
 import jp.tonyu.soytext2.document.Document;
 import jp.tonyu.soytext2.document.DocumentAction;

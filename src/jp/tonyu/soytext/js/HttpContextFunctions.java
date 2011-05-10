@@ -4,9 +4,10 @@ import java.io.IOException;
 import java.util.Map;
 
 import jp.tonyu.debug.Log;
+import jp.tonyu.js.BuiltinFunc;
+import jp.tonyu.js.Wrappable;
 import jp.tonyu.soytext2.js.DocumentLoader;
 import jp.tonyu.soytext2.js.DocumentScriptable;
-import jp.tonyu.soytext2.js.Wrappable;
 import jp.tonyu.soytext2.servlet.HTMLDecoder;
 import jp.tonyu.soytext2.servlet.HttpContext;
 

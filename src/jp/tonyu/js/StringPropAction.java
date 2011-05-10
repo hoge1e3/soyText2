@@ -1,4 +1,4 @@
-package jp.tonyu.soytext.js;
+package jp.tonyu.js;
 
 public interface StringPropAction {
 

@@ -4,8 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.soytext.Origin;
-import jp.tonyu.soytext.js.BuiltinFunc;
 import jp.tonyu.soytext2.document.Document;
 
 import org.mozilla.javascript.Context;

@@ -1,4 +1,4 @@
-package jp.tonyu.soytext2.js;
+package jp.tonyu.js;
 
 public interface Wrappable {
 

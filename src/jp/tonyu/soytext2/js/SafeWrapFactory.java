@@ -1,6 +1,7 @@
 package jp.tonyu.soytext2.js;
 
 import jp.tonyu.debug.Log;
+import jp.tonyu.js.Wrappable;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;

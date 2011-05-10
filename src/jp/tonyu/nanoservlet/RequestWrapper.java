@@ -17,7 +17,7 @@ import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import jp.tonyu.soytext2.js.Wrappable;
+import jp.tonyu.js.Wrappable;
 
 
 public class RequestWrapper implements HttpServletRequest,Wrappable {

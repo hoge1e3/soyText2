@@ -5,7 +5,8 @@ import java.util.Map;
 import java.util.Set;
 
 import jp.tonyu.debug.Log;
-import jp.tonyu.soytext.js.PrototypeJS;
+import jp.tonyu.js.ContextRunnable;
+import jp.tonyu.js.PrototypeJS;
 import jp.tonyu.util.MapAction;
 import jp.tonyu.util.Maps;
 
@@ -43,6 +44,7 @@ public class JSSession {
 	}
 	public JSSession() {
 		Context c=Context.enter();
+		
 		root=initObject(c);
 		Context.exit();
 	}
@@ -74,22 +76,34 @@ public class JSSession {
 			Context.exit();
 		}
 	}
-	public Object call(Function f, Object[] args) {
-		Context cx = Context.enter();
+	public Object call(final Function f, final Object[] args) {
+		return withContext(new ContextRunnable() {			
+			@Override
+			public Object run(Context cx) {
+				cx.setWrapFactory(new SafeWrapFactory());
+				Object result = f.call(cx, root, root, args);
+				return result;
+			}
+		});
+	}
+	public static Object withContext(ContextRunnable action) {
+		Context cx=Context.getCurrentContext();
+		if (cx!=null) {
+			return action.run(cx);
+		}
+		cx=Context.enter();
 		try {
-			cx.setWrapFactory(new SafeWrapFactory());
-			Object result = f.call(cx, root, root, args);;
-			return result;
+			return action.run(cx);
 		} finally {
 			Context.exit();
-		}
+		}			
 	}
 
 	public void install(DocumentScriptable d) {
-		Object res=CompilerResolver.compile(d);
-		root.put(idref(d), root, res);
+		CompileResult res=CompilerResolver.compile(d);
+		root.put(idref(d), root, res.value(Scriptable.class));
 	}
-	private String idref(DocumentScriptable d) {
+	public String idref(DocumentScriptable d) {
 		return "[["+d.getDocument().id+"]]";
 	}
 	public static void main(String[] args) {

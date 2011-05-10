@@ -1,6 +1,6 @@
 package jp.tonyu.soytext2.document;
 
-import jp.tonyu.soytext2.js.Wrappable;
+import jp.tonyu.js.Wrappable;
 
 public class Document implements Wrappable {
 	/*"CREATE TABLE "+DOCUMENT_1+"(\n"+

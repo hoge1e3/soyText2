@@ -1,5 +1,5 @@
 // generated from [[110221_034347]] by [[110222_102732]]
-package jp.tonyu.soytext.js;
+package jp.tonyu.js;
 public class PrototypeJS{
   public static final String value=
     "/*  Prototype JavaScript framework, version 1.6.1\n"+

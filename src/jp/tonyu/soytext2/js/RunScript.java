@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import jp.tonyu.debug.Log;
-import jp.tonyu.soytext.js.PrototypeJS;
+import jp.tonyu.js.PrototypeJS;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.EvaluatorException;

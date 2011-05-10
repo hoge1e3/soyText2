@@ -1,4 +1,5 @@
-package jp.tonyu.soytext.js;
+package jp.tonyu.js;
+
 
 import org.mozilla.javascript.Scriptable;
 
