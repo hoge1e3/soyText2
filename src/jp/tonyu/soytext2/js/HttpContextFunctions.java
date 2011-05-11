@@ -1,4 +1,4 @@
-package jp.tonyu.soytext.js;
+package jp.tonyu.soytext2.js;
 
 import java.io.IOException;
 import java.util.Map;
@@ -6,8 +6,6 @@ import java.util.Map;
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.js.Wrappable;
-import jp.tonyu.soytext2.js.DocumentLoader;
-import jp.tonyu.soytext2.js.DocumentScriptable;
 import jp.tonyu.soytext2.servlet.HTMLDecoder;
 import jp.tonyu.soytext2.servlet.HttpContext;
 
@@ -40,13 +38,13 @@ public class HttpContextFunctions  {
 		to.put(NEWINSTANCE,newInstanceFunc);
 	}
 	public static HttpContext c() {
-		return HttpContextThreadLocal.get();
+		return HttpContext.cur.get();
 	}
 	static BuiltinFunc printFunc=new BuiltinFunc() {
 		@Override
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 				Object[] args) {
-			HttpContext ctx=HttpContextThreadLocal.get();
+			HttpContext ctx=c();
 			if (args.length>0) {
 				try {
 					ctx.print(args[0]);
@@ -108,7 +106,7 @@ public class HttpContextFunctions  {
 			d.save();
 			return d;
 		}
-		HttpContext hctx=HttpContextThreadLocal.get();
+		HttpContext hctx=c();
 		DocumentScriptable s = makePersistent(hctx.loader, obj);
 		return s;
 	}

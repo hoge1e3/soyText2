@@ -6,6 +6,7 @@ import java.io.IOException;
 import jp.tonyu.nanoservlet.NanoServlet;
 import jp.tonyu.soytext2.db.SDB;
 import jp.tonyu.soytext2.js.DocumentLoader;
+import jp.tonyu.soytext2.js.JSSession;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -13,18 +14,24 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 public class SMain extends HttpServlet {
-	
+	JSSession j=new JSSession();
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse res)
 			throws ServletException, IOException {
 		doIt(req,res);
 	}
-	private void doIt(HttpServletRequest req, HttpServletResponse res) {
-		try {
-			new HttpContext(loader, req, res).proc();
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
+	private void doIt(final HttpServletRequest req, final HttpServletResponse res) {
+		JSSession.cur.enter(j, new Runnable() {
+
+			@Override
+			public void run() {
+				try {
+					new HttpContext(loader, req, res).proc();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		});
 	}
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse res)

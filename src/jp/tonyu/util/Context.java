@@ -1,7 +1,7 @@
 package jp.tonyu.util;
 
 public class Context<T>  {
-	private ThreadLocal<T> t;
+	private ThreadLocal<T> t=new ThreadLocal<T>();
 	public T get() {
 		T res = t.get();
 		if (res==null) throw new RuntimeException("Not entered yet.");

@@ -10,7 +10,6 @@ import jp.tonyu.debug.Log;
 import jp.tonyu.js.Convert;
 import jp.tonyu.js.StringPropAction;
 import jp.tonyu.parser.Parser;
-import jp.tonyu.soytext.js.HttpContextFunctions;
 import jp.tonyu.soytext2.servlet.HttpContext;
 import jp.tonyu.soytext2.servlet.SWebApplication;
 import jp.tonyu.util.MapAction;
@@ -21,12 +20,14 @@ import org.mozilla.javascript.Scriptable;
 
 public class DefaultCompiler implements DocumentCompiler {
 	public static final String ARGUMENTORDER = "argumentOrder";
-	class ContextInfo {
+	class HeaderInfo {
+		final public DocumentScriptable doc;
 		private static final String SCOPE = "scope";
 		final public Map<String, Object> consts=new Hashtable<String, Object>();
 		final public List<String> paramValues=new Vector<String>();
 		final public Map<String, DocumentScriptable> compiledScope=new Hashtable<String, DocumentScriptable>();
-		public ContextInfo(final DocumentScriptable d) {
+		public HeaderInfo(final DocumentScriptable d) {
+			doc=d;
 			Object scope=d.get(SCOPE);
 			Object ord=d.get(ARGUMENTORDER);
 			final boolean hasOrder;
@@ -66,29 +67,38 @@ public class DefaultCompiler implements DocumentCompiler {
 	}
 	@Override
 	public CompileResult compile(DocumentScriptable s) {
-		return defaultHtmlDocument(s);
+		String n=""+s.get("name");
+		if (n.endsWith(".html")) {
+			return defaultHtmlDocument(s);
+		}
+		if (n.endsWith(".js")) {
+			return defaultJSDocument(s);
+		}
+		return null;
 	}
 	static  final Pattern htmlPlain=Pattern.compile("([^<]*<[^%])*[^<]*");
 	static  final Pattern embedLang=Pattern.compile("<%(=?) *(([^%]*%[^>])*[^%]*)%>");
 	static  final String CONTEXT="context";
 	static  final String PRINT="p",SAVE="save",SEARCH="search";
 
+	public CompileResult defaultJSDocument(final DocumentScriptable d)  {
+		Log.d(this,"Exec as JS");
+		final HeaderInfo inf=new HeaderInfo(d);
+		StringBuilder buf=new StringBuilder();
+		includeScope(inf, buf);
+		buf.append(d.get(HttpContext.bodyAttr));
+		return runeval(inf, buf);
+	}
 	public CompileResult defaultHtmlDocument(final DocumentScriptable d)  {
 		Log.d(this,"Exec as Html");
-		final ContextInfo inf=new ContextInfo(d);
+		final HeaderInfo inf=new HeaderInfo(d);
 
 		String src=""+d.get(HttpContext.bodyAttr);
 		Parser p=new Parser(src);
 		p.setSpacePattern(null);
 		final StringBuilder buf=new StringBuilder();
-		final JSSession jsSession = JSSession.cur.get();
 		buf.append("res=function ("+Parser.join(", ",inf.paramValues)+") { \n"); {
-			Maps.entries(inf.compiledScope).each(new MapAction<String, DocumentScriptable>() {
-				@Override
-				public void run(String key, DocumentScriptable value) {
-					buf.append(key+"=this['"+jsSession.idref(value)+"'];\n");
-				}
-			});
+			includeScope(inf, buf);
 			while (true) {
 				p.read(htmlPlain);
 				buf.append(PRINT+"("+RunScript.literal(p.group())+");\n");
@@ -104,6 +114,22 @@ public class DefaultCompiler implements DocumentCompiler {
 			}
 		}
 		buf.append("};");
+		return runeval(inf, buf);
+	}
+
+	private void includeScope(final HeaderInfo inf, final StringBuilder buf) {
+		final JSSession jsSession = JSSession.cur.get();
+		Maps.entries(inf.compiledScope).each(new MapAction<String, DocumentScriptable>() {
+			@Override
+			public void run(String key, DocumentScriptable value) {
+				buf.append(key+"=this['"+jsSession.idref(value)+"'];\n");
+			}
+		});
+	}
+
+	private CompileResult runeval(final HeaderInfo inf, final StringBuilder buf) {
+		final DocumentScriptable d=inf.doc;
+		final JSSession jsSession=JSSession.cur.get();
 		System.out.println("EvalBuf - "+buf);
 		final Object res=jsSession.eval(buf.toString(), inf.consts);
 		final long l=d.getDocument().lastUpdate;

@@ -24,6 +24,7 @@ import jp.tonyu.soytext2.js.DocumentScriptable;
 import jp.tonyu.soytext2.js.JSSession;
 import jp.tonyu.soytext2.value.Value;
 import jp.tonyu.soytext2.value.Values;
+import jp.tonyu.util.Ref;
 import jp.tonyu.util.Util;
 
 import org.mozilla.javascript.Context;
@@ -32,6 +33,7 @@ import org.mozilla.javascript.Scriptable;
 
 
 public class HttpContext {
+	public static final jp.tonyu.util.Context<HttpContext> cur=new jp.tonyu.util.Context<HttpContext>();
 	private static final String SESSION_NAME = "soyText_Session";
 	/*public final soytext.script.Context context= new soytext.script.Context(true);
 	public SessionManager sessionManager() {
@@ -118,7 +120,21 @@ public class HttpContext {
         return (query==null?"":query);
     }
     public DocumentProcessor documentProcessor(DocumentScriptable d) {return new DocumentProcessor(d, this);}
-    public void proc() throws IOException
+    public void proc() throws IOException {
+    	final Ref<IOException> ee=new Ref<IOException>();
+    	cur.enter(this, new Runnable() {
+			@Override
+			public void run() {
+				try {
+					proc2();
+				}catch (IOException e) {
+					ee.set(e);
+				}
+			}
+		});
+    	if (ee.notNull()) throw ee.get();
+	}	
+    private void proc2() throws IOException
     {
 		req.setCharacterEncoding("UTF-8");
 		res.setContentType("text/html; charset=utf8");
@@ -246,15 +262,15 @@ public class HttpContext {
         
 		if (d!=null) {
 	        CompileResult o=CompilerResolver.compile(d);
-	        boolean e=false;
+	        boolean execed=false;
 	        if (o!=null) {
 	        	SWebApplication app=o.value(SWebApplication.class);
 	        	if (app!=null) {
 	        		app.run(params());
-	        		e=true;
+	        		execed=true;
 	        	}
 			}
-	        if (!e) {
+	        if (!execed) {
 	        	print(id+" is not executable ");
 	        }
 		} else {

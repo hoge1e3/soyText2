@@ -2,6 +2,7 @@ package jp.tonyu.util;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 public class Util {
 	public static <T> T toSingleton(Collection<T> l) {
@@ -24,6 +25,9 @@ public class Util {
 		}
 		return res.toString();
 	}
+	/*public static <T> T[] copyArray(T[] dst, List<T> src) {
+		return dst;
+	}*/
 	private static String encodeTab(String t) {
 		return t
 		 .replaceAll("\\\\", "\\\\\\\\")
