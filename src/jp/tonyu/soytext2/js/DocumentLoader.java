@@ -6,6 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import jp.tonyu.debug.Log;
+import jp.tonyu.js.RunScript;
 import jp.tonyu.js.Wrappable;
 import jp.tonyu.soytext2.db.SDB;
 import jp.tonyu.soytext2.document.Document;
@@ -62,6 +63,10 @@ public class DocumentLoader implements Wrappable {
 	}
 	public void search(String cond, Scriptable tmpl, final Function iter) {
 		final Query q = newQuery(cond, tmpl);
+		searchByQuery(q,iter);
+	}
+	public void searchByQuery(final Query q, final Function iter) {
+		Log.d(this, "Search by "+q);
 		getDocumentSet().all(new DocumentAction() {
 			
 			@Override

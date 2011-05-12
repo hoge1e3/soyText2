@@ -39,7 +39,7 @@ public class DocumentScriptable implements Scriptable {
 			DocumentScriptable keyDoc = (DocumentScriptable) key;
 			Getter g=keyDoc.getGetter();
 			if (g!=null) return g.getFrom(this);
-		}
+		}	
 		return null;
 	}
 	public Getter getGetter() {
@@ -95,6 +95,7 @@ public class DocumentScriptable implements Scriptable {
 		int i=0;
 		for (Object key:keys) {
 			res[i]=key;
+			i++;
 		}
 		return res;
 	}

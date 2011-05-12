@@ -1,4 +1,4 @@
-package jp.tonyu.soytext2.js;
+package jp.tonyu.js;
 
 
 import java.util.HashSet;
@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import jp.tonyu.debug.Log;
-import jp.tonyu.js.PrototypeJS;
+import jp.tonyu.soytext2.js.SafeWrapFactory;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.EvaluatorException;
@@ -46,8 +46,13 @@ public class RunScript {
 	 public static Object eval (String s, Map<String , Object> vars) {
          Context cx = Context.enter();
          try {
-        	  Scriptable scope=initObject(cx);
-          	
+        	  Scriptable root=initObject(cx);
+          	Scriptable scope=new ScriptableObject(root,root) {
+				@Override
+				public String getClassName() {
+					return "scope";
+				}
+			};
              for (String k:vars.keySet()) {
                  scope.put(k, scope, vars.get(k));
              }

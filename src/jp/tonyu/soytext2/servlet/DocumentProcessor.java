@@ -10,6 +10,7 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import jp.tonyu.debug.Log;
 import jp.tonyu.soytext2.document.Document;
 import jp.tonyu.soytext2.document.DocumentSet;
 import jp.tonyu.soytext2.js.DocumentScriptable;
@@ -149,6 +150,7 @@ public class DocumentProcessor {
 	    }
 	    else
 	    {*/
+		//Log.d(this, d.getDocument().id+" cont="+d.getDocument().content+" - "+d.get(HttpContext.bodyAttr));
 	        Object body = d.get(HttpContext.bodyAttr);
 			Httpd.respondByString(res, body+"");
 	    //}
@@ -173,7 +175,7 @@ public class DocumentProcessor {
 	    //res.setHeader("Last-Modified", HttpContext.lastModifiedField(d));
 	    Httpd.respondByString(res, d.content());
 	}*/
-	void feedMetaHeadBody() throws IOException
+	void feedJSON() throws IOException
 	{
 		HttpServletRequest req=req();
 		HttpServletResponse res=res();
@@ -183,6 +185,33 @@ public class DocumentProcessor {
 	    //res.setHeader("Last-Modified", HttpContext.lastModifiedField(d));
 	    String meta="id: "+id()+"\n"+"lastupdate: "+d.getDocument().lastUpdate+"\n";
 	    Httpd.respondByString(res, meta+d.getDocument().content);
+	}
+	@Deprecated
+	void feedMetaHeadBody() throws IOException
+	{
+		HttpServletRequest req=req();
+		HttpServletResponse res=res();
+
+	    String c = "text/plain; charset=utf-8";
+	    res.setContentType (c);
+	    //res.setHeader("Last-Modified", HttpContext.lastModifiedField(d));
+	    String meta="id: "+id()+"\n"+"lastupdate: "+d.getDocument().lastUpdate+"\n";
+	    StringBuilder b=new StringBuilder();
+	    for (Object id:d.getIds()) {
+	    	Object value=d.get(id);
+	    	String ids=id.toString();
+	    	if (HttpContext.bodyAttr.equals(ids)) continue;
+	    	if (value instanceof String) {
+				b.append(ids+": "+value+"\n");
+			}
+	    	if (value instanceof DocumentScriptable) {
+				DocumentScriptable scr = (DocumentScriptable) value;
+				b.append(ids+": "+scr.getDocument().id+"\n");
+			}
+	    }
+	    b.append("\n");
+	    b.append(d.get(HttpContext.bodyAttr));
+	    Httpd.respondByString(res, meta+b);
 	}
 	private String id() {
 		return d.getDocument().id;
@@ -229,7 +258,10 @@ public class DocumentProcessor {
 			{
 				feedHeadBody();
 			}
-			else */if ("metaheadbody".equals(query) || "metaheadbody".equals(format)) // meta: id, lastupdate
+			*/
+			if ("json".equals(query)) {
+				feedJSON();
+			} else if ("metaheadbody".equals(query) || "metaheadbody".equals(format)) // meta: id, lastupdate
 			{
 				feedMetaHeadBody();
 			}

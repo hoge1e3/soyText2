@@ -22,6 +22,9 @@ import jp.tonyu.soytext2.js.DefaultCompiler;
 import jp.tonyu.soytext2.js.DocumentLoader;
 import jp.tonyu.soytext2.js.DocumentScriptable;
 import jp.tonyu.soytext2.js.JSSession;
+import jp.tonyu.soytext2.search.Query;
+import jp.tonyu.soytext2.search.QueryBuilder;
+import jp.tonyu.soytext2.search.expr.AttrOperator;
 import jp.tonyu.soytext2.value.Value;
 import jp.tonyu.soytext2.value.Values;
 import jp.tonyu.util.Ref;
@@ -178,7 +181,7 @@ public class HttpContext {
         	topPage();
         }
         else {
-        	all();
+        	byName();
         }
     }
     private void fileUpload() {
@@ -282,19 +285,31 @@ public class HttpContext {
 		Cursor cursor = documentSet().query(q);
 		Debug.syslog("Query started "+q.toString());
 		return cursor;
-	}
+	}*/
 	private void byName() throws IOException {
-		String str=req.getPathInfo();
-		str=str.replaceAll("^/", "");
-		Cursor sr=query(Query.create("name:?").tmpl("name", new StringValue(str), AttrOperator.exact));
-		if (sr.hasNext()) {
-			documentProcessor(sr.next().document()).proc();
-		} else {
+		String str=req.getPathInfo().replaceAll("^/", "");
+		Query q=QueryBuilder.create("name:?").tmpl("name", str, AttrOperator.exact).toQuery();
+		final Ref<Boolean> found=new Ref<Boolean>(false);
+		loader.searchByQuery(q, new BuiltinFunc() {
+			
+			@Override
+			public Object call(Context cx, Scriptable scope, Scriptable thisObj,
+					Object[] args) {
+				DocumentScriptable s=(DocumentScriptable)args[0];
+				try {
+					documentProcessor(s).proc();
+					found.set(true);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				return true;
+			}
+		});
+		if (!found.get()) {
 			notfound(str);
 		}
-		sr.close();
 		
-	}*/
+	}
 	private void newDocument() throws IOException {
 		if (req.getMethod().equals("POST")) {
 			DocumentScriptable d = loader.newDocument(null);
@@ -474,7 +489,10 @@ public class HttpContext {
 	{
 	    Object c = d.get("Content-Type");
 	    if (c instanceof String) return c.toString();
+	    c = d.get("Content-type");
+	    if (c instanceof String) return c.toString();
 	    String n = d.get("name")+"";
+	    Log.d("HTPCON", "Detecting "+d.getDocument().id+" - "+n);
 	    c = "text/plain; charset=utf-8";
 	    if (n != null)
 	    {
