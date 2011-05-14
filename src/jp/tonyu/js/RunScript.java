@@ -16,7 +16,7 @@ import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 
 
-public class RunScript {
+class RunScript {
 	 static Scriptable initObjCache=null;
 	 public static Scriptable initObject(Context cx) {
 		 if (initObjCache!=null) return initObjCache;
@@ -77,12 +77,4 @@ public class RunScript {
              Context.exit();
          }
 	 }
-     public static String literal(String raw) {
-    	 String cook=raw;
-    	 cook=cook.replaceAll("\\\\", "\\\\\\\\");
-    	 cook=cook.replaceAll("\\n","\\\\n");
-    	 cook=cook.replaceAll("\\r","\\\\r");
-    	 cook=cook.replaceAll("'","\\\\'");
-    	 return "'"+cook+"'";
-     }
  }

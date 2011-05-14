@@ -37,4 +37,13 @@ public class Convert {
 			}
 		}
 	}
+    public static String literal(String raw) {
+   	 String cook=raw;
+   	 cook=cook.replaceAll("\\\\", "\\\\\\\\");
+   	 cook=cook.replaceAll("\\n","\\\\n");
+   	 cook=cook.replaceAll("\\r","\\\\r");
+   	 cook=cook.replaceAll("'","\\\\'");
+   	 return "'"+cook+"'";
+    }
+
 }

@@ -1,5 +1,6 @@
 package jp.tonyu.soytext2.js;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -7,6 +8,7 @@ import java.util.Set;
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.ContextRunnable;
 import jp.tonyu.js.PrototypeJS;
+import jp.tonyu.soytext2.document.DocumentSet;
 import jp.tonyu.util.MapAction;
 import jp.tonyu.util.Maps;
 
@@ -48,39 +50,45 @@ public class JSSession {
 		root=initObject(c);
 		Context.exit();
 	}
+	public Object eval (String s) {
+		return eval(s, new HashMap<String, Object>());
+	}
 
 	@SuppressWarnings("serial")
-	public Object eval (String s , Map<String,Object> scope) {
-		final Context cx = Context.enter();
-		try {
-			final Scriptable s2=new ScriptableObject(root, null) {
-				@Override
-				public String getClassName() {
-					return "Scope";
-				}
-			};
-			Maps.entries(scope).each(new MapAction<String, Object>() {
+	public Object eval (final String s , final Map<String,Object> scope) {
+		return withContext(new ContextRunnable() {
+			
+			@Override
+			public Object run(Context cx) {
+				try {
+					final Scriptable s2=new ScriptableObject(root, null) {
+						@Override
+						public String getClassName() {
+							return "Scope";
+						}
+					};
+					Maps.entries(scope).each(new MapAction<String, Object>() {
 
-				@Override
-				public void run(String key, Object value) {
-					s2.put(key, s2, value);
+						@Override
+						public void run(String key, Object value) {
+							s2.put(key, s2, value);
+						}
+					});
+					//cx.setWrapFactory(new SafeWrapFactory());
+					Object result = cx.evaluateString(s2 , s, "<cmd>", 1, null);
+					return result;
+				} catch (EvaluatorException e) {
+					Log.die("JS -error at ||"+e.lineSource()+"|| "+e.details());
+					return null;
 				}
-			});
-			cx.setWrapFactory(new SafeWrapFactory());
-			Object result = cx.evaluateString(s2 , s, "<cmd>", 1, null);
-			return result;
-		} catch (EvaluatorException e) {
-			Log.die("JS -error at ||"+e.lineSource()+"|| "+e.details());
-			return null;
-		} finally {
-			Context.exit();
-		}
+			}
+		});
 	}
 	public Object call(final Function f, final Object[] args) {
 		return withContext(new ContextRunnable() {			
 			@Override
 			public Object run(Context cx) {
-				cx.setWrapFactory(new SafeWrapFactory());
+				//cx.setWrapFactory(new SafeWrapFactory());
 				Object result = f.call(cx, root, root, args);
 				return result;
 			}
@@ -93,6 +101,8 @@ public class JSSession {
 		}
 		cx=Context.enter();
 		try {
+			//cx.setOptimizationLevel(-1);
+			cx.setWrapFactory(new SafeWrapFactory());
 			return action.run(cx);
 		} finally {
 			Context.exit();
@@ -101,9 +111,10 @@ public class JSSession {
 
 	public void install(DocumentScriptable d) {
 		CompileResult res=CompilerResolver.compile(d);
-		root.put(idref(d), root, res.value(Scriptable.class));
+		root.put(idref(d, null), root, res.value(Scriptable.class));
 	}
-	public String idref(DocumentScriptable d) {
+	public static String idref(DocumentScriptable d, DocumentSet viewPoint) {
+		// viewPoint==null -> full path
 		return "[["+d.getDocument().id+"]]";
 	}
 	public static void main(String[] args) {

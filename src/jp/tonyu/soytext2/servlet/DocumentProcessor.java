@@ -1,19 +1,17 @@
 package jp.tonyu.soytext2.servlet;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
 import java.util.Map;
-import java.util.Vector;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import jp.tonyu.debug.Log;
 import jp.tonyu.soytext2.document.Document;
 import jp.tonyu.soytext2.document.DocumentSet;
 import jp.tonyu.soytext2.js.DocumentScriptable;
+import jp.tonyu.util.Literal;
 
 
 
@@ -51,7 +49,6 @@ public class DocumentProcessor {
 	}*/
 	//public static final String ARGUMENTORDER = "arguments";
 	public static final Pattern docPat=Pattern.compile("\\[\\[([^\\[\\]]+)*\\]\\]");
-	
 	public void execHtml() throws IOException {
 		/*Value e;
 		res().setContentType( HttpContext.detectContentType(d) );
@@ -151,7 +148,7 @@ public class DocumentProcessor {
 	    else
 	    {*/
 		//Log.d(this, d.getDocument().id+" cont="+d.getDocument().content+" - "+d.get(HttpContext.bodyAttr));
-	        Object body = d.get(HttpContext.bodyAttr);
+	        Object body = d.get(HttpContext.ATTR_BODY);
 			Httpd.respondByString(res, body+"");
 	    //}
 	}
@@ -200,7 +197,7 @@ public class DocumentProcessor {
 	    for (Object id:d.getIds()) {
 	    	Object value=d.get(id);
 	    	String ids=id.toString();
-	    	if (HttpContext.bodyAttr.equals(ids)) continue;
+	    	if (HttpContext.ATTR_BODY.equals(ids)) continue;
 	    	if (value instanceof String) {
 				b.append(ids+": "+value+"\n");
 			}
@@ -210,7 +207,7 @@ public class DocumentProcessor {
 			}
 	    }
 	    b.append("\n");
-	    b.append(d.get(HttpContext.bodyAttr));
+	    b.append(d.get(HttpContext.ATTR_BODY));
 	    Httpd.respondByString(res, meta+b);
 	}
 	private String id() {
@@ -274,10 +271,13 @@ public class DocumentProcessor {
 		{
 
 			//String str = getContentStr(req);
-
+			
 			Map<String,String> keys=params();//  HttpUtility.ParseQueryString(str);
-			d.getDocument().content=keys.get(HttpContext.contentAttr);
-			d.save();
+			if (keys.containsKey(HttpContext.ATTR_CONTENT)) {
+				d.replaceContent(keys.get(HttpContext.ATTR_CONTENT));				
+			} else {
+				classicPost(d,keys);
+			}
 			res.setContentType("text/html; charset=utf8");
 			String docBase=rootPath();
 			Httpd.respondByString(res, Html.p(HttpContext.ajaxTag("id:"+id())+"\n Edit "+id()+" End <br/>\n"+
@@ -289,6 +289,17 @@ public class DocumentProcessor {
 
 		}
 	}
+	@Deprecated
+	private void classicPost(DocumentScriptable d, Map<String, String> keys) {
+		for (String k :keys.keySet())
+		{
+			String v=keys.get(k);
+			if (v==null) continue;
+			Object vv=parseValue(v, d.getDocument().documentSet);
+			d.put(k,vv);
+		}
+		d.save();
+	}
 	public String rootPath() {
 		return ctx.rootPath();
 	}
@@ -297,5 +308,31 @@ public class DocumentProcessor {
 	}
 	public String queryString() {
 		return ctx.queryString();
+	}
+	public static final Pattern idpat=Pattern.compile("[0-9]+(_[0-9]+)+(@[0-9_a-zA-Z]+)?");
+	public static final Pattern idpatWiki=Pattern.compile("\\[\\[([^\\]]+)\\]\\]");
+
+	@Deprecated
+	public static Object parseValue(String value,DocumentSet viewPoint) {
+		if (value==null) return  null;
+		Matcher ma=Literal.DQ.matcher(value);
+		if (ma.lookingAt()) {
+			return Literal.fromQuoteStrippedLiteral(ma.group(1));
+		}
+		ma=idpat.matcher(value);	
+		Document dr=null;
+		if (ma.lookingAt()) {
+			try {
+				dr=viewPoint.byId(value);
+			}catch(Exception e){}
+		}
+		ma=idpatWiki.matcher(value);
+		if (ma.lookingAt()) {
+			dr=viewPoint.byId(ma.group(1));
+		}		
+		if (dr!=null) {
+			return (dr);
+		}
+		return value;
 	}
 }

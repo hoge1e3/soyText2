@@ -8,7 +8,6 @@ import java.util.regex.Pattern;
 
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.Convert;
-import jp.tonyu.js.RunScript;
 import jp.tonyu.js.StringPropAction;
 import jp.tonyu.parser.Parser;
 import jp.tonyu.soytext2.servlet.HttpContext;
@@ -87,14 +86,14 @@ public class DefaultCompiler implements DocumentCompiler {
 		final HeaderInfo inf=new HeaderInfo(d);
 		StringBuilder buf=new StringBuilder();
 		includeScope(inf, buf);
-		buf.append(d.get(HttpContext.bodyAttr));
+		buf.append(d.get(HttpContext.ATTR_BODY));
 		return runeval(inf, buf);
 	}
 	public CompileResult defaultHtmlDocument(final DocumentScriptable d)  {
 		Log.d(this,"Exec as Html");
 		final HeaderInfo inf=new HeaderInfo(d);
 
-		String src=""+d.get(HttpContext.bodyAttr);
+		String src=""+d.get(HttpContext.ATTR_BODY);
 		Parser p=new Parser(src);
 		p.setSpacePattern(null);
 		final StringBuilder buf=new StringBuilder();
@@ -102,7 +101,7 @@ public class DefaultCompiler implements DocumentCompiler {
 			includeScope(inf, buf);
 			while (true) {
 				p.read(htmlPlain);
-				buf.append(PRINT+"("+RunScript.literal(p.group())+");\n");
+				buf.append(PRINT+"("+Convert.literal(p.group())+");\n");
 				if (p.read(embedLang)) {
 					if (p.group(1).length()>0) {
 						buf.append(PRINT+"("+p.group(2)+");\n");
@@ -123,7 +122,7 @@ public class DefaultCompiler implements DocumentCompiler {
 		Maps.entries(inf.compiledScope).each(new MapAction<String, DocumentScriptable>() {
 			@Override
 			public void run(String key, DocumentScriptable value) {
-				buf.append(key+"=this['"+jsSession.idref(value)+"'];\n");
+				buf.append(key+"=this['"+JSSession.idref(value,null)+"'];\n");
 			}
 		});
 	}

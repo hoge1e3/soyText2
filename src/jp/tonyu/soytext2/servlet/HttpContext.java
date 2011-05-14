@@ -90,13 +90,14 @@ public class HttpContext {
 	
 	static final String OP_="OP_";
 	//public static final String headAttr="_head";
-	public static final String contentAttr="[[110414_052728@"+Origin.uid+"]]";
-	public static final String bodyAttr = "_body";
+	public static final String ATTR_CONTENT="[[110414_052728@"+Origin.uid+"]]";
+	public static final String ATTR_BODY = "_body";
 	public static final String AJAXTAG = "AJAXTAG:";
 
 	
 	
 	Map<String,String> _params=null;
+	static final String ATTR_FORMAT = "_format";
 	
     public Map<String,String> params() {
 		if (_params!=null) return _params;
@@ -158,6 +159,9 @@ public class HttpContext {
         }
         else if (s.length >= 3 && s[1].toLowerCase().equals("edit")) {
         	edit();
+        }
+        else if (s.length >= 3 && s[1].toLowerCase().equals("testedit")) {
+        	testEdit();
         }
         else if (s.length==2 && s[1].equals("all")) {
         	all();
@@ -286,6 +290,7 @@ public class HttpContext {
 		Debug.syslog("Query started "+q.toString());
 		return cursor;
 	}*/
+	@Deprecated
 	private void byName() throws IOException {
 		String str=req.getPathInfo().replaceAll("^/", "");
 		Query q=QueryBuilder.create("name:?").tmpl("name", str, AttrOperator.exact).toQuery();
@@ -320,7 +325,7 @@ public class HttpContext {
 					"<br/>\nContent: <br/>\n"+
 					"<textarea name=%a rows=5 cols=40></textarea>"+
 					"<input type=submit>"+
-					"</form></body></html>", contentAttr)
+					"</form></body></html>", ATTR_CONTENT)
 			);
 		}
 	}
@@ -340,7 +345,27 @@ public class HttpContext {
 					"Content: <br/>\n"+
 					"<textarea name=%a rows=5 cols=60>%t</textarea>"+
 					"<input type=submit>"+
-					"</form></body></html>","./"+id, HttpContext.contentAttr, d.getDocument().content)
+					"</form></body></html>","./"+id, HttpContext.ATTR_CONTENT, d.getDocument().content)
+			);
+		}
+	}
+	private void testEdit() throws IOException {
+		String[] s=args();
+		//   $soyText/edit/00000
+		String id=s[2];
+		DocumentScriptable d = loader.byId(id);
+		if (d==null) {
+		    notfound(id);
+		} else if (req.getMethod().equals("POST")) {
+			documentProcessor(d).proc();
+		} else {
+			
+			Httpd.respondByString(res, menuBar()+Html.p(
+					"<form action=%a method=\"POST\">"+
+					"Body: <br/>\n"+
+					"<textarea name=%a rows=5 cols=60>%t</textarea>"+
+					"<input type=submit>"+
+					"</form></body></html>","./"+id, HttpContext.ATTR_BODY, d.get(ATTR_BODY).toString())
 			);
 		}
 	}

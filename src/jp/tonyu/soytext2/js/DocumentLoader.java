@@ -6,7 +6,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import jp.tonyu.debug.Log;
-import jp.tonyu.js.RunScript;
 import jp.tonyu.js.Wrappable;
 import jp.tonyu.soytext2.db.SDB;
 import jp.tonyu.soytext2.document.Document;
@@ -16,6 +15,7 @@ import jp.tonyu.soytext2.search.Query;
 import jp.tonyu.soytext2.search.QueryBuilder;
 import jp.tonyu.soytext2.search.QueryResult;
 import jp.tonyu.soytext2.search.expr.AttrOperator;
+import jp.tonyu.soytext2.servlet.HttpContext;
 
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
@@ -24,6 +24,7 @@ import org.mozilla.javascript.Scriptable;
 public class DocumentLoader implements Wrappable {
 	//private static final Object LOADING = "LOADING";
 	public static final Pattern idpatWiki=Pattern.compile("\\[\\[([^\\]]+)\\]\\]");
+	private static final String ERROR_CONTENT = "err_content";
 		//Map<String, Scriptable>objs=new HashMap<String, Scriptable>();
 	private final DocumentSet documentSet;
 	Map<String, DocumentScriptable> objs=new HashMap<String, DocumentScriptable>();
@@ -36,18 +37,26 @@ public class DocumentLoader implements Wrappable {
 		if (src==null) return null;
 		DocumentScriptable o=objs.get(id);
 		if (o!=null) return o;
-		o=new DocumentScriptable(src);
+		o=new DocumentScriptable(this, src);
 		objs.put(id, o);
+		loadFromContent(src, o);
+		return o;
+	}
+	public void loadFromContent(Document src, DocumentScriptable dst) {
 		Map<String, Object> vars=new HashMap<String, Object>();
+		dst.clear();
 		vars.put("$", this);
-		vars.put("_", o);
+		vars.put("_", dst);
 		try {
-			RunScript.eval(src.content, vars);
+			jsSession().eval(src.content, vars);
 		} catch (Exception e) {
 			e.printStackTrace();
-			Log.die(src.id+" has invalid content "+src.content);
+			Log.d(this , src.id+" has invalid content "+src.content);
+			dst.put(ERROR_CONTENT, src.content );
 		}
-		return o;
+	}
+	private JSSession jsSession() {
+		return JSSession.cur.get();
 	}
 	public DocumentScriptable newDocument(Scriptable hash) {
 		Object id = hash!=null ? hash.get("id", hash) : null;
@@ -57,7 +66,7 @@ public class DocumentLoader implements Wrappable {
 		} else {
 			d=getDocumentSet().newDocument();
 		}
-		DocumentScriptable res=new DocumentScriptable(d);
+		DocumentScriptable res=new DocumentScriptable(this, d);
 		extend(res,hash);
 		return res;
 	}
@@ -74,7 +83,7 @@ public class DocumentLoader implements Wrappable {
 				DocumentScriptable s=(DocumentScriptable) byId(d.id);
 				QueryResult r = q.matches(s);
 				if (r.filterMatched) {
-					Object brk=RunScript.call(iter, new Object[]{s});
+					Object brk=jsSession().call(iter, new Object[]{s});
 					if (brk instanceof Boolean) {
 						Boolean b = (Boolean) brk;
 						if (b.booleanValue()) return true;
@@ -115,7 +124,10 @@ public class DocumentLoader implements Wrappable {
 				Object value = hash.get(str, null);
 				if (m.matches()) {
 					String id=m.group(1);
-					dst.put(getDocumentSet().byId(id), value);
+					//Log.d(this, "Put "+dst.getDocument().id+" . "+id+" = "+value);
+					DocumentScriptable refd = byId(id);
+					if (refd==null) Log.die("[["+id+"]] not found");
+					dst.put(refd, value);
 				} else {
 					dst.put(key, value);
 				}
@@ -127,7 +139,7 @@ public class DocumentLoader implements Wrappable {
 
 			@Override
 			public Object getFrom(Object src) {
-				return RunScript.call(func, new Object[]{src});
+				return jsSession().call(func, new Object[]{src});
 			}
 			
 		});

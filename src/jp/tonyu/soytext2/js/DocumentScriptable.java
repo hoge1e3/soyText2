@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import jp.tonyu.debug.Log;
 import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.soytext.Origin;
 import jp.tonyu.soytext2.document.Document;
@@ -15,24 +16,34 @@ public class DocumentScriptable implements Scriptable {
 	private static final Object GETTERKEY = "[[110414_051952@"+Origin.uid+"]]";
 	Map<Object, Object>binds=new HashMap<Object, Object>();
 	final Document d;
+	final DocumentLoader loader;
 	public Document getDocument() {
 		return d;
 	}
-	public DocumentScriptable(final Document d) {
+	public DocumentScriptable(final DocumentLoader loader,final Document d) {
+		this.loader=loader;
 		this.d=d;
-		put("id",this , d.id );
+		/*put("id",this , d.id );
 		put("lastUpdate",this, d.lastUpdate);
-		put("save",this, new BuiltinFunc() {
-			
-			@Override
-			public Object call(Context cx, Scriptable scope, Scriptable thisObj,
-					Object[] args) {
-				save();
-				return DocumentScriptable.this;
-			}
-		});
+		put("save",this, );*/
 	}
+	BuiltinFunc saveFunc =new BuiltinFunc() {
+		
+		@Override
+		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
+				Object[] args) {
+			save();
+			return DocumentScriptable.this;
+		}
+	};
 	public Object get(Object key) {
+		if ("id".equals(key)) return d.id;
+		if ("lastUpdate".equals(key)) return d.lastUpdate;
+		if ("save".equals(key)) return saveFunc;
+		if (key instanceof DocumentScriptable) {
+			DocumentScriptable keyDoc = (DocumentScriptable) key;
+			key=JSSession.idref(keyDoc, d.documentSet);
+		}
 		Object res = binds.get(key);
 		if (res!=null) return res;
 		if (key instanceof DocumentScriptable) {
@@ -49,7 +60,16 @@ public class DocumentScriptable implements Scriptable {
 		put(GETTERKEY, g);
 	}
 	public Object put(Object key,Object value) {
-		binds.put(key, value);
+		if (key instanceof DocumentScriptable) {
+			DocumentScriptable s = (DocumentScriptable) key;			
+			binds.put(JSSession.idref(s, d.documentSet),value);
+		} else	if (key instanceof String || key instanceof Number) {
+			binds.put(key, value);
+		} else if (value==null){
+			binds.remove(key);
+		} else {
+			Log.die("Cannot put "+key);
+		}
 		return value;
 	}
 	public Set<Object> keySet() {
@@ -94,8 +114,20 @@ public class DocumentScriptable implements Scriptable {
 		Object[] res=new Object[keys.size()];
 		int i=0;
 		for (Object key:keys) {
-			res[i]=key;
+			/*if (key instanceof DocumentScriptable) {
+				DocumentScriptable s = (DocumentScriptable) key;
+				
+				res[i] = JSSession.idref(s, d.documentSet);
+				Log.d(this, "Put res["+i+"]="+res[i]);
+			} else*/ 	if (key instanceof String || key instanceof Number) {
+				res[i]=key;
+			} else {
+				Log.die("Wrong key! "+key);
+			}
 			i++;
+		}
+		for (Object r:res) {
+			Log.d(this ," getids - "+r);
 		}
 		return res;
 	}
@@ -150,8 +182,21 @@ public class DocumentScriptable implements Scriptable {
 		
 	}
 	public void save() {
+		d.content="$.extend(_,"+HashLiteralConv.toHashLiteral(this)+");";
+		Log.d(this, "content changed to "+d.content);
 		d.save();
 		
 	}
-
+	public void replaceContent(String content) {
+		d.content=content;
+		d.save();
+		loader.loadFromContent(d, this);		
+	}
+	@Override
+	public String toString() {
+		return "(Docscr "+d.id+")";
+	}
+	public void clear() {
+		binds.clear();
+	}
 }
