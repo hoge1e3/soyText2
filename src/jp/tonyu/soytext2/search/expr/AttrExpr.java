@@ -8,7 +8,7 @@ import jp.tonyu.soytext2.search.SearchContext;
 
 public class AttrExpr extends QueryExpression implements Comparable<AttrExpr> {
 	final public String name;
-	Object searchValue;
+	final Object searchValue;
 	public String getKey() {
 		return name;
 	}
@@ -24,6 +24,7 @@ public class AttrExpr extends QueryExpression implements Comparable<AttrExpr> {
 	public AttrExpr(String name, Object value, AttrOperator op) {
 		super();
 		if (name.length()==0) Log.die("name is empty");
+		if(value==null) Log.d(this,"searchValue is null");
 		this.name = name;
 		this.searchValue = value;
 		this.op = op;
@@ -39,12 +40,12 @@ public class AttrExpr extends QueryExpression implements Comparable<AttrExpr> {
 		if (op==AttrOperator.exact) {
 			res= actualValue.equals(searchValue);
 		} else if (op==AttrOperator.ge) {
-			String srcStr=searchValue.toString();
+			String srcStr=searchValue+"";
 			String actStr=actualValue.toString();
 			// avalue > svalue     name:svalue
 			res=actStr.indexOf(srcStr)>=0;
 		} else {
-			String srcStr=searchValue.toString();
+			String srcStr=searchValue+"";
 			String actStr=actualValue.toString();
 			// avalue<svalue   name:<svalue
 			res=srcStr.indexOf(actStr)>=0;

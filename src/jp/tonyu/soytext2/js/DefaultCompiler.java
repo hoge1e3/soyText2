@@ -61,7 +61,7 @@ public class DefaultCompiler implements DocumentCompiler {
 					}
 				});
 			}
-
+			consts.put(SRCSYM, d);
 			HttpContextFunctions.load(consts);
 
 		}
@@ -81,6 +81,8 @@ public class DefaultCompiler implements DocumentCompiler {
 	static  final Pattern embedLang=Pattern.compile("<%(=?) *(([^%]*%[^>])*[^%]*)%>");
 	static  final String CONTEXT="context";
 	static  final String PRINT="p",SAVE="save",SEARCH="search";
+	protected static final String ATTR_SRC = "src";
+	protected static final String SRCSYM = "__src__";
 
 	public CompileResult defaultJSDocument(final DocumentScriptable d)  {
 		Log.d(this,"Exec as JS");
@@ -115,6 +117,7 @@ public class DefaultCompiler implements DocumentCompiler {
 			}
 		}
 		buf.append("};");
+		buf.append("res."+ATTR_SRC+"="+SRCSYM+";res;");
 		return runeval(inf, buf);
 	}
 

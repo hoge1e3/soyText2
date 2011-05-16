@@ -343,7 +343,7 @@ public class HttpContext {
 			Httpd.respondByString(res, menuBar()+Html.p(
 					"<form action=%a method=\"POST\">"+
 					"Content: <br/>\n"+
-					"<textarea name=%a rows=5 cols=60>%t</textarea>"+
+					"<textarea name=%a rows=20 cols=80>%t</textarea>"+
 					"<input type=submit>"+
 					"</form></body></html>","./"+id, HttpContext.ATTR_CONTENT, d.getDocument().content)
 			);
@@ -363,7 +363,7 @@ public class HttpContext {
 			Httpd.respondByString(res, menuBar()+Html.p(
 					"<form action=%a method=\"POST\">"+
 					"Body: <br/>\n"+
-					"<textarea name=%a rows=5 cols=60>%t</textarea>"+
+					"<textarea name=%a rows=20 cols=80>%t</textarea>"+
 					"<input type=submit>"+
 					"</form></body></html>","./"+id, HttpContext.ATTR_BODY, d.get(ATTR_BODY).toString())
 			);

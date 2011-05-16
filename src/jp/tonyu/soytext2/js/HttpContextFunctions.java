@@ -8,6 +8,7 @@ import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.js.Wrappable;
 import jp.tonyu.soytext2.servlet.HTMLDecoder;
 import jp.tonyu.soytext2.servlet.HttpContext;
+import jp.tonyu.util.Ref;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
@@ -88,6 +89,29 @@ public class HttpContextFunctions  {
 							}
 						};
 					}
+					if ("find1".equals(name)) {
+						return new BuiltinFunc() {
+
+							@Override
+							public Object call(Context cx, Scriptable scope,
+									Scriptable thisObj, Object[] args) {
+								final Ref<Object> res=new Ref<Object>();
+								c().loader.search(cond, tmpl, new BuiltinFunc() {
+									
+									@Override
+									public Object call(Context cx, Scriptable scope, Scriptable thisObj,
+											Object[] args) {
+										res.set(args[0]);
+										return null;
+									}
+								});
+								
+								return res.get();
+							}
+							
+						};
+					}
+					Log.die("Function "+name+" not found.");
 					return super.get(name, start);
 				}
 			};
@@ -127,8 +151,11 @@ public class HttpContextFunctions  {
 		@Override
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 				Object[] args) {
-			if (args.length>0 && args[0] instanceof DocumentScriptable) {
-				DocumentScriptable eref = (DocumentScriptable) args[0];
+			if (args.length>0 && args[0] instanceof Scriptable) {
+				Scriptable es=(Scriptable)args[0];
+				Object es2 = es.get(DefaultCompiler.ATTR_SRC, es);
+				Log.d("execLink", es2);
+				DocumentScriptable eref = (DocumentScriptable) es2;
 				StringBuilder b=new StringBuilder( c().rootPath()+"/exec/"+HTMLDecoder.encode(toId(eref))+"?" );
 				if (args.length>=2 && args[1] instanceof Scriptable) {
 					Scriptable scr = (Scriptable) args[1];
@@ -147,6 +174,7 @@ public class HttpContextFunctions  {
 						}
 					}
 				}
+				Log.d("execLink", b);
 				return "\""+ b + "\"";			
 			}
 			return Log.die("Not scriptable in first arg: execLink");
@@ -159,8 +187,11 @@ public class HttpContextFunctions  {
 		@Override
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 				Object[] args) {
-			if (args.length>0 && args[0] instanceof DocumentScriptable) {
-				DocumentScriptable eref = (DocumentScriptable) args[0];
+			if (args.length>0 && args[0] instanceof Scriptable) {
+				Scriptable es=(Scriptable)args[0];
+				Object es2 = es.get(DefaultCompiler.ATTR_SRC, es);
+				Log.d(this, es2);
+				DocumentScriptable eref = (DocumentScriptable) es2;
 				StringBuilder b=new StringBuilder( c().rootPath()+"/exec/"+(toId(eref))+"?" );
 				if (args.length>=2 && args[1] instanceof Scriptable) {
 					Scriptable scr = (Scriptable) args[1];

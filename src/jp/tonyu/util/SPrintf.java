@@ -1,11 +1,7 @@
 package jp.tonyu.util;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import jp.tonyu.parser.Parser;
 
 public abstract class SPrintf {
 	final StringBuffer buf=new StringBuffer();
@@ -39,11 +35,16 @@ public abstract class SPrintf {
 		return b;
 	}
 	public boolean consume(Pattern head) {
-		boolean b = format.substring(pos).startsWith(head);
-		if (b) {pos+=head.length();}
-		return b;
+		Matcher m = head.matcher(format.subSequence(pos,format.length()));
+		if (m.lookingAt()) {
+			lastMatched=m;
+			pos+=m.start()-m.end();
+			return true;
+		}
+		return false;
 	}
+	Matcher lastMatched;
 	public Matcher lastMatched() {
-		
+		return lastMatched;
 	}
 }

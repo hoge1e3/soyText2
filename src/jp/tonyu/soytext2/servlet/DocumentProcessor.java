@@ -284,8 +284,9 @@ public class DocumentProcessor {
 					"<a href=%a>Top</a>  "+
 					"<a href=%a>View</a>  "+
 					"<a href=%a>Edit</a> \n"+
+					"<a href=%a>EditBody</a> \n"+
 					"<a href=%a>Exec</a> <br/>\n", docBase+"/all" , docBase+"/byId/"+id(),
-					docBase+"/edit/"+id(),  docBase+"/exec/"+id() ));
+					docBase+"/edit/"+id(), docBase+"/editbody/"+id(), docBase+"/exec/"+id() ));
 
 		}
 	}

@@ -17,6 +17,7 @@ public class SafeWrapFactory extends WrapFactory {
 				javaObject instanceof Boolean ||
 				javaObject instanceof org.mozilla.javascript.EvaluatorException ||
 				javaObject instanceof org.mozilla.javascript.EcmaError ||
+				javaObject instanceof org.mozilla.javascript.JavaScriptException ||
 					javaObject instanceof Wrappable ) {
 			return super.wrapAsJavaObject(cx, scope, javaObject, staticType);
 		}
