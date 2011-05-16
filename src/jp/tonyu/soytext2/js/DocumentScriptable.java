@@ -36,10 +36,25 @@ public class DocumentScriptable implements Scriptable {
 			return DocumentScriptable.this;
 		}
 	};
+	BuiltinFunc compileFunc =new BuiltinFunc() {
+		
+		@Override
+		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
+				Object[] args) {
+			CompileResult c = CompilerResolver.compile(DocumentScriptable.this);
+			if (args.length>=1 && args[0]!=null) {
+				Log.d(this, args[0]+" -  Class="+args[0].getClass());
+			}
+			if (c==null) return DocumentScriptable.this;
+			return c.value(Scriptable.class);
+		}
+	};
+
 	public Object get(Object key) {
 		if ("id".equals(key)) return d.id;
 		if ("lastUpdate".equals(key)) return d.lastUpdate;
 		if ("save".equals(key)) return saveFunc;
+		if ("compile".equals(key)) return compileFunc;
 		if (key instanceof DocumentScriptable) {
 			DocumentScriptable keyDoc = (DocumentScriptable) key;
 			key=JSSession.idref(keyDoc, d.documentSet);

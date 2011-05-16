@@ -12,6 +12,7 @@ import jp.tonyu.js.StringPropAction;
 import jp.tonyu.parser.Parser;
 import jp.tonyu.soytext2.servlet.HttpContext;
 import jp.tonyu.soytext2.servlet.SWebApplication;
+import jp.tonyu.util.Literal;
 import jp.tonyu.util.MapAction;
 import jp.tonyu.util.Maps;
 
@@ -50,8 +51,8 @@ public class DefaultCompiler implements DocumentCompiler {
 						} else {
 							if (value instanceof DocumentScriptable) {
 								DocumentScriptable sv = (DocumentScriptable) value;
-								JSSession jsSession = JSSession.cur.get();
-								jsSession.install(sv);								
+								/*JSSession jsSession = JSSession.cur.get();
+								jsSession.install(sv);*/								
 								compiledScope.put(key, sv);
 							}
 							/*Object putval = CompilerResolver.compile(d); // evalValue(d, v);  // evalUnlocked
@@ -122,7 +123,9 @@ public class DefaultCompiler implements DocumentCompiler {
 		Maps.entries(inf.compiledScope).each(new MapAction<String, DocumentScriptable>() {
 			@Override
 			public void run(String key, DocumentScriptable value) {
-				buf.append(key+"=this['"+JSSession.idref(value,null)+"'];\n");
+				buf.append(key+"="+
+						HttpContextFunctions.BYID+"("+Literal.toLiteral(value.getDocument().id)+
+						").compile(Function);\n");
 			}
 		});
 	}

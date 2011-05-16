@@ -160,8 +160,8 @@ public class HttpContext {
         else if (s.length >= 3 && s[1].toLowerCase().equals("edit")) {
         	edit();
         }
-        else if (s.length >= 3 && s[1].toLowerCase().equals("testedit")) {
-        	testEdit();
+        else if (s.length >= 3 && s[1].toLowerCase().equals("editbody")) {
+        	editBody();
         }
         else if (s.length==2 && s[1].equals("all")) {
         	all();
@@ -349,7 +349,7 @@ public class HttpContext {
 			);
 		}
 	}
-	private void testEdit() throws IOException {
+	private void editBody() throws IOException {
 		String[] s=args();
 		//   $soyText/edit/00000
 		String id=s[2];
@@ -424,10 +424,12 @@ public class HttpContext {
 				"<!--%t-->"+
 				"<a href=%a>View</a>  "+
 				"<a href=%a>Edit</a> "+
+				"<a href=%a>EditBody</a> "+
 				"<a href=%a>Exec</a> %t<br/>\n"
 				, AJAXTAG+id
 				, rootPath()+"/byId/"+id 
 				, rootPath()+"/edit/"+id 
+				, rootPath()+"/editbody/"+id 
 				, rootPath()+"/exec/"+id 
 				, d.summary);
 		}
