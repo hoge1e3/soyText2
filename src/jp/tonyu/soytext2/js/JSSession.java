@@ -109,8 +109,19 @@ public class JSSession {
 		}			
 	}
 
-	public void install(DocumentScriptable d) {
+	Map<String, CompileResult> compileCache=new HashMap<String, CompileResult>();
+	public CompileResult compile(DocumentScriptable d) {
+		String id = d.getDocument().id;
+		CompileResult compileResult = compileCache.get(id);
+		if (compileResult!=null) {
+			if (compileResult.isUp2Date()) return compileResult;
+		}
 		CompileResult res=CompilerResolver.compile(d);
+		compileCache.put(id, res);
+		return res;
+	}
+	public void install(DocumentScriptable d) {
+		CompileResult res=compile(d);
 		root.put(idref(d, null), root, res.value(Scriptable.class));
 	}
 	public static String idref(DocumentScriptable d, DocumentSet viewPoint) {

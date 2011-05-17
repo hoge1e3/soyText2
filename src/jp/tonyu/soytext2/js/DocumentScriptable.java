@@ -41,10 +41,11 @@ public class DocumentScriptable implements Scriptable {
 		@Override
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 				Object[] args) {
-			CompileResult c = CompilerResolver.compile(DocumentScriptable.this);
-			if (args.length>=1 && args[0]!=null) {
+			CompileResult c = JSSession.cur.get().compile(DocumentScriptable.this);
+			/*if (args.length>=1 && args[0]!=null) {
 				Log.d(this, args[0]+" -  Class="+args[0].getClass());
-			}
+			//org.mozilla.javascript.IdFunctionObject
+			}*/
 			if (c==null) return DocumentScriptable.this;
 			return c.value(Scriptable.class);
 		}

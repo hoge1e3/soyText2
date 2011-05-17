@@ -268,7 +268,7 @@ public class HttpContext {
 		DocumentScriptable d= loader.byId(id);
         
 		if (d!=null) {
-	        CompileResult o=CompilerResolver.compile(d);
+	        CompileResult o=JSSession.cur.get().compile(d);
 	        boolean execed=false;
 	        if (o!=null) {
 	        	SWebApplication app=o.value(SWebApplication.class);
