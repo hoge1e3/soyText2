@@ -15,6 +15,7 @@ import jp.tonyu.soytext2.search.Query;
 import jp.tonyu.soytext2.search.QueryBuilder;
 import jp.tonyu.soytext2.search.QueryResult;
 import jp.tonyu.soytext2.search.expr.AttrOperator;
+import jp.tonyu.soytext2.servlet.DocumentProcessor;
 import jp.tonyu.soytext2.servlet.HttpContext;
 
 import org.mozilla.javascript.Function;
@@ -23,7 +24,7 @@ import org.mozilla.javascript.Scriptable;
 
 public class DocumentLoader implements Wrappable {
 	//private static final Object LOADING = "LOADING";
-	public static final Pattern idpatWiki=Pattern.compile("\\[\\[([^\\]]+)\\]\\]");
+	public static final Pattern idpatWiki= DocumentProcessor.idpatWiki ;//Pattern.compile("\\[\\[([^\\]]+)\\]\\]");
 	private static final String ERROR_CONTENT = "err_content";
 		//Map<String, Scriptable>objs=new HashMap<String, Scriptable>();
 	private final DocumentSet documentSet;

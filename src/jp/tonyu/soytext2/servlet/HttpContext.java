@@ -57,18 +57,18 @@ public class HttpContext {
 	public ApplicationContext applicationContext() {
 		return currentSession().applicationContext();
 	}*/
-	public final DocumentLoader loader;
+	public final DocumentLoader documentLoader;
 	public DocumentSet documentSet() {
 		/*Session s= currentSession();
 		if (s==null) return appCtx.documentSet;
 		return s.documentSet();*/
-		return loader.getDocumentSet();
+		return documentLoader.getDocumentSet();
 	}
 	public HttpContext( DocumentLoader loader, HttpServletRequest req, HttpServletResponse res) {
 		super();
 		this.req = req;
 		this.res = res;
-		this.loader=loader;
+		this.documentLoader=loader;
 	}
 	int printc=0;
 	public void print(Object str) throws IOException { 
@@ -248,7 +248,7 @@ public class HttpContext {
 	private void byId() throws IOException {
         String[] s=args();
 		String id = s[2];
-		DocumentScriptable d = (DocumentScriptable)loader.byId(id);
+		DocumentScriptable d = (DocumentScriptable)documentLoader.byId(id);
 		if (d != null)
 		{
 		    documentProcessor(d).proc();           
@@ -265,7 +265,7 @@ public class HttpContext {
         
         
 		String id=s[2];
-		DocumentScriptable d= loader.byId(id);
+		DocumentScriptable d= documentLoader.byId(id);
         
 		if (d!=null) {
 	        CompileResult o=JSSession.cur.get().compile(d);
@@ -295,7 +295,7 @@ public class HttpContext {
 		String str=req.getPathInfo().replaceAll("^/", "");
 		Query q=QueryBuilder.create("name:?").tmpl("name", str, AttrOperator.exact).toQuery();
 		final Ref<Boolean> found=new Ref<Boolean>(false);
-		loader.searchByQuery(q, new BuiltinFunc() {
+		documentLoader.searchByQuery(q, new BuiltinFunc() {
 			
 			@Override
 			public Object call(Context cx, Scriptable scope, Scriptable thisObj,
@@ -317,7 +317,7 @@ public class HttpContext {
 	}
 	private void newDocument() throws IOException {
 		if (req.getMethod().equals("POST")) {
-			DocumentScriptable d = loader.newDocument(null);
+			DocumentScriptable d = documentLoader.newDocument(null);
 			documentProcessor(d).proc();
 		} else {
 			Httpd.respondByString(res, Html.p("<html><title>New Document</title>"+
@@ -333,7 +333,7 @@ public class HttpContext {
 		String[] s=args();
 		//   $soyText/edit/00000
 		String id=s[2];
-		DocumentScriptable d = loader.byId(id);
+		DocumentScriptable d = documentLoader.byId(id);
 		if (d==null) {
 		    notfound(id);
 		} else if (req.getMethod().equals("POST")) {
@@ -353,7 +353,7 @@ public class HttpContext {
 		String[] s=args();
 		//   $soyText/edit/00000
 		String id=s[2];
-		DocumentScriptable d = loader.byId(id);
+		DocumentScriptable d = documentLoader.byId(id);
 		if (d==null) {
 		    notfound(id);
 		} else if (req.getMethod().equals("POST")) {
@@ -453,7 +453,7 @@ public class HttpContext {
     }
     private void search(String cstr, Object object) throws IOException {
     	final StringBuffer buf = new StringBuffer(isAjaxRequest() ? "" : menuBar());
-        loader.search(cstr, null, new BuiltinFunc() {		
+        documentLoader.search(cstr, null, new BuiltinFunc() {		
         	int c=0;
 			@Override
 			public Object call(Context cx, Scriptable scope, Scriptable thisObj,

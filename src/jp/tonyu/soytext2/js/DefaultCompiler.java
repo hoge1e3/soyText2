@@ -4,12 +4,15 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.Convert;
 import jp.tonyu.js.StringPropAction;
 import jp.tonyu.parser.Parser;
+import jp.tonyu.soytext2.document.Document;
+import jp.tonyu.soytext2.servlet.DocumentProcessor;
 import jp.tonyu.soytext2.servlet.HttpContext;
 import jp.tonyu.soytext2.servlet.SWebApplication;
 import jp.tonyu.util.Literal;
@@ -27,6 +30,7 @@ public class DefaultCompiler implements DocumentCompiler {
 		final public Map<String, Object> consts=new Hashtable<String, Object>();
 		final public List<String> paramValues=new Vector<String>();
 		final public Map<String, DocumentScriptable> compiledScope=new Hashtable<String, DocumentScriptable>();
+		final public Map<String, String> paramTypes=new Hashtable<String, String>();
 		public HeaderInfo(final DocumentScriptable d) {
 			doc=d;
 			Object scope=d.get(SCOPE);
@@ -48,6 +52,7 @@ public class DefaultCompiler implements DocumentCompiler {
 							if (!hasOrder) {
 								paramValues.add(key);
 							}
+							paramTypes.put(key, value+"");
 						} else {
 							if (value instanceof DocumentScriptable) {
 								DocumentScriptable sv = (DocumentScriptable) value;
@@ -87,7 +92,7 @@ public class DefaultCompiler implements DocumentCompiler {
 	public CompileResult defaultJSDocument(final DocumentScriptable d)  {
 		Log.d(this,"Exec as JS");
 		final HeaderInfo inf=new HeaderInfo(d);
-		StringBuilder buf=new StringBuilder();
+		final StringBuilder buf=new StringBuilder();
 		includeScope(inf, buf);
 		buf.append(d.get(HttpContext.ATTR_BODY));
 		return runeval(inf, buf);
@@ -95,9 +100,8 @@ public class DefaultCompiler implements DocumentCompiler {
 	public CompileResult defaultHtmlDocument(final DocumentScriptable d)  {
 		Log.d(this,"Exec as Html");
 		final HeaderInfo inf=new HeaderInfo(d);
-
-		String src=""+d.get(HttpContext.ATTR_BODY);
-		Parser p=new Parser(src);
+		final String src=""+d.get(HttpContext.ATTR_BODY);
+		final Parser p=new Parser(src);
 		p.setSpacePattern(null);
 		final StringBuilder buf=new StringBuilder();
 		buf.append("res=function ("+Parser.join(", ",inf.paramValues)+") { \n"); {
@@ -136,9 +140,9 @@ public class DefaultCompiler implements DocumentCompiler {
 	private CompileResult runeval(final HeaderInfo inf, final StringBuilder buf) {
 		final DocumentScriptable d=inf.doc;
 		final JSSession jsSession=JSSession.cur.get();
-		System.out.println("EvalBuf - "+buf);
 		final Object res=jsSession.eval(buf.toString(), inf.consts);
 		final long l=d.getDocument().lastUpdate;
+		Log.d(this ,"EvalBuf - "+buf);
 		return new CompileResult() {
 
 			@Override
@@ -157,8 +161,37 @@ public class DefaultCompiler implements DocumentCompiler {
 						@Override
 						public void run(Map<String, String> params) {
 							Object[] args= new Object[inf.paramValues.size()];
-							for (int i=0 ; i<args.length ; i++) {
-								args[i]=params.get(inf.paramValues.get(i));
+							for (int i=0 ; i<args.length ; i++) {								
+								String key = inf.paramValues.get(i);
+								String type = inf.paramTypes.get(key);
+								String value = params.get(key);
+								if (value==null) {
+									args[i]=null;
+								} else	if (type.startsWith("?doc")) {
+									Matcher m = DocumentProcessor.idpatWiki.matcher(value);
+									String id;
+									if (m.lookingAt()) {
+										id=m.group(1);
+									} else id=value;
+									args[i]=documentLoader().byId(id);									
+								} else 	if (type.startsWith("?str")) {
+									args[i]=value;
+								} else {
+									Matcher m = DocumentProcessor.idpatWiki.matcher(value);
+									String id;
+									if (m.lookingAt()) {
+										id=m.group(1);
+										args[i]=documentLoader().byId(id);
+									} else {
+										m = Literal.DQ.matcher(value);
+										if (m.lookingAt()) {
+											args[i]=Literal.fromQuoteStrippedLiteral(m.group(1));
+										} else {
+											args[i]=value;
+										}
+									}
+								}
+								Log.d("Param", key+"="+args[i]+" src="+value+" type="+type);
 							}
 							jsSession.call(f, args);
 						}
@@ -177,6 +210,9 @@ public class DefaultCompiler implements DocumentCompiler {
 				return DefaultCompiler.this;
 			}
 		};
+	}
+	private DocumentLoader documentLoader() {
+		return HttpContext.cur.get().documentLoader;
 	}
 
 }

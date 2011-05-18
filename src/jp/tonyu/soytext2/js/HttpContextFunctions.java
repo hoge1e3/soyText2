@@ -83,7 +83,7 @@ public class HttpContextFunctions  {
 									Object[] args) {
 								if (args.length>0 && args[0] instanceof Function) {
 									Function iter=(Function)args[0];
-									c().loader.search(cond, tmpl, iter);
+									c().documentLoader.search(cond, tmpl, iter);
 								}
 								return null;
 							}
@@ -96,7 +96,7 @@ public class HttpContextFunctions  {
 							public Object call(Context cx, Scriptable scope,
 									Scriptable thisObj, Object[] args) {
 								final Ref<Object> res=new Ref<Object>();
-								c().loader.search(cond, tmpl, new BuiltinFunc() {
+								c().documentLoader.search(cond, tmpl, new BuiltinFunc() {
 									
 									@Override
 									public Object call(Context cx, Scriptable scope, Scriptable thisObj,
@@ -131,7 +131,8 @@ public class HttpContextFunctions  {
 			return d;
 		}
 		HttpContext hctx=c();
-		DocumentScriptable s = makePersistent(hctx.loader, obj);
+		DocumentScriptable s = makePersistent(hctx.documentLoader, obj);
+		s.save();
 		return s;
 	}
 	static BuiltinFunc saveFunc=new BuiltinFunc() {
@@ -145,13 +146,14 @@ public class HttpContextFunctions  {
 		}
 	};
 	static BuiltinFunc execLinkFunc=new BuiltinFunc() {
-		private String toId(DocumentScriptable r) {
+		/*private String toId(DocumentScriptable r) {
 			return r.get("id").toString();
-		}
+		}*/
 		@Override
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 				Object[] args) {
-			if (args.length>0 && args[0] instanceof Scriptable) {
+			return "\""+HTMLDecoder.encode(execPathFunc.call(cx, scope, thisObj, args)+"")+"\"";
+			/*if (args.length>0 && args[0] instanceof Scriptable) {
 				Scriptable es=(Scriptable)args[0];
 				Object es2 = es.get(DefaultCompiler.ATTR_SRC, es);
 				Log.d("execLink", es2);
@@ -177,7 +179,7 @@ public class HttpContextFunctions  {
 				Log.d("execLink", b);
 				return "\""+ b + "\"";			
 			}
-			return Log.die("Not scriptable in first arg: execLink");
+			return Log.die("Not scriptable in first arg: execLink");*/
 		}
 	};
 	static BuiltinFunc execPathFunc=new BuiltinFunc() {
@@ -202,7 +204,7 @@ public class HttpContextFunctions  {
 							String sval;
 							if (val instanceof DocumentScriptable) {
 								DocumentScriptable ref = (DocumentScriptable) val;
-								sval=toId(ref);
+								sval="[["+toId(ref)+"]]";
 							} else {
 								sval=val.toString();
 							}
@@ -256,7 +258,7 @@ public class HttpContextFunctions  {
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 				Object[] args) {
 			if (args.length>0 && args[0]!=null) 	{
-				return c().loader.byId(args[0].toString());
+				return c().documentLoader.byId(args[0].toString());
 			} 
 			return null;
 		}
