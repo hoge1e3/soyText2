@@ -165,6 +165,16 @@ public class HttpContext {
         String[] s=str.split("/");
         return s;
     }
+	public String[] execArgs() {
+		//0  1    2   3     
+		// /exec/id/args0/args1
+		int start=3;
+		String[] src = args();
+		String[] res=new String[src.length-start];
+		System.arraycopy(src,start,  res,0, res.length);
+		return res;
+		                        
+	}
     public String queryString() {
         String query = req.getQueryString();
         return (query==null?"":query);

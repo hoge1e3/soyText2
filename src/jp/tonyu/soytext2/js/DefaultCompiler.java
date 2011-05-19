@@ -1,5 +1,6 @@
 package jp.tonyu.soytext2.js;
 
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -163,40 +164,19 @@ public class DefaultCompiler implements DocumentCompiler {
 						
 						@Override
 						public void run() {
-							Map<String, Object> params=HttpContext.cur.get().params(inf.paramTypes);
-							Object[] args= new Object[inf.paramValues.size()];
-							for (int i=0 ; i<args.length ; i++) {								
-								String key = inf.paramValues.get(i);
-								/*String type = inf.paramTypes.get(key);
-								String value = params.get(key);
-								if (value==null) {
-									args[i]=null;
-								} else	if (type.startsWith("?doc")) {
-									Matcher m = DocumentProcessor.idpatWiki.matcher(value);
-									String id;
-									if (m.lookingAt()) {
-										id=m.group(1);
-									} else id=value;
-									args[i]=documentLoader().byId(id);									
-								} else 	if (type.startsWith("?str")) {
-									args[i]=value;
-								} else {
-									Matcher m = DocumentProcessor.idpatWiki.matcher(value);
-									String id;
-									if (m.lookingAt()) {
-										id=m.group(1);
-										args[i]=documentLoader().byId(id);
-									} else {
-										m = Literal.DQ.matcher(value);
-										if (m.lookingAt()) {
-											args[i]=Literal.fromQuoteStrippedLiteral(m.group(1));
-										} else {
-											args[i]=value;
-										}
-									}
-								}
-								Log.d("Param", key+"="+args[i]+" src="+value+" type="+type);*/								
-								args[i]=params.get(key);
+							final HttpContext httpContext = HttpContext.cur.get();
+							final Map<String, String> hparams = httpContext.params();
+							final String []hargs= httpContext.execArgs();
+							//Map<String, Object> params=params(hparams, inf.paramTypes);
+							final Object[] args= new Object[inf.paramValues.size()];
+							for (int i=0 ; i<args.length ; i++) {
+								final String key = inf.paramValues.get(i);
+								final String typeHint=inf.paramTypes.get(key);
+								String value=hparams.get(key);
+								if (value==null && i<hargs.length) {
+									value=hargs[i];
+								}								
+								args[i]=param(value, typeHint);
 							}
 							jsSession.call(f, args);
 						}
@@ -216,8 +196,80 @@ public class DefaultCompiler implements DocumentCompiler {
 			}
 		};
 	}
-	private DocumentLoader documentLoader() {
+	private static DocumentLoader documentLoader() {
 		return HttpContext.cur.get().documentLoader;
 	}
-
+	public static Object param(String value, Object _typeHint) {
+		String typeHint=_typeHint+"";
+		Object o;
+		if (value==null) {
+			o=null;
+		} else	if (typeHint.startsWith("?doc")) {
+			Matcher m = DocumentProcessor.idpatWiki.matcher(value);
+			String id;
+			if (m.lookingAt()) {
+				id=m.group(1);
+			} else id=value;
+			o=documentLoader().byId(id);									
+		} else 	if (typeHint.startsWith("?str")) {
+			o=value;
+		} else {
+			Matcher m = DocumentProcessor.idpatWiki.matcher(value);
+			String id;
+			if (m.lookingAt()) {
+				id=m.group(1);
+				o=documentLoader().byId(id);
+			} else {
+				m = Literal.DQ.matcher(value);
+				if (m.lookingAt()) {
+					o=Literal.fromQuoteStrippedLiteral(m.group(1));
+				} else {
+					o=value;
+				}
+			}
+		}
+		Log.d("Param", " o="+o+" src="+value+" type="+typeHint);
+		return o;
+	}
+	/*public static Map<String,Object> params(final Map<String,String> p,final Map<String, ?> typeHints) {
+    	final Map<String,Object> res=new HashMap<String, Object>();
+    	final DocumentLoader documentLoader=documentLoader();
+    	Maps.entries(p).each(new MapAction<String, String>() {
+			
+			@Override
+			public void run(String key, String value) {
+				String typeHint = typeHints.get(key)+"";
+				Object o;
+				if (value==null) {
+					o=null;
+				} else	if (typeHint.startsWith("?doc")) {
+					Matcher m = DocumentProcessor.idpatWiki.matcher(value);
+					String id;
+					if (m.lookingAt()) {
+						id=m.group(1);
+					} else id=value;
+					o=documentLoader.byId(id);									
+				} else 	if (typeHint.startsWith("?str")) {
+					o=value;
+				} else {
+					Matcher m = DocumentProcessor.idpatWiki.matcher(value);
+					String id;
+					if (m.lookingAt()) {
+						id=m.group(1);
+						o=documentLoader.byId(id);
+					} else {
+						m = Literal.DQ.matcher(value);
+						if (m.lookingAt()) {
+							o=Literal.fromQuoteStrippedLiteral(m.group(1));
+						} else {
+							o=value;
+						}
+					}
+				}
+				Log.d("Param", key+"="+key+" o="+o+" src="+value+" type="+typeHint);
+				res.put(key,o);
+			}
+		});
+    	return res;
+    }*/
 }

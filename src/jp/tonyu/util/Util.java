@@ -21,7 +21,7 @@ public class Util {
 		StringBuffer res=new StringBuffer();
 		for (Object e:objects) {
 			res.append(sep);sep="\t";
-			res.append(encodeTab(e.toString()));
+			res.append(encodeTab(e+""));
 		}
 		return res.toString();
 	}

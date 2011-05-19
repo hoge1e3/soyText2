@@ -23,7 +23,7 @@ public class HttpContextFunctions  {
 	  EXECLINK="execLink",EXECPATH="execPath",HTMLENCODE="h",
 	  USER="user",BYID="byId",PARAMS="params",
 	  ROOTPATH="rootPath",
-	  REDIRECT="redirect",NEWINSTANCE="newInstance";
+	  REDIRECT="redirect",NEWINSTANCE="newInstance",HEADER="header";
 	
 	public static void load(Map<String,Object> to) {
 		to.put(PRINT, printFunc);
@@ -38,10 +38,22 @@ public class HttpContextFunctions  {
 		to.put(ROOTPATH,rootPathFunc);
 		to.put(REDIRECT,redirectFunc);
 		to.put(NEWINSTANCE,newInstanceFunc);
+		to.put(HEADER,headerFunc);
 	}
 	public static HttpContext c() {
 		return HttpContext.cur.get();
 	}
+	static BuiltinFunc headerFunc=new BuiltinFunc() {
+		@Override
+		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
+				Object[] args) {
+			HttpContext ctx=c();
+			if (args.length>=2) {
+				ctx.getRes().setHeader(args[0]+"", args[1]+"");
+			}
+			return thisObj;
+		}
+	};
 	static BuiltinFunc printFunc=new BuiltinFunc() {
 		@Override
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,

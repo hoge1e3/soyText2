@@ -1,5 +1,6 @@
 package jp.tonyu.soytext2.extjs;
 
+import jp.tonyu.debug.Log;
 import jp.tonyu.soytext2.js.CompileResult;
 import jp.tonyu.soytext2.js.DocumentCompiler;
 import jp.tonyu.soytext2.js.DocumentScriptable;
@@ -22,6 +23,7 @@ public class ExtJSCompiler implements DocumentCompiler {
 				if (type.isAssignableFrom(ClassConverter.class)){
 					return (T)c;
 				}
+				Log.die("Cannot convert "+type);
 				return null;
 			}
 			

@@ -48,7 +48,7 @@ public class DocumentScriptable implements Scriptable {
 			//org.mozilla.javascript.IdFunctionObject
 			}*/
 			if (c==null) return DocumentScriptable.this;
-			return c.value(Scriptable.class);
+			return c.value(Object.class);
 		}
 	};
 
