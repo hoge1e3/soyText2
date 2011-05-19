@@ -12,6 +12,7 @@ import jp.tonyu.js.Convert;
 import jp.tonyu.js.StringPropAction;
 import jp.tonyu.parser.Parser;
 import jp.tonyu.soytext2.document.Document;
+import jp.tonyu.soytext2.extjs.ExtJSCompiler;
 import jp.tonyu.soytext2.servlet.DocumentProcessor;
 import jp.tonyu.soytext2.servlet.HttpContext;
 import jp.tonyu.soytext2.servlet.SWebApplication;
@@ -26,14 +27,14 @@ public class DefaultCompiler implements DocumentCompiler {
 	public static final String ARGUMENTORDER = "argumentOrder";
 	class HeaderInfo {
 		final public DocumentScriptable doc;
-		private static final String SCOPE = "scope";
+		
 		final public Map<String, Object> consts=new Hashtable<String, Object>();
 		final public List<String> paramValues=new Vector<String>();
 		final public Map<String, DocumentScriptable> compiledScope=new Hashtable<String, DocumentScriptable>();
 		final public Map<String, String> paramTypes=new Hashtable<String, String>();
 		public HeaderInfo(final DocumentScriptable d) {
 			doc=d;
-			Object scope=d.get(SCOPE);
+			Object scope=d.get(ATTR_SCOPE);
 			Object ord=d.get(ARGUMENTORDER);
 			final boolean hasOrder;
 			if (ord instanceof Scriptable) {
@@ -76,8 +77,9 @@ public class DefaultCompiler implements DocumentCompiler {
 		String n=""+s.get("name");
 		if (n.endsWith(".html")) {
 			return defaultHtmlDocument(s);
-		}
-		if (n.endsWith(".js")) {
+		} else if (n.endsWith(".class.js")) {
+			return new ExtJSCompiler().compile(s);
+		} else if (n.endsWith(".js")) {
 			return defaultJSDocument(s);
 		}
 		return null;
@@ -88,6 +90,7 @@ public class DefaultCompiler implements DocumentCompiler {
 	static  final String PRINT="p",SAVE="save",SEARCH="search";
 	protected static final String ATTR_SRC = "src";
 	protected static final String SRCSYM = "__src__";
+	public static final String ATTR_SCOPE = "scope";
 
 	public CompileResult defaultJSDocument(final DocumentScriptable d)  {
 		Log.d(this,"Exec as JS");
