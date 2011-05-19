@@ -5,6 +5,7 @@ import java.util.Map;
 
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.BuiltinFunc;
+import jp.tonyu.js.Convert;
 import jp.tonyu.js.Wrappable;
 import jp.tonyu.soytext2.servlet.HTMLDecoder;
 import jp.tonyu.soytext2.servlet.HttpContext;
@@ -246,9 +247,15 @@ public class HttpContextFunctions  {
 					return "Params";
 				}
 			};
-			Map<String, String> m=c().params();
-			for (String k:m.keySet()) {
-				res.put(k, res, m.get(k));
+			if (args.length>0 && args[0] instanceof Scriptable) {
+				Map<String, Object> m=c().params(Convert.toStringKeyMap((Scriptable)args[0]));
+				Convert.extend(res, m);				
+			} else {
+				Map<String, String> m=c().params();
+					/*for (String k:m.keySet()) {
+					res.put(k, res, m.get(k));
+				}*/
+				Convert.extend(res, m);
 			}
 			return res;
 		}

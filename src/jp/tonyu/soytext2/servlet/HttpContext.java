@@ -1,10 +1,12 @@
 package jp.tonyu.soytext2.servlet;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.regex.Matcher;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -27,6 +29,9 @@ import jp.tonyu.soytext2.search.QueryBuilder;
 import jp.tonyu.soytext2.search.expr.AttrOperator;
 import jp.tonyu.soytext2.value.Value;
 import jp.tonyu.soytext2.value.Values;
+import jp.tonyu.util.Literal;
+import jp.tonyu.util.MapAction;
+import jp.tonyu.util.Maps;
 import jp.tonyu.util.Ref;
 import jp.tonyu.util.Util;
 
@@ -114,6 +119,47 @@ public class HttpContext {
 		_params=res;
 		return res;
 	}
+    public Map<String,Object> params(final Map<String, ?> typeHints) {
+    	final Map<String, String> p = params();
+    	final Map<String,Object> res=new HashMap<String, Object>();
+    	Maps.entries(p).each(new MapAction<String, String>() {
+			
+			@Override
+			public void run(String key, String value) {
+				String type = typeHints.get(key)+"";
+				Object o;
+				if (value==null) {
+					o=null;
+				} else	if (type.startsWith("?doc")) {
+					Matcher m = DocumentProcessor.idpatWiki.matcher(value);
+					String id;
+					if (m.lookingAt()) {
+						id=m.group(1);
+					} else id=value;
+					o=documentLoader.byId(id);									
+				} else 	if (type.startsWith("?str")) {
+					o=value;
+				} else {
+					Matcher m = DocumentProcessor.idpatWiki.matcher(value);
+					String id;
+					if (m.lookingAt()) {
+						id=m.group(1);
+						o=documentLoader.byId(id);
+					} else {
+						m = Literal.DQ.matcher(value);
+						if (m.lookingAt()) {
+							o=Literal.fromQuoteStrippedLiteral(m.group(1));
+						} else {
+							o=value;
+						}
+					}
+				}
+				Log.d("Param", key+"="+key+" o="+o+" src="+value+" type="+type);
+				res.put(key,o);
+			}
+		});
+    	return res;
+    }
 	public String[] args() {
     	String str=req.getPathInfo();
         String[] s=str.split("/");
@@ -273,7 +319,7 @@ public class HttpContext {
 	        if (o!=null) {
 	        	SWebApplication app=o.value(SWebApplication.class);
 	        	if (app!=null) {
-	        		app.run(params());
+	        		app.run(/*params()*/);
 	        		execed=true;
 	        	}
 			}

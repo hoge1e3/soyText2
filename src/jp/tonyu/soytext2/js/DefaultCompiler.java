@@ -159,11 +159,12 @@ public class DefaultCompiler implements DocumentCompiler {
 					SWebApplication app = new SWebApplication() {
 						
 						@Override
-						public void run(Map<String, String> params) {
+						public void run() {
+							Map<String, Object> params=HttpContext.cur.get().params(inf.paramTypes);
 							Object[] args= new Object[inf.paramValues.size()];
 							for (int i=0 ; i<args.length ; i++) {								
 								String key = inf.paramValues.get(i);
-								String type = inf.paramTypes.get(key);
+								/*String type = inf.paramTypes.get(key);
 								String value = params.get(key);
 								if (value==null) {
 									args[i]=null;
@@ -191,7 +192,8 @@ public class DefaultCompiler implements DocumentCompiler {
 										}
 									}
 								}
-								Log.d("Param", key+"="+args[i]+" src="+value+" type="+type);
+								Log.d("Param", key+"="+args[i]+" src="+value+" type="+type);*/								
+								args[i]=params.get(key);
 							}
 							jsSession.call(f, args);
 						}

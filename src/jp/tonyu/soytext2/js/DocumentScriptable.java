@@ -8,6 +8,7 @@ import jp.tonyu.debug.Log;
 import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.soytext.Origin;
 import jp.tonyu.soytext2.document.Document;
+import jp.tonyu.soytext2.servlet.HttpContext;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
@@ -198,15 +199,18 @@ public class DocumentScriptable implements Scriptable {
 		
 	}
 	public void save() {
+		refreshSummary();
 		d.content="$.extend(_,"+HashLiteralConv.toHashLiteral(this)+");";
-		Log.d(this, "content changed to "+d.content);
+		Log.d(this, "save() content changed to "+d.content);
 		d.save();
 		
 	}
-	public void replaceContent(String content) {
+	public void setContentAndSave(String content) {
 		d.content=content;
+		Log.d(this, "setContentAndSave() content changed to "+d.content);
+		loader.loadFromContent(content, this);		
+		refreshSummary();
 		d.save();
-		loader.loadFromContent(d, this);		
 	}
 	@Override
 	public String toString() {
@@ -214,5 +218,18 @@ public class DocumentScriptable implements Scriptable {
 	}
 	public void clear() {
 		binds.clear();
+	}
+	public void refreshSummary() {
+		d.summary=genSummary();
+	}
+	public String genSummary() {
+		String res;
+		res=get("name")+"";
+		if (!res.equals("null") && res.length()>0) return res;
+		res=get("title")+"";
+		if (!res.equals("null") && res.length()>0) return res;
+		res=get(HttpContext.ATTR_BODY)+"";
+		if (!res.equals("null") && res.length()>0) return res.substring(0,Math.min(res.length(), 20));
+		return d.id;
 	}
 }

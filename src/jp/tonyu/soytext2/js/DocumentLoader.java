@@ -40,20 +40,20 @@ public class DocumentLoader implements Wrappable {
 		if (o!=null) return o;
 		o=new DocumentScriptable(this, src);
 		objs.put(id, o);
-		loadFromContent(src, o);
+		loadFromContent(src.content, o);
 		return o;
 	}
-	public void loadFromContent(Document src, DocumentScriptable dst) {
+	public void loadFromContent(String newContent, DocumentScriptable dst) {
 		Map<String, Object> vars=new HashMap<String, Object>();
 		dst.clear();
 		vars.put("$", this);
 		vars.put("_", dst);
 		try {
-			jsSession().eval(src.content, vars);
+			jsSession().eval(newContent, vars);
 		} catch (Exception e) {
 			e.printStackTrace();
-			Log.d(this , src.id+" has invalid content "+src.content);
-			dst.put(ERROR_CONTENT, src.content );
+			Log.d(this , dst.getDocument().id+" has invalid content "+newContent);
+			dst.put(ERROR_CONTENT, newContent );
 		}
 	}
 	private JSSession jsSession() {

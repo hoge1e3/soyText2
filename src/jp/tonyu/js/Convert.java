@@ -1,6 +1,12 @@
 package jp.tonyu.js;
 
 
+import java.util.HashMap;
+import java.util.Map;
+
+import jp.tonyu.util.MapAction;
+import jp.tonyu.util.Maps;
+
 import org.mozilla.javascript.Scriptable;
 
 public class Convert {
@@ -36,6 +42,34 @@ public class Convert {
 				action.run(key, s.get(key, s));
 			}
 		}
+	}
+	public static Map<String,Object> toStringKeyMap(Scriptable s) {
+		Map<String, Object> res = new HashMap<String, Object>();
+		extend(res,s);
+		return res;
+	}
+	public static void extend(Map<String,Object> map,Scriptable s) {
+		for (Object k:s.getIds()) {
+			if (k instanceof String) {
+				String sk = (String) k;
+				Object value = s.get(sk, s);
+				map.put(sk, value);				
+			}
+		}
+	}
+	public static void extend(Scriptable s,Map<?,?> map) {
+		for (Object k:map.keySet()) {
+			Object value=map.get(k);
+			if (k instanceof String) {
+				String kstr = (String) k;
+				s.put(kstr, s, value);
+			}
+			if (k instanceof Number) {
+				Number n = (Number) k;
+				s.put(n.intValue(), s, value);
+			}
+		}
+		
 	}
     public static String literal(String raw) {
    	 String cook=raw;
