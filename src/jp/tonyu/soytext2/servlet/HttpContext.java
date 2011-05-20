@@ -15,7 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.soytext.Origin;
-import jp.tonyu.soytext2.document.Document;
+import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentAction;
 import jp.tonyu.soytext2.document.DocumentSet;
 import jp.tonyu.soytext2.js.CompileResult;
@@ -470,7 +470,7 @@ public class HttpContext {
 		search("",null);
 	}
 	private String linkBar(DocumentScriptable ds) {
-		Document d=ds.getDocument();
+		DocumentRecord d=ds.getDocument();
 		String id=d.id; 
 		
 		if (isAjaxRequest()) {

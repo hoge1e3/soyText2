@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import jp.tonyu.soytext2.document.Document;
+import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentSet;
 import jp.tonyu.soytext2.js.DocumentScriptable;
 import jp.tonyu.util.Literal;
@@ -321,7 +321,7 @@ public class DocumentProcessor {
 			return Literal.fromQuoteStrippedLiteral(ma.group(1));
 		}
 		ma=idpat.matcher(value);	
-		Document dr=null;
+		DocumentRecord dr=null;
 		if (ma.lookingAt()) {
 			try {
 				dr=viewPoint.byId(value);

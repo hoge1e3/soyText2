@@ -1,9 +1,9 @@
 package jp.tonyu.soytext2.document;
 
 public interface DocumentSet {
-	public Document newDocument();
-	public Document newDocument(String id);
-	public void save(Document d);
-	public Document byId(String id);
+	public DocumentRecord newDocument();
+	public DocumentRecord newDocument(String id);
+	public void save(DocumentRecord d);
+	public DocumentRecord byId(String id);
 	public void all(DocumentAction a);
 }

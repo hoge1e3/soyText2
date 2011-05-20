@@ -37,9 +37,12 @@ public class SqlJetHelper {
 		try {
 			waitForTransaction(SqlJetTransactionMode.WRITE, timeOut);
 			action.run(db);
-		} finally {
 			commit();
 			action.afterCommit(db);
+		} catch(SqlJetException e) {
+			e.printStackTrace();
+			db.rollback();
+		} finally {
 		}
 	}
 	List<DBAction> reservedWriteTransaction= new Vector<DBAction>();

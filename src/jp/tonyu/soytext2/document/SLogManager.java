@@ -62,16 +62,45 @@ public class SLogManager {
 					SLog res=new SLog(id);
 					if (!cur.eof()) {
 						cache.put(id, res);
-						res.action=cur.getString("action");
-						res.date=cur.getString("date");
-						res.target=cur.getString("target");
-						res.option=cur.getString("option");
+						fromCursor(cur, res);
 					}
 
 				}
 			},-1);
 		}
 		return cache.get(id);
+	}
+	public void all(final LogAction action) {
+		try {
+			sdb.readTransaction(new DBAction() {
+
+				@Override
+				public void run(SqlJetDb db) throws SqlJetException {
+					ISqlJetTable t = sdb.logTable();
+					ISqlJetCursor c = t.order(null);
+					while (!c.eof()) {
+						long id=c.getInteger("id");
+						SLog l=cache.get(id);
+						if (l==null) {
+							l=new SLog((int) id);
+							fromCursor(c, l);
+						}
+						if (action.run(l)) break;
+						c.next();
+					}
+					c.close();
+
+				}
+			},-1);
+		} catch (SqlJetException e) {
+			e.printStackTrace();
+		}
+	}
+	private void fromCursor(ISqlJetCursor cur, SLog res) throws SqlJetException {
+		res.action=cur.getString("action");
+		res.date=cur.getString("date");
+		res.target=cur.getString("target");
+		res.option=cur.getString("option");
 	}
 	public synchronized SLog create() {
 		lastNumber++;
@@ -93,11 +122,7 @@ public class SLogManager {
 			public void run(SqlJetDb db) throws SqlJetException {
 				ISqlJetTable t = sdb.logTable();
 				ISqlJetCursor cur = t.lookup(null, log.id);
-			    /*
-			     * public int id;
-	public String date;
-	public String action,target,option;
-			     */
+
 				if (!cur.eof()) {
 			    	cur.update(log.id,log.date,log.action,log.target,log.option);
 			    } else {
@@ -105,5 +130,8 @@ public class SLogManager {
 			    }
 			}
 		});
+	}
+	public void importLog(SLog curlog) {
+		save(curlog);		
 	}
 }

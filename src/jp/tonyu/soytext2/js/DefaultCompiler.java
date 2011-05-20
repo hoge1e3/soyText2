@@ -12,7 +12,7 @@ import jp.tonyu.debug.Log;
 import jp.tonyu.js.Convert;
 import jp.tonyu.js.StringPropAction;
 import jp.tonyu.parser.Parser;
-import jp.tonyu.soytext2.document.Document;
+import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.extjs.ExtJSCompiler;
 import jp.tonyu.soytext2.servlet.DocumentProcessor;
 import jp.tonyu.soytext2.servlet.HttpContext;

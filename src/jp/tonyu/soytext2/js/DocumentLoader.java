@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.Wrappable;
 import jp.tonyu.soytext2.db.SDB;
-import jp.tonyu.soytext2.document.Document;
+import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentAction;
 import jp.tonyu.soytext2.document.DocumentSet;
 import jp.tonyu.soytext2.search.Query;
@@ -34,7 +34,7 @@ public class DocumentLoader implements Wrappable {
 		this.documentSet = documentSet;
 	}
 	public DocumentScriptable byId(String id) {
-		Document src=getDocumentSet().byId(id);
+		DocumentRecord src=getDocumentSet().byId(id);
 		if (src==null) return null;
 		DocumentScriptable o=objs.get(id);
 		if (o!=null) return o;
@@ -61,7 +61,7 @@ public class DocumentLoader implements Wrappable {
 	}
 	public DocumentScriptable newDocument(Scriptable hash) {
 		Object id = hash!=null ? hash.get("id", hash) : null;
-		Document d;
+		DocumentRecord d;
 		if (id instanceof String) {
 			d=getDocumentSet().newDocument((String)id);
 		} else {
@@ -80,7 +80,7 @@ public class DocumentLoader implements Wrappable {
 		getDocumentSet().all(new DocumentAction() {
 			
 			@Override
-			public boolean run(Document d) {
+			public boolean run(DocumentRecord d) {
 				DocumentScriptable s=(DocumentScriptable) byId(d.id);
 				QueryResult r = q.matches(s);
 				if (r.filterMatched) {

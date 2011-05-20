@@ -1,6 +1,6 @@
 package jp.tonyu.soytext2.search.expr;
 
-import jp.tonyu.soytext2.document.Document;
+import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.js.DocumentScriptable;
 import jp.tonyu.soytext2.search.QueryResult;
 import jp.tonyu.soytext2.search.SearchContext;

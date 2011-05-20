@@ -3,7 +3,7 @@ import java.io.File;
 import org.tmatesoft.sqljet.core.SqlJetException;
 
 import jp.tonyu.soytext2.db.SDB;
-import jp.tonyu.soytext2.document.Document;
+import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentAction;
 
 
@@ -18,7 +18,7 @@ public class Test {
 				s.all(new DocumentAction() {
 					
 					@Override
-					public boolean run(Document d) {
+					public boolean run(DocumentRecord d) {
 						System.out.println(d.id+" "+d.lastUpdate+" "+d.content);
 						try {
 							Thread.sleep(0);

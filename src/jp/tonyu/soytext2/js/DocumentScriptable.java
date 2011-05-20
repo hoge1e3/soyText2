@@ -7,7 +7,7 @@ import java.util.Set;
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.soytext.Origin;
-import jp.tonyu.soytext2.document.Document;
+import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.servlet.HttpContext;
 
 import org.mozilla.javascript.Context;
@@ -16,12 +16,12 @@ import org.mozilla.javascript.Scriptable;
 public class DocumentScriptable implements Scriptable {
 	private static final Object GETTERKEY = "[[110414_051952@"+Origin.uid+"]]";
 	Map<Object, Object>binds=new HashMap<Object, Object>();
-	final Document d;
+	final DocumentRecord d;
 	final DocumentLoader loader;
-	public Document getDocument() {
+	public DocumentRecord getDocument() {
 		return d;
 	}
-	public DocumentScriptable(final DocumentLoader loader,final Document d) {
+	public DocumentScriptable(final DocumentLoader loader,final DocumentRecord d) {
 		this.loader=loader;
 		this.d=d;
 		/*put("id",this , d.id );

@@ -3,11 +3,13 @@ package jp.tonyu.soytext2.db;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Vector;
 
 import jp.tonyu.debug.Log;
-import jp.tonyu.soytext2.document.Document;
+import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentAction;
 import jp.tonyu.soytext2.document.DocumentSet;
+import jp.tonyu.soytext2.document.LogAction;
 import jp.tonyu.soytext2.document.SLog;
 import jp.tonyu.soytext2.document.SLogManager;
 
@@ -17,7 +19,7 @@ import org.tmatesoft.sqljet.core.table.ISqlJetTable;
 import org.tmatesoft.sqljet.core.table.SqlJetDb;
 
 public class SDB extends SqlJetHelper implements DocumentSet {
-	static final int version=1;
+	static final int version=2;
 	static final String DOCUMENT_1="document_1";
 	static final String LOG_1="log_1";
 	
@@ -35,19 +37,10 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	}
 	@Override
 	protected void onCreate(SqlJetDb db) throws SqlJetException {
-		db.createTable("CREATE TABLE "+DOCUMENT_1+"(\n"+
-			    "   id TEXT NOT NULL PRIMARY KEY,\n"+
-			    "   lastupdate INTEGER NOT NULL,\n"+
-			    "   createdate INTEGER NOT NULL, \n"+
-			    "   lastaccessed INTEGER NOT NULL,\n"+
-			    "   language TEXT,\n"+
-			    "   summary TEXT,\n"+
-			    "   content TEXT,\n"+
-			    "   owner TEXT,\n"+
-			    "   group TEXT,\n"+
-			    "   permission TEXT \n"+
-			    ")\n"+
-			    "");
+		createDocumentTable(db);
+		createLogTable(db);		
+	}
+	private void createLogTable(SqlJetDb db) throws SqlJetException {
 		db.createTable("CREATE TABLE "+LOG_1+" (\n"+
 	    "   id INTEGER NOT NULL PRIMARY KEY,\n"+
 	    "   date TEXT NOT NULL,\n"+
@@ -56,26 +49,44 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	    "   option TEXT\n"+
 	    ")\n"+
 	    "");
-		//db.createIndex("CREATE INDEX document_id ON document(id)");
+	}
+	private void createDocumentTable(SqlJetDb db) throws SqlJetException {
+		db.createTable("CREATE TABLE "+DOCUMENT_1+"(\n"+
+			    "   id TEXT NOT NULL PRIMARY KEY,\n"+
+			    "   lastupdate INTEGER NOT NULL,\n"+
+			    "   createdate INTEGER NOT NULL, \n"+
+			    "   lastaccessed INTEGER NOT NULL,\n"+
+			    "   language TEXT,\n"+
+			    "   summary TEXT,\n"+
+			    "   precontent TEXT,\n"+
+			    "   content TEXT,\n"+
+			    "   owner TEXT,\n"+
+			    "   group TEXT,\n"+
+			    "   permission TEXT \n"+
+			    ")\n"+
+			    "");
 		db.createIndex("CREATE INDEX "+DOCUMENT_1_LASTUPDATE+" ON "+DOCUMENT_1+"(lastupdate)");
 		db.createIndex("CREATE INDEX "+DOCUMENT_1_LASTACCESSED+" ON "+DOCUMENT_1+"(lastaccessed)");
 		db.createIndex("CREATE INDEX "+DOCUMENT_1_OWNER+" ON "+DOCUMENT_1+"(owner)");
-		
 	}
-	Map<String,Document> cache=new HashMap<String, Document>();
-	private SLogManager logManager;
+
+	Map<String,DocumentRecord> cache=new HashMap<String, DocumentRecord>();
+	final private SLogManager logManager;
 	@Override
 	public void all(final DocumentAction action) {
+		all(action,true);
+	}
+	public void all(final DocumentAction action,final boolean fromNewest) {
 		try {
 			readTransaction(new DBAction() {
 				@Override
 				public void run(SqlJetDb db) throws SqlJetException {
 					ISqlJetTable t = docTable();
 					ISqlJetCursor cur = t.order(DOCUMENT_CUR_LASTUPDATE);
-					cur=cur.reverse();
+					if (fromNewest) cur=cur.reverse();
 					while (!cur.eof()) {
 						String id=cur.getString("id");
-						Document d=null;
+						DocumentRecord d=null;
 						synchronized (cache) {
 							d=cache.get(id);
 							if (d==null) {
@@ -94,7 +105,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		}
 	}
 	@Override
-	public Document byId(final String id) {
+	public DocumentRecord byId(final String id) {
 		synchronized (cache) {
 			if (!cache.containsKey(id)) {
 				try {
@@ -115,12 +126,13 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 			return cache.get(id);			
 		}
 	}
-	private Document fromCursor(ISqlJetCursor cur) throws SqlJetException {
-    	Document d = new Document(this, cur.getString("id"));
+	private DocumentRecord fromCursor(ISqlJetCursor cur) throws SqlJetException {
+    	DocumentRecord d = new DocumentRecord(this, cur.getString("id"));
     	d.lastUpdate=cur.getInteger("lastupdate");
     	d.createDate=cur.getInteger("createdate");
     	d.lastAccessed=cur.getInteger("lastaccessed");
     	d.summary=cur.getString("summary");
+    	d.preContent=cur.getString("precontent");
     	d.content=cur.getString("content");
     	d.owner=cur.getString("owner");
     	d.group=cur.getString("group");
@@ -128,7 +140,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
     	return d;
 	}
 	@Override
-	public void save(final Document d) {
+	public void save(final DocumentRecord d) {
 		reserveWriteTransaction(new DBAction() {
 			@Override
 			public void run(SqlJetDb db) throws SqlJetException {
@@ -139,15 +151,30 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 			    Log.d("SAVE", d);
 			    //Log.d("SAVE", "Before - "+docCount());
 			    if (!cur.eof()) {
-			    	cur.update(d.id,d.lastUpdate,d.createDate,d.lastAccessed,"javascript",d.summary,d.content,d.owner,d.group,d.permission);
+			    	cur.update(d.id,d.lastUpdate,d.createDate,d.lastAccessed,"javascript",d.summary,d.preContent,d.content,d.owner,d.group,d.permission);
 			    } else {
-			    	t.insert(d.id,d.lastUpdate,d.createDate,d.lastAccessed,"javascript",d.summary,d.content,d.owner,d.group,d.permission);
+			    	insertDocument(d, t);
 			    }				
 			    Log.d("SAVE", d+": done");
 			    cur.close();
 				cache.put(d.id, d);
 			}
+
 		});
+	}
+	private void insertDocument(final DocumentRecord d, ISqlJetTable t) throws SqlJetException {
+		t.insert(
+				d.id,
+				d.lastUpdate,
+				d.createDate,
+				d.lastAccessed,
+				"javascript",
+				d.summary,
+				d.preContent,
+				d.content,
+				d.owner,
+				d.group,
+				d.permission);
 	}
 	public int docCount() throws SqlJetException {
 		ISqlJetTable t=docTable();
@@ -163,18 +190,18 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		return db.getTable(LOG_CUR);
 	}
 	@Override
-	public Document newDocument() {
+	public DocumentRecord newDocument() {
 		SLog log = logManager.write("create","<sameAsThisId>");
-		Document d=new Document(this, log.id+"");
+		DocumentRecord d=new DocumentRecord(this, log.id+"");
 		d.lastUpdate=log.id;
 		d.lastAccessed=log.id;
 		return d;
 	}
 	@Override
-	public Document newDocument(String id) {
+	public DocumentRecord newDocument(String id) {
 		if (byId(id)!=null) return null;
 		SLog log = logManager.write("create",id);
-		Document d=new Document(this, id);
+		DocumentRecord d=new DocumentRecord(this, id);
 		d.lastUpdate=log.id;
 		d.lastAccessed=log.id;
 		return d;
@@ -182,5 +209,71 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	public void printLog () {
 		logManager.printAll();
 	}
-	
+	// migration - error CORUPPT
+	@Override
+	protected void onUpgrade(SqlJetDb db, int oldVersion, int newVersion)
+			throws SqlJetException {
+		if (oldVersion==1 && newVersion==2) {
+			ISqlJetTable t = docTable();
+			ISqlJetCursor cur = t.order(DOCUMENT_CUR_LASTUPDATE);
+			Vector<DocumentRecord> recs=new Vector<DocumentRecord>();
+			while (!cur.eof()) {
+				DocumentRecord d=null;
+				d=fromCursor_ver1(cur);
+				recs.add(d);
+				cur.next();
+			}
+			cur.close();
+			dropDocumentTable1(db);
+			createDocumentTable(db);
+			t = docTable();
+			for (DocumentRecord d:recs) {
+				System.out.println(d);
+				if (d.id.equals("100309_210119")) {
+					Object[] r=new Object[]{				d.id,
+				d.lastUpdate,
+				d.createDate,
+				d.lastAccessed,
+				"javascript",
+				d.summary,
+				d.preContent,
+				d.content,
+				d.owner,
+				d.group,
+				d.permission};
+					for (Object rr:r) {
+						System.out.println(rr);
+					}
+					continue;
+				}
+				insertDocument(d,t);
+			}
+		}
+	}
+	private void dropDocumentTable1(SqlJetDb db) throws SqlJetException {
+		db.dropIndex(DOCUMENT_1_LASTACCESSED);
+		db.dropIndex(DOCUMENT_1_LASTUPDATE);
+		db.dropIndex(DOCUMENT_1_OWNER);
+		db.dropTable(DOCUMENT_1);
+	}
+	private DocumentRecord fromCursor_ver1(ISqlJetCursor cur) throws SqlJetException {
+    	DocumentRecord d = new DocumentRecord(this, cur.getString("id"));
+    	d.lastUpdate=cur.getInteger("lastupdate");
+    	d.createDate=cur.getInteger("createdate");
+    	d.lastAccessed=cur.getInteger("lastaccessed");
+    	d.summary=cur.getString("summary");
+    	d.preContent="$.create();";
+    	d.content=cur.getString("content");
+    	d.owner=cur.getString("owner");
+    	d.group=cur.getString("group");
+    	d.permission=cur.getString("permission");
+    	return d;
+	}
+	public void importLog(SLog curlog) {
+		logManager.importLog(curlog);
+	}
+	public void all(LogAction action) {
+		logManager.all(action);
+	}
+
 }

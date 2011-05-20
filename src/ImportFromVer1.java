@@ -7,10 +7,10 @@ import java.util.Scanner;
 import org.tmatesoft.sqljet.core.SqlJetException;
 
 import jp.tonyu.soytext2.db.SDB;
-import jp.tonyu.soytext2.document.importing.Importer;
+import jp.tonyu.soytext2.document.backup.Importer;
 
 
-public class ImportTest {
+public class ImportFromVer1 {
 
 	/**
 	 * @param args
@@ -23,6 +23,7 @@ public class ImportTest {
 		File file = new File("import/import.txt");
 		Scanner sc=new Scanner(in);
 		PrintWriter w=new PrintWriter(file);
+		w.println("[Document]");
 		while (sc.hasNextLine()) {
 			String l=sc.nextLine();
 			if (l.startsWith("<pre>") || l.startsWith("</pre>")) continue;
