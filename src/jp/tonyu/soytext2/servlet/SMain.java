@@ -4,7 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import jp.tonyu.nanoservlet.NanoServlet;
-import jp.tonyu.soytext2.db.SDB;
+import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.js.DocumentLoader;
 import jp.tonyu.soytext2.js.JSSession;
 

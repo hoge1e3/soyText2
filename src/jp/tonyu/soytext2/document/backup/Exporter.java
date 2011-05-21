@@ -4,11 +4,11 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
 
-import jp.tonyu.soytext2.db.SDB;
 import jp.tonyu.soytext2.document.DocumentAction;
 import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.LogAction;
-import jp.tonyu.soytext2.document.SLog;
+import jp.tonyu.soytext2.document.SDB;
+import jp.tonyu.soytext2.document.LogRecord;
 
 public class Exporter {
 	public static void printNonNull(PrintStream p,String field, String value) {
@@ -38,7 +38,7 @@ public class Exporter {
 		db.all(new LogAction() {
 			
 			@Override
-			public boolean run(SLog log) {
+			public boolean run(LogRecord log) {
 				p.printf("id: %d\n", log.id);
 				printNonNull(p,	"date", log.date);
 				printNonNull(p,	"action", log.action);

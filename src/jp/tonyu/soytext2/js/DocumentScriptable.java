@@ -15,6 +15,7 @@ import org.mozilla.javascript.Scriptable;
 
 public class DocumentScriptable implements Scriptable {
 	private static final Object GETTERKEY = "[[110414_051952@"+Origin.uid+"]]";
+	DocumentScriptable __proto__;
 	Map<Object, Object>binds=new HashMap<Object, Object>();
 	final DocumentRecord d;
 	final DocumentLoader loader;
@@ -68,6 +69,7 @@ public class DocumentScriptable implements Scriptable {
 			Getter g=keyDoc.getGetter();
 			if (g!=null) return g.getFrom(this);
 		}	
+		if (__proto__!=null) return __proto__.get(key);
 		return null;
 	}
 	public Getter getGetter() {
@@ -156,9 +158,8 @@ public class DocumentScriptable implements Scriptable {
 	}
 
 	@Override
-	public Scriptable getPrototype() {
-		// TODO Auto-generated method stub
-		return null;
+	public DocumentScriptable getPrototype() {
+		return __proto__;
 	}
 
 	@Override
@@ -195,8 +196,7 @@ public class DocumentScriptable implements Scriptable {
 
 	@Override
 	public void setPrototype(Scriptable prototype) {
-		// TODO Auto-generated method stub
-		
+		this.__proto__=(DocumentScriptable) prototype;
 	}
 	public void save() {
 		refreshSummary();

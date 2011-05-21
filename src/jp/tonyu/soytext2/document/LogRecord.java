@@ -1,6 +1,6 @@
 package jp.tonyu.soytext2.document;
 
-public class SLog {
+public class LogRecord {
 	/*static String schema="CREATE TABLE "+LOG_1+" (\n"+
     "   id INTEGER NOT NULL PRIMARY KEY,\n"+
     "   date TEXT NOT NULL,\n"+
@@ -13,7 +13,7 @@ public class SLog {
 	public int id;
 	public String date;
 	public String action,target,option;
-	public SLog(int id) {
+	public LogRecord(int id) {
 		super();
 		this.id = id;
 	}

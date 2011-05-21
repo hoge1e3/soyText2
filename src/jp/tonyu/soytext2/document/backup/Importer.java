@@ -7,10 +7,10 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import jp.tonyu.soytext2.db.SDB;
 import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentSet;
-import jp.tonyu.soytext2.document.SLog;
+import jp.tonyu.soytext2.document.SDB;
+import jp.tonyu.soytext2.document.LogRecord;
 import jp.tonyu.util.SFile;
 
 
@@ -18,7 +18,7 @@ public class Importer {
 	final SDB sdb;
 	String curTable=null;
 	DocumentRecord curdoc=null;
-	SLog curlog=null;
+	LogRecord curlog=null;
 	static final Pattern table=Pattern.compile("\\[([\\d\\w]+)\\]");
 	static final Pattern field=Pattern.compile("([\\d\\w]+): (.*)");
 	public void importDocuments(File file) throws IOException {
@@ -58,7 +58,7 @@ public class Importer {
 					String value=m.group(2);
 					if ("id".equals(key)) {
 						flush();
-						curlog=new SLog(Integer.parseInt(value));
+						curlog=new LogRecord(Integer.parseInt(value));
 					}
 					if ("option".equals(key)) {
 						curlog.option=value;

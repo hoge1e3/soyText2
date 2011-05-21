@@ -6,7 +6,7 @@ import java.util.Scanner;
 
 import org.tmatesoft.sqljet.core.SqlJetException;
 
-import jp.tonyu.soytext2.db.SDB;
+import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.document.backup.Importer;
 
 

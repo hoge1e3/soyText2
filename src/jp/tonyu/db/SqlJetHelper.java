@@ -1,4 +1,4 @@
-package jp.tonyu.soytext2.db;
+package jp.tonyu.db;
 
 import java.io.File;
 import java.util.List;
@@ -11,7 +11,7 @@ import org.tmatesoft.sqljet.core.SqlJetTransactionMode;
 import org.tmatesoft.sqljet.core.table.SqlJetDb;
 
 public class SqlJetHelper {
-	SqlJetDb db;
+	protected final SqlJetDb db;
 	public SqlJetHelper(File file, final int version) throws SqlJetException {
 		if (version<=0) {
 			throw new RuntimeException("Version must be >0");
@@ -41,8 +41,8 @@ public class SqlJetHelper {
 			action.afterCommit(db);
 		} catch(SqlJetException e) {
 			e.printStackTrace();
-			db.rollback();
-		} finally {
+			rollback();
+			action.afterRollback(db);
 		}
 	}
 	List<DBAction> reservedWriteTransaction= new Vector<DBAction>();
@@ -118,11 +118,18 @@ public class SqlJetHelper {
 			}
 		}
 	};
-	
+	private synchronized void rollback() throws SqlJetException {
+		if (mode==SqlJetTransactionMode.READ_ONLY) {
+			readCount--;
+			if (readCount>0) return;
+		}
+		db.rollback();
+		mode=null;
+	}	
 	private synchronized void commit() throws SqlJetException {
 		if (mode==SqlJetTransactionMode.READ_ONLY) {
 			readCount--;
-			if (readCount>0) return;;
+			if (readCount>0) return;
 		}
 		db.commit();
 		mode=null;

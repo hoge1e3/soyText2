@@ -6,17 +6,19 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import jp.tonyu.debug.Log;
+import jp.tonyu.js.BlankScriptableObject;
 import jp.tonyu.js.Wrappable;
-import jp.tonyu.soytext2.db.SDB;
 import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentAction;
 import jp.tonyu.soytext2.document.DocumentSet;
+import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.search.Query;
 import jp.tonyu.soytext2.search.QueryBuilder;
 import jp.tonyu.soytext2.search.QueryResult;
 import jp.tonyu.soytext2.search.expr.AttrOperator;
 import jp.tonyu.soytext2.servlet.DocumentProcessor;
 import jp.tonyu.soytext2.servlet.HttpContext;
+import jp.tonyu.util.Maps;
 
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
@@ -34,14 +36,36 @@ public class DocumentLoader implements Wrappable {
 		this.documentSet = documentSet;
 	}
 	public DocumentScriptable byId(String id) {
-		DocumentRecord src=getDocumentSet().byId(id);
+		final DocumentRecord src=getDocumentSet().byId(id);
+		class Instanciator {
+			public DocumentScriptable create() {
+				return new DocumentScriptable(DocumentLoader.this, src);
+			}
+			public DocumentScriptable create(String prototypeID) {
+				DocumentScriptable res = create();
+				res.setPrototype(byId(prototypeID));
+				return res;
+			}		
+		}
 		if (src==null) return null;
 		DocumentScriptable o=objs.get(id);
 		if (o!=null) return o;
-		o=new DocumentScriptable(this, src);
+		Instanciator inst=new Instanciator();
+		if (src.preContent==null) {
+			o=inst.create();
+		} else {
+			try {
+				o=(DocumentScriptable)jsSession().eval(src.preContent, Maps.create("$", (Object)inst));
+			} catch(Exception e) {
+				e.printStackTrace();
+				Log.d(this, "Instanciation error - "+src.preContent);
+				o=inst.create();
+			}
+		}
 		objs.put(id, o);
 		loadFromContent(src.content, o);
 		return o;
+
 	}
 	public void loadFromContent(String newContent, DocumentScriptable dst) {
 		Map<String, Object> vars=new HashMap<String, Object>();

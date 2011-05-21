@@ -9,14 +9,13 @@ import org.tmatesoft.sqljet.core.table.ISqlJetCursor;
 import org.tmatesoft.sqljet.core.table.ISqlJetTable;
 import org.tmatesoft.sqljet.core.table.SqlJetDb;
 
+import jp.tonyu.db.DBAction;
 import jp.tonyu.debug.Log;
-import jp.tonyu.soytext2.db.DBAction;
-import jp.tonyu.soytext2.db.SDB;
 
-public class SLogManager {
+public class LogManager {
 	int lastNumber;
 	SDB sdb;
-	public SLogManager(final SDB sdb) throws SqlJetException {
+	public LogManager(final SDB sdb) throws SqlJetException {
 		super();
 		this.sdb=sdb;
 		sdb.readTransaction(new DBAction() {
@@ -50,8 +49,8 @@ public class SLogManager {
 			e.printStackTrace();
 		}
 	}
-	Map<Integer, SLog> cache=new HashMap<Integer, SLog>(); 
-	public SLog byId(final int id) throws SqlJetException {
+	Map<Integer, LogRecord> cache=new HashMap<Integer, LogRecord>(); 
+	public LogRecord byId(final int id) throws SqlJetException {
 		if (!cache.containsKey(id)) {
 			sdb.readTransaction(new DBAction() {
 
@@ -59,7 +58,7 @@ public class SLogManager {
 				public void run(SqlJetDb db) throws SqlJetException {
 					ISqlJetTable t = sdb.logTable();
 					ISqlJetCursor cur = t.lookup(null, id);
-					SLog res=new SLog(id);
+					LogRecord res=new LogRecord(id);
 					if (!cur.eof()) {
 						cache.put(id, res);
 						fromCursor(cur, res);
@@ -80,9 +79,9 @@ public class SLogManager {
 					ISqlJetCursor c = t.order(null);
 					while (!c.eof()) {
 						long id=c.getInteger("id");
-						SLog l=cache.get(id);
+						LogRecord l=cache.get(id);
 						if (l==null) {
-							l=new SLog((int) id);
+							l=new LogRecord((int) id);
 							fromCursor(c, l);
 						}
 						if (action.run(l)) break;
@@ -96,26 +95,26 @@ public class SLogManager {
 			e.printStackTrace();
 		}
 	}
-	private void fromCursor(ISqlJetCursor cur, SLog res) throws SqlJetException {
+	private void fromCursor(ISqlJetCursor cur, LogRecord res) throws SqlJetException {
 		res.action=cur.getString("action");
 		res.date=cur.getString("date");
 		res.target=cur.getString("target");
 		res.option=cur.getString("option");
 	}
-	public synchronized SLog create() {
+	public synchronized LogRecord create() {
 		lastNumber++;
-		SLog res=new SLog(lastNumber);
+		LogRecord res=new LogRecord(lastNumber);
 		res.date=new Date().toString();
 		return res;
 	}
-	public SLog write(String action, String target) {
-		SLog l=create();
+	public LogRecord write(String action, String target) {
+		LogRecord l=create();
 		l.action=action;
 		l.target=target;
 		save(l);
 		return l;
 	}
-	public void save(final SLog log) {
+	public void save(final LogRecord log) {
 		sdb.reserveWriteTransaction(new DBAction() {
 			
 			@Override
@@ -131,7 +130,7 @@ public class SLogManager {
 			}
 		});
 	}
-	public void importLog(SLog curlog) {
+	public void importLog(LogRecord curlog) {
 		save(curlog);		
 	}
 }

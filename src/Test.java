@@ -2,9 +2,9 @@ import java.io.File;
 
 import org.tmatesoft.sqljet.core.SqlJetException;
 
-import jp.tonyu.soytext2.db.SDB;
 import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentAction;
+import jp.tonyu.soytext2.document.SDB;
 
 
 public class Test {

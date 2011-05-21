@@ -5,7 +5,7 @@ import org.mozilla.javascript.Scriptable;
 import org.tmatesoft.sqljet.core.SqlJetException;
 
 import jp.tonyu.js.BuiltinFunc;
-import jp.tonyu.soytext2.db.SDB;
+import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.js.DocumentLoader;
 
 

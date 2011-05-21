@@ -1,17 +1,13 @@
-package jp.tonyu.soytext2.db;
+package jp.tonyu.soytext2.document;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
+import jp.tonyu.db.DBAction;
+import jp.tonyu.db.SqlJetHelper;
 import jp.tonyu.debug.Log;
-import jp.tonyu.soytext2.document.DocumentRecord;
-import jp.tonyu.soytext2.document.DocumentAction;
-import jp.tonyu.soytext2.document.DocumentSet;
-import jp.tonyu.soytext2.document.LogAction;
-import jp.tonyu.soytext2.document.SLog;
-import jp.tonyu.soytext2.document.SLogManager;
 
 import org.tmatesoft.sqljet.core.SqlJetException;
 import org.tmatesoft.sqljet.core.table.ISqlJetCursor;
@@ -33,7 +29,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 
 	public SDB(File file) throws SqlJetException {
 		super(file, version);
-		logManager=new SLogManager(this);
+		logManager=new LogManager(this);
 	}
 	@Override
 	protected void onCreate(SqlJetDb db) throws SqlJetException {
@@ -71,7 +67,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	}
 
 	Map<String,DocumentRecord> cache=new HashMap<String, DocumentRecord>();
-	final private SLogManager logManager;
+	final private LogManager logManager;
 	@Override
 	public void all(final DocumentAction action) {
 		all(action,true);
@@ -146,7 +142,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 			public void run(SqlJetDb db) throws SqlJetException {
 			    ISqlJetTable t = docTable();
 			    ISqlJetCursor cur = t.lookup(null, d.id);
-			    SLog log=logManager.write("save",d.id);
+			    LogRecord log=logManager.write("save",d.id);
 			    d.lastUpdate=log.id;
 			    Log.d("SAVE", d);
 			    //Log.d("SAVE", "Before - "+docCount());
@@ -191,7 +187,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	}
 	@Override
 	public DocumentRecord newDocument() {
-		SLog log = logManager.write("create","<sameAsThisId>");
+		LogRecord log = logManager.write("create","<sameAsThisId>");
 		DocumentRecord d=new DocumentRecord(this, log.id+"");
 		d.lastUpdate=log.id;
 		d.lastAccessed=log.id;
@@ -200,7 +196,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	@Override
 	public DocumentRecord newDocument(String id) {
 		if (byId(id)!=null) return null;
-		SLog log = logManager.write("create",id);
+		LogRecord log = logManager.write("create",id);
 		DocumentRecord d=new DocumentRecord(this, id);
 		d.lastUpdate=log.id;
 		d.lastAccessed=log.id;
@@ -269,7 +265,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
     	d.permission=cur.getString("permission");
     	return d;
 	}
-	public void importLog(SLog curlog) {
+	public void importLog(LogRecord curlog) {
 		logManager.importLog(curlog);
 	}
 	public void all(LogAction action) {
