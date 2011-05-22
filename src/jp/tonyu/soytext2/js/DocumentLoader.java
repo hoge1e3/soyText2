@@ -7,6 +7,7 @@ import java.util.regex.Pattern;
 
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.BlankScriptableObject;
+import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.js.Wrappable;
 import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentAction;
@@ -20,6 +21,7 @@ import jp.tonyu.soytext2.servlet.DocumentProcessor;
 import jp.tonyu.soytext2.servlet.HttpContext;
 import jp.tonyu.util.Maps;
 
+import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
 
@@ -35,40 +37,56 @@ public class DocumentLoader implements Wrappable {
 		super();
 		this.documentSet = documentSet;
 	}
+	private Scriptable instanciator(final DocumentRecord src) {
+		return new BlankScriptableObject() {
+			private static final long serialVersionUID = -3858849843957575405L;
+
+			@Override
+			public Object get(String name, Scriptable start) {
+				if ("create".equals(name)) {
+					return new BuiltinFunc() {
+						
+						@Override
+						public Object call(Context cx, Scriptable scope, Scriptable thisObj,
+								Object[] args) {
+							DocumentScriptable res = DocumentLoader.this.defaultDocumentScriptable(src);
+							if (args.length>=1) {
+								res.setPrototype(byId(args[0]+""));
+							}
+							return res;
+						}
+					};
+				}
+				Log.die(name+" not found ");
+				return super.get(name, start);
+			}
+		};
+	}
 	public DocumentScriptable byId(String id) {
 		final DocumentRecord src=getDocumentSet().byId(id);
-		class Instanciator implements Wrappable {
-			public DocumentScriptable create() {
-				return new DocumentScriptable(DocumentLoader.this, src);
-			}
-			public DocumentScriptable fromProt(String prototypeID) {
-				Log.d(this, "Load from prot "+prototypeID);
-				DocumentScriptable res = create();
-				res.setPrototype(byId(prototypeID));
-				return res;
-			}		
-		}
+		
 		if (src==null) return null;
 		DocumentScriptable o=objs.get(id);
 		if (o!=null) return o;
-		Instanciator inst=new Instanciator();
 		if (src.preContent==null || src.preContent.trim().length()==0) {
-			o=inst.create();
+			o=defaultDocumentScriptable(src);
 		} else {
 			try {
-				double a=Math.random();
-				if (a==3) inst.fromProt("");
+				Scriptable inst=instanciator(src);
 				o=(DocumentScriptable)jsSession().eval("preLoad:"+id,src.preContent, Maps.create("$", (Object)inst));
 			} catch(Exception e) {
 				e.printStackTrace();
 				Log.d(this, "Instanciation error - "+src.preContent);
-				o=inst.create();
+				o=defaultDocumentScriptable(src);
 			}
 		}
 		objs.put(id, o);
 		loadFromContent(src.content, o);
 		return o;
 
+	}
+	private DocumentScriptable defaultDocumentScriptable(final DocumentRecord src) {
+		return new DocumentScriptable(this, src);
 	}
 	public void loadFromContent(String newContent, DocumentScriptable dst) {
 		Map<String, Object> vars=new HashMap<String, Object>();
@@ -94,7 +112,7 @@ public class DocumentLoader implements Wrappable {
 		} else {
 			d=getDocumentSet().newDocument();
 		}
-		DocumentScriptable res=new DocumentScriptable(this, d);
+		DocumentScriptable res=defaultDocumentScriptable(d);
 		extend(res,hash);
 		return res;
 	}

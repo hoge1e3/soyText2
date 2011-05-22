@@ -129,16 +129,13 @@ public class JSSession {
 		// viewPoint==null -> full path
 		return "[["+d.getDocument().id+"]]";
 	}
-	public static void main(String[] args) {
+	/*public static void main(String[] args) {
 		JSSession s = new JSSession();
-		class A implements Wrappable {
-			public int b(int c) {
-				return c*2;
-			}
-		}
-		Object r = s.eval("test","a.b(x);", Maps.create("a",(Object)new A()) );
+		
+		Object r = s.eval("test","a.b(3);", Maps.create("a",(Object)new A()) );
 		System.out.println(r);
 
 
-	}
+	}*/
 }
+
