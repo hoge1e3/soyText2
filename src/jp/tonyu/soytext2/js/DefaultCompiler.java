@@ -128,6 +128,9 @@ public class DefaultCompiler implements DocumentCompiler {
 		buf.append("res."+ATTR_SRC+"="+SRCSYM+";res;");
 		return runeval(inf, buf);
 	}
+	private String scriptName(final DocumentScriptable d) {
+		return d.getDocument().id+"__"+d.genSummary();
+	}
 
 	private void includeScope(final HeaderInfo inf, final StringBuilder buf) {
 		final JSSession jsSession = JSSession.cur.get();
@@ -144,7 +147,7 @@ public class DefaultCompiler implements DocumentCompiler {
 	private CompileResult runeval(final HeaderInfo inf, final StringBuilder buf) {
 		final DocumentScriptable d=inf.doc;
 		final JSSession jsSession=JSSession.cur.get();
-		final Object res=jsSession.eval(buf.toString(), inf.consts);
+		final Object res=jsSession.eval(scriptName(d), buf.toString(), inf.consts);
 		final long l=d.getDocument().lastUpdate;
 		Log.d(this ,"EvalBuf - "+buf);
 		return new CompileResult() {

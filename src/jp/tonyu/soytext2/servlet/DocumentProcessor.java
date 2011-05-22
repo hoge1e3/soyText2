@@ -274,6 +274,7 @@ public class DocumentProcessor {
 			
 			Map<String,String> keys=params();//  HttpUtility.ParseQueryString(str);
 			if (keys.containsKey(HttpContext.ATTR_CONTENT)) {
+				d.getDocument().preContent= keys.get(HttpContext.ATTR_PRECONTENT);
 				d.setContentAndSave(keys.get(HttpContext.ATTR_CONTENT));				
 			} else {
 				classicPost(d,keys);

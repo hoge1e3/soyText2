@@ -8,6 +8,7 @@ import java.util.Set;
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.ContextRunnable;
 import jp.tonyu.js.PrototypeJS;
+import jp.tonyu.js.Wrappable;
 import jp.tonyu.soytext2.document.DocumentSet;
 import jp.tonyu.util.MapAction;
 import jp.tonyu.util.Maps;
@@ -50,12 +51,12 @@ public class JSSession {
 		root=initObject(c);
 		Context.exit();
 	}
-	public Object eval (String s) {
-		return eval(s, new HashMap<String, Object>());
+	public Object eval (String name, String s) {
+		return eval(name, s, new HashMap<String, Object>());
 	}
 
 	@SuppressWarnings("serial")
-	public Object eval (final String s , final Map<String,Object> scope) {
+	public Object eval (final String name, final String s , final Map<String,Object> scope) {
 		return withContext(new ContextRunnable() {
 			
 			@Override
@@ -75,7 +76,7 @@ public class JSSession {
 						}
 					});
 					//cx.setWrapFactory(new SafeWrapFactory());
-					Object result = cx.evaluateString(s2 , s, "<cmd>", 1, null);
+					Object result = cx.evaluateString(s2 , s, name , 1, null);
 					return result;
 				} catch (EvaluatorException e) {
 					Log.die("JS -error at ||"+e.lineSource()+"|| "+e.details());
@@ -130,11 +131,14 @@ public class JSSession {
 	}
 	public static void main(String[] args) {
 		JSSession s = new JSSession();
-		Object r = s.eval("parseInt(x)+3;", Maps.create("x",(Object)"123") );
+		class A implements Wrappable {
+			public int b(int c) {
+				return c*2;
+			}
+		}
+		Object r = s.eval("test","a.b(x);", Maps.create("a",(Object)new A()) );
 		System.out.println(r);
 
 
-		r = s.eval("parseInt(y)+3;", Maps.create("y",(Object)"15") );
-		System.out.println(r);
 	}
 }

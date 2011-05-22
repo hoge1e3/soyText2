@@ -1,6 +1,7 @@
 package jp.tonyu.util;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -46,7 +47,8 @@ public class SFile implements Iterable<SFile>{
 		return buf.toString();
 	}
 	public void text(String content) throws FileNotFoundException {
-		f.getParentFile().mkdirs();
+		File parentFile = f.getParentFile();
+		if (parentFile!=null) parentFile.mkdirs();
 		PrintWriter p;
 		try {
 			p = new PrintWriter(new OutputStreamWriter(new FileOutputStream(f), "utf-8"));

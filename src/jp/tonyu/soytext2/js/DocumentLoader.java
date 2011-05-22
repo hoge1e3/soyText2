@@ -37,11 +37,12 @@ public class DocumentLoader implements Wrappable {
 	}
 	public DocumentScriptable byId(String id) {
 		final DocumentRecord src=getDocumentSet().byId(id);
-		class Instanciator {
+		class Instanciator implements Wrappable {
 			public DocumentScriptable create() {
 				return new DocumentScriptable(DocumentLoader.this, src);
 			}
-			public DocumentScriptable create(String prototypeID) {
+			public DocumentScriptable fromProt(String prototypeID) {
+				Log.d(this, "Load from prot "+prototypeID);
 				DocumentScriptable res = create();
 				res.setPrototype(byId(prototypeID));
 				return res;
@@ -51,11 +52,13 @@ public class DocumentLoader implements Wrappable {
 		DocumentScriptable o=objs.get(id);
 		if (o!=null) return o;
 		Instanciator inst=new Instanciator();
-		if (src.preContent==null) {
+		if (src.preContent==null || src.preContent.trim().length()==0) {
 			o=inst.create();
 		} else {
 			try {
-				o=(DocumentScriptable)jsSession().eval(src.preContent, Maps.create("$", (Object)inst));
+				double a=Math.random();
+				if (a==3) inst.fromProt("");
+				o=(DocumentScriptable)jsSession().eval("preLoad:"+id,src.preContent, Maps.create("$", (Object)inst));
 			} catch(Exception e) {
 				e.printStackTrace();
 				Log.d(this, "Instanciation error - "+src.preContent);
@@ -73,7 +76,7 @@ public class DocumentLoader implements Wrappable {
 		vars.put("$", this);
 		vars.put("_", dst);
 		try {
-			jsSession().eval(newContent, vars);
+			jsSession().eval("Load:"+dst.getDocument().id, newContent, vars);
 		} catch (Exception e) {
 			e.printStackTrace();
 			Log.d(this , dst.getDocument().id+" has invalid content "+newContent);

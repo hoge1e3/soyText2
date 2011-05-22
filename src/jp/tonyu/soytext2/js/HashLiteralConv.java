@@ -13,7 +13,7 @@ public class HashLiteralConv {
 	static Function compiled;
 	public static Function compile() {
 		if (compiled!=null) return compiled;
-		compiled=(Function)JSSession.cur.get().eval(value,Maps.create("debug", (Object)debug));
+		compiled=(Function)JSSession.cur.get().eval("toHashLiteral",value,Maps.create("debug", (Object)debug));
 		return compiled;
 	}
 	static BuiltinFunc debug=new BuiltinFunc() {

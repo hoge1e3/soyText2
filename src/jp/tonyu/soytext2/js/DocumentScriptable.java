@@ -196,6 +196,7 @@ public class DocumentScriptable implements Scriptable {
 
 	@Override
 	public void setPrototype(Scriptable prototype) {
+		Log.d(this, "__proto__"+prototype);
 		this.__proto__=(DocumentScriptable) prototype;
 	}
 	public void save() {

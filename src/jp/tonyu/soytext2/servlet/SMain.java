@@ -3,6 +3,7 @@ package jp.tonyu.soytext2.servlet;
 import java.io.File;
 import java.io.IOException;
 
+import jp.tonyu.nanoservlet.AutoRestart;
 import jp.tonyu.nanoservlet.NanoServlet;
 import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.js.DocumentLoader;
@@ -12,6 +13,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.tmatesoft.sqljet.core.SqlJetException;
 
 public class SMain extends HttpServlet {
 	JSSession j=new JSSession();
@@ -43,10 +46,17 @@ public class SMain extends HttpServlet {
 	public SMain() throws Exception{
 		sdb=new SDB(new File("main.db"));
 		loader=new DocumentLoader(sdb);
-		NanoServlet n=new NanoServlet(3002, this);
-		System.out.println( "Listening on port 3002. Hit Enter to stop.\n" );
-		try { System.in.read(); } catch( Throwable t ) {};		
+		int port = 3002;
+		AutoRestart auto = new AutoRestart(port, new File("stop.lock"));
+		NanoServlet n=new NanoServlet(port, this, auto);
+		System.out.println( "Listening on port "+port+". Go to "+auto.stopURL()+" to stop.\n" );
+ 		while (true) {
+ 			Thread.sleep(1000);
+ 			if (n.hasToBeStopped()) break;
+ 		}
+ 		//try { System.in.read(); } catch( Throwable t ) {};		
 		sdb.close();
+		n.stop();
 	}
 	public static void main(String[] args) throws Exception {
 		new SMain();

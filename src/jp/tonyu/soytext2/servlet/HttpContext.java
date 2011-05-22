@@ -103,6 +103,7 @@ public class HttpContext {
 	
 	Map<String,String> _params=null;
 	static final String ATTR_FORMAT = "_format";
+	static final String ATTR_PRECONTENT = "precontent";
 	
     public Map<String,String> params() {
 		if (_params!=null) return _params;
@@ -378,10 +379,12 @@ public class HttpContext {
 		} else {
 			Httpd.respondByString(res, Html.p("<html><title>New Document</title>"+
 					"<body><form action=\"./new\" method=\"POST\">"+
+					"preContent: <br/>\n"+
+					"<input name=%a /><br/>"+
 					"<br/>\nContent: <br/>\n"+
 					"<textarea name=%a rows=5 cols=40></textarea>"+
 					"<input type=submit>"+
-					"</form></body></html>", ATTR_CONTENT)
+					"</form></body></html>", ATTR_PRECONTENT, ATTR_CONTENT)
 			);
 		}
 	}
@@ -396,12 +399,17 @@ public class HttpContext {
 			documentProcessor(d).proc();
 		} else {
 			
+			String preContent = d.getDocument().preContent;
 			Httpd.respondByString(res, menuBar()+Html.p(
 					"<form action=%a method=\"POST\">"+
+					"preContent: <br/>\n"+
+					"<input name=%a value=%a /><br/>"+
 					"Content: <br/>\n"+
 					"<textarea name=%a rows=20 cols=80>%t</textarea>"+
 					"<input type=submit>"+
-					"</form></body></html>","./"+id, HttpContext.ATTR_CONTENT, d.getDocument().content)
+					"</form></body></html>","./"+id, HttpContext.ATTR_PRECONTENT,
+					preContent==null?"":preContent,
+					HttpContext.ATTR_CONTENT, d.getDocument().content)
 			);
 		}
 	}
@@ -421,7 +429,7 @@ public class HttpContext {
 					"Body: <br/>\n"+
 					"<textarea name=%a rows=20 cols=80>%t</textarea>"+
 					"<input type=submit>"+
-					"</form></body></html>","./"+id, HttpContext.ATTR_BODY, d.get(ATTR_BODY).toString())
+					"</form></body></html>","./"+id, HttpContext.ATTR_BODY, d.get(ATTR_BODY)+"")
 			);
 		}
 	}
