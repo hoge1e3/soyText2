@@ -193,7 +193,7 @@ public class HttpContext {
 				}
 			}
 		});
-    	if (ee.notNull()) throw ee.get();
+    	if (ee.isSet()) throw ee.get();
 	}	
     private void proc2() throws IOException
     {

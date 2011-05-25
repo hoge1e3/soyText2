@@ -13,11 +13,11 @@ public class Parser {
 		super();
 		this.src = src;
 	}
-	CharSequence src;
+	final CharSequence src;
 	String indent="";
 	public void dedent() { if (indent.length()>0) indent=indent.substring(1); }
 	protected int p=0;
-	Stack<Object> states=new Stack<Object>(); 
+	final Stack<Object> states=new Stack<Object>(); 
 	public void reset() {
 		p=0;
 		states.clear();

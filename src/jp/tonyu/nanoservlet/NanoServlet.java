@@ -16,7 +16,7 @@ public class NanoServlet extends NanoHTTPD {
 	 * @param servlet  servlet which runs on NanoHTTPD
 	 * @throws IOException
 	 */
-	AutoRestart autoRestart;
+	private AutoRestart autoRestart;
 	public NanoServlet(int port, HttpServlet servlet, AutoRestart auto) throws IOException {
 		this(port,servlet);
 		autoRestart=auto;

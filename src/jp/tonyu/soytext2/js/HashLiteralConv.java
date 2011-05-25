@@ -35,12 +35,9 @@ public class HashLiteralConv {
 		"   var res=\"{\";\n"+
 		"   var com=\"\";\n"+
 		"   for (var key in hash) {\n"+
-		"     debug(key);\n"+
-		"   }\n"+
-		"   for (var key in hash) {\n"+
+		"     if (!hash.hasOwnProperty(key)) continue;\n"+
 		"     var value=hash[key];\n"+
 		"     var valueStr=lit(value);\n"+
-		"     //debug('key ='+key+' value= '+value+' str='+valueStr);\n"+
 		"     //if (valueStr!=null) {\n"+
 		"       res+=com; com=\",\";\n"+
 		"       res+=\"\\\"\"+key+\"\\\": \"+valueStr;\n"+

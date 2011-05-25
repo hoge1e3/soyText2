@@ -1,6 +1,7 @@
 package jp.tonyu.soytext2.js;
 
 import java.util.HashMap;
+import static jp.tonyu.debug.Log.notNull;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
@@ -9,7 +10,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import jp.tonyu.debug.Log;
-import jp.tonyu.js.Convert;
+import jp.tonyu.js.Scriptables;
 import jp.tonyu.js.StringPropAction;
 import jp.tonyu.parser.Parser;
 import jp.tonyu.soytext2.document.DocumentRecord;
@@ -40,13 +41,13 @@ public class DefaultCompiler implements DocumentCompiler {
 			final boolean hasOrder;
 			if (ord instanceof Scriptable) {
 				Scriptable args = (Scriptable) ord;
-				for (Object a:Convert.toArray(args)) {
+				for (Object a:Scriptables.toArray(args)) {
 					paramValues.add(a.toString());
 				}
 				hasOrder=true;
 			} else hasOrder=false;
 			if (scope instanceof Scriptable) {
-				Convert.each((Scriptable)scope, new StringPropAction() {
+				Scriptables.each((Scriptable)scope, new StringPropAction() {
 
 					@Override
 					public void run(String key, Object value) {
@@ -98,13 +99,13 @@ public class DefaultCompiler implements DocumentCompiler {
 		final HeaderInfo inf=new HeaderInfo(d);
 		final StringBuilder buf=new StringBuilder();
 		includeScope(inf, buf);
-		buf.append(d.get(HttpContext.ATTR_BODY));
+		buf.append(notNull(d.get(HttpContext.ATTR_BODY),"No body in "+d));
 		return runeval(inf, buf);
 	}
 	public CompileResult defaultHtmlDocument(final DocumentScriptable d)  {
 		Log.d(this,"Exec as Html");
 		final HeaderInfo inf=new HeaderInfo(d);
-		final String src=""+d.get(HttpContext.ATTR_BODY);
+		final String src=notNull(d.get(HttpContext.ATTR_BODY),"No body in "+d).toString();
 		final Parser p=new Parser(src);
 		p.setSpacePattern(null);
 		final StringBuilder buf=new StringBuilder();
@@ -112,7 +113,7 @@ public class DefaultCompiler implements DocumentCompiler {
 			includeScope(inf, buf);
 			while (true) {
 				p.read(htmlPlain);
-				buf.append(PRINT+"("+Convert.literal(p.group())+");\n");
+				buf.append(PRINT+"("+Scriptables.literal(p.group())+");\n");
 				if (p.read(embedLang)) {
 					if (p.group(1).length()>0) {
 						buf.append(PRINT+"("+p.group(2)+");\n");
@@ -133,7 +134,7 @@ public class DefaultCompiler implements DocumentCompiler {
 	}
 
 	private void includeScope(final HeaderInfo inf, final StringBuilder buf) {
-		final JSSession jsSession = JSSession.cur.get();
+		//final JSSession jsSession = JSSession.cur.get();
 		Maps.entries(inf.compiledScope).each(new MapAction<String, DocumentScriptable>() {
 			@Override
 			public void run(String key, DocumentScriptable value) {

@@ -130,9 +130,9 @@ public class SDB extends SqlJetHelper implements DocumentSet {
     	d.summary=cur.getString("summary");
     	d.preContent=cur.getString("precontent");
     	d.content=cur.getString("content");
-    	d.owner=cur.getString("owner");
-    	d.group=cur.getString("group");
-    	d.permission=cur.getString("permission");
+    	d.owner.set(cur.getString("owner"));
+    	d.group.set(cur.getString("group"));
+    	d.permission.set(cur.getString("permission"));
     	return d;
 	}
 	@Override
@@ -260,9 +260,9 @@ public class SDB extends SqlJetHelper implements DocumentSet {
     	d.summary=cur.getString("summary");
     	d.preContent="$.create();";
     	d.content=cur.getString("content");
-    	d.owner=cur.getString("owner");
-    	d.group=cur.getString("group");
-    	d.permission=cur.getString("permission");
+    	d.owner.set(cur.getString("owner"));
+    	d.group.set(cur.getString("group"));
+    	d.permission.set(cur.getString("permission"));
     	return d;
 	}
 	public void importLog(LogRecord curlog) {

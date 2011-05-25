@@ -1,5 +1,7 @@
 package jp.tonyu.util;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -46,5 +48,12 @@ public abstract class SPrintf {
 	Matcher lastMatched;
 	public Matcher lastMatched() {
 		return lastMatched;
+	}
+	public static String sprintf(String format, Object... args) {
+		StringWriter s = new StringWriter();
+		PrintWriter p=new PrintWriter(s);
+		p.printf(format, args);
+		p.close();
+		return s.getBuffer().toString();
 	}
 }

@@ -49,7 +49,7 @@ public class LogManager {
 			e.printStackTrace();
 		}
 	}
-	Map<Integer, LogRecord> cache=new HashMap<Integer, LogRecord>(); 
+	Map<Integer, LogRecord> cache=new HashMap<Integer, LogRecord>(); //TODO:Cache
 	public LogRecord byId(final int id) throws SqlJetException {
 		if (!cache.containsKey(id)) {
 			sdb.readTransaction(new DBAction() {
@@ -79,7 +79,7 @@ public class LogManager {
 					ISqlJetCursor c = t.order(null);
 					while (!c.eof()) {
 						long id=c.getInteger("id");
-						LogRecord l=cache.get(id);
+						LogRecord l=cache.get(id); //TODO: cache
 						if (l==null) {
 							l=new LogRecord((int) id);
 							fromCursor(c, l);

@@ -1,5 +1,7 @@
 package jp.tonyu.debug;
 
+import jp.tonyu.soytext2.extjs.ClassConverter;
+
 
 public class Log {
 	public static void d(Object tag,Object content) {
@@ -13,5 +15,10 @@ public class Log {
 
 	public static void w(Object tag, Object content) {
 		d(tag,content);
+	}
+
+	public static <T> T notNull(T value,String msg) {
+		if (value==null) die(msg);
+		return value;
 	}
 }

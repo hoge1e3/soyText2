@@ -45,7 +45,7 @@ public class SqlJetHelper {
 			action.afterRollback(db);
 		}
 	}
-	List<DBAction> reservedWriteTransaction= new Vector<DBAction>();
+	final List<DBAction> reservedWriteTransaction= new Vector<DBAction>();
 	public void reserveWriteTransaction(DBAction action) {
 		reservedWriteTransaction.add(action); 			
 	}
@@ -98,7 +98,7 @@ public class SqlJetHelper {
 			action.afterCommit(db);
 		}
 	}
-	Thread reservedTransactionThread=new Thread() {
+	final Thread reservedTransactionThread=new Thread() {
 		@Override
 		public void run() {
 			while(true) {

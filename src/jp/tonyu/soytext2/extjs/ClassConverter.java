@@ -151,8 +151,9 @@ public class ClassConverter extends Parser implements Wrappable {
 		ClassDef res;
 		CompileResult compileRes =  JSSession.cur.get().compile(sd);
 		if (compileRes==null) Log.die("Compile Result of "+sd+" null. Perhaps forget compiler:extJS?");
-		ClassConverter c= compileRes.value(ClassConverter.class);// new ClassConverter(  sd.document() );
-		//c.parseInterface();
+		ClassConverter c= Log.notNull(
+				compileRes.value(ClassConverter.class),
+				"Compile Result of "+sd+" null. Perhaps forget compiler:extJS?");
 		if (!c.parseInterface()) {
 			Log.d(this, "Parse Error "+c.getLastError());
 			setLastError(new ParseError(sd.get(HttpContext.ATTR_BODY)+"", 0,"Error in superclass : "+c.getLastError()));

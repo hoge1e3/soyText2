@@ -5,11 +5,11 @@ import jp.tonyu.js.Wrappable;
 
 
 public class ParseError extends RuntimeException implements Wrappable {
-	CharSequence source;
+	final CharSequence source;
 	int p; 
 	public ParseError(CharSequence src, int p,String mesg) {
 		super(mesg+" at "+p);
-		this.source=src;
+		this.source=src+"";
 		this.p=p;
 	}
 	public CharSequence getSource() {

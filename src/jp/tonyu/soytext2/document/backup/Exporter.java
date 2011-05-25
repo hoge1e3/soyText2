@@ -28,9 +28,9 @@ public class Exporter {
 				printNonNull(p, "summary", d.summary);
 				printNonNull(p, "precontent", d.preContent);
 				printNonNull(p, "content", d.content);
-				printNonNull(p, "owner", d.owner);
-				printNonNull(p, "group", d.group);
-				printNonNull(p, "permission", d.permission);
+				printNonNull(p, "owner", d.owner.get());
+				printNonNull(p, "group", d.group.get());
+				printNonNull(p, "permission", d.permission.get());
 				return false;
 			}
 		},false);

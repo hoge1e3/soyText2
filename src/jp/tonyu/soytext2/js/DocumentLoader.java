@@ -8,6 +8,8 @@ import java.util.regex.Pattern;
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.BlankScriptableObject;
 import jp.tonyu.js.BuiltinFunc;
+import jp.tonyu.js.Scriptables;
+import jp.tonyu.js.StringPropAction;
 import jp.tonyu.js.Wrappable;
 import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentAction;
@@ -105,14 +107,14 @@ public class DocumentLoader implements Wrappable {
 		return JSSession.cur.get();
 	}
 	public DocumentScriptable newDocument(Scriptable hash) {
-		Object id = hash!=null ? hash.get("id", hash) : null;
-		DocumentRecord d;
+		final Object id = hash!=null ? hash.get("id", hash) : null;
+		final DocumentRecord d;
 		if (id instanceof String) {
 			d=getDocumentSet().newDocument((String)id);
 		} else {
 			d=getDocumentSet().newDocument();
 		}
-		DocumentScriptable res=defaultDocumentScriptable(d);
+		final DocumentScriptable res=defaultDocumentScriptable(d);
 		extend(res,hash);
 		return res;
 	}
@@ -140,9 +142,23 @@ public class DocumentLoader implements Wrappable {
 		});
 	}
 	public Query newQuery(String cond, Scriptable tmpl) {
-		QueryBuilder qb=QueryBuilder.create(cond);
+		final QueryBuilder qb=QueryBuilder.create(cond);
 		if (tmpl!=null) {
-			for (Object n:tmpl.getIds()) {
+			Scriptables.each(tmpl, new StringPropAction() {
+				@Override
+				public void run(String key, Object value) {
+					AttrOperator op=AttrOperator.ge;
+					if (value instanceof String) {
+						String svalue = (String) value;
+						if (svalue.startsWith("=")) {
+							op=AttrOperator.exact;
+							value=svalue.substring(1);
+						}
+					}
+					qb.tmpl(key, value, op);				
+				}
+			});
+			/*for (Object n:tmpl.getIds()) {
 				if (n instanceof String) {
 					String name = (String) n;
 					Object value=tmpl.get(name, tmpl);
@@ -156,14 +172,29 @@ public class DocumentLoader implements Wrappable {
 					}
 					qb.tmpl(name, value, op);				
 				}
-			}
+			}*/
 		}
 		final Query q=qb.toQuery();
 		return q;
 	}
-	public void extend(DocumentScriptable dst, Scriptable hash) {
-		if (hash==null) return;
-		for (Object key:hash.getIds()) {
+	public void extend(final DocumentScriptable dst, Scriptable src) {
+		if (src==null) return;
+		Scriptables.each(src, new StringPropAction() {
+			@Override
+			public void run(String key, Object value) {
+				String str = (String) key;
+				Matcher m=idpatWiki.matcher(str);
+				if (m.matches()) {
+					String id=m.group(1);
+					DocumentScriptable refd = byId(id);
+					if (refd==null) Log.die("[["+id+"]] not found");
+					dst.put(refd, value);
+				} else {
+					dst.put(key, value);
+				}
+			}
+		});
+		/*for (Object key:hash.getIds()) {
 			if (key instanceof String) {
 				String str = (String) key;
 				Matcher m=idpatWiki.matcher(str);
@@ -178,7 +209,7 @@ public class DocumentLoader implements Wrappable {
 					dst.put(key, value);
 				}
 			}
-		}
+		}*/
 	}
 	public void setGetter(DocumentScriptable dst, final Function func) {
 		dst.setGetter(new Getter() {

@@ -1,5 +1,7 @@
 package jp.tonyu.soytext2.document;
 
+import jp.tonyu.util.Ref;
+
 
 public class DocumentRecord /*implements Wrappable*/ {
 	/*"CREATE TABLE "+DOCUMENT_1+"(\n"+
@@ -19,7 +21,7 @@ public class DocumentRecord /*implements Wrappable*/ {
 	public final String id;
 	public long lastUpdate,createDate,lastAccessed;
 	public String summary,content,preContent;
-	public String owner,group,permission;
+	public final Ref<String> owner=Ref.create(""),group=Ref.create(""),permission=Ref.create("");
 	public DocumentRecord(DocumentSet documentSet,String id) {
 		this.documentSet=documentSet;
 		this.id=id;

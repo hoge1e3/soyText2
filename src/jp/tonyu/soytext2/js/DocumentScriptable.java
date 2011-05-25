@@ -52,12 +52,22 @@ public class DocumentScriptable implements Scriptable {
 			return c.value(Object.class);
 		}
 	};
+	BuiltinFunc hasOwnPropFunc= new BuiltinFunc() {
+		
+		@Override
+		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
+				Object[] args) {
+			if (args.length==0) return false;
+			return binds.containsKey(args[0]);
+		}
+	};
 
 	public Object get(Object key) {
 		if ("id".equals(key)) return d.id;
 		if ("lastUpdate".equals(key)) return d.lastUpdate;
 		if ("save".equals(key)) return saveFunc;
 		if ("compile".equals(key)) return compileFunc;
+		if ("hasOwnProperty".equals(key)) return hasOwnPropFunc;
 		if (key instanceof DocumentScriptable) {
 			DocumentScriptable keyDoc = (DocumentScriptable) key;
 			key=JSSession.idref(keyDoc, d.documentSet);

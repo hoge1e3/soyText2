@@ -4,17 +4,13 @@ package jp.tonyu.js;
 import java.util.HashMap;
 import java.util.Map;
 
-import jp.tonyu.util.MapAction;
-import jp.tonyu.util.Maps;
-
 import org.mozilla.javascript.Scriptable;
 
-public class Convert {
+public class Scriptables {
 	public static Object[] toArray(Object scriptable) {
 		if (scriptable instanceof Scriptable) {
 			Scriptable ary = (Scriptable) scriptable;
-			Integer len=toInt(ary.get("length", ary));
-			if (len==null) len=0;
+			Integer len=toInt(ary.get("length", ary),0);
 			Object[] res=new Object[len];
 			for (int i=0 ; i<len ; i++) {
 				res[i]=ary.get(i, ary);
@@ -28,11 +24,11 @@ public class Convert {
 		return new Object[0];
 	}
 
-	public static Integer toInt(Object i) {
+	public static Integer toInt(Object i,Integer defValue) {
 		if (i instanceof Integer) {
 			return (Integer) i;
 		}
-		return null;
+		return defValue;
 	}
 	
 	public static void each(Scriptable s, StringPropAction action) {

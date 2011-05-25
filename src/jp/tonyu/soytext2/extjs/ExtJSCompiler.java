@@ -12,7 +12,7 @@ public class ExtJSCompiler implements DocumentCompiler {
 
 	@Override
 	public CompileResult compile(final DocumentScriptable document)  {
-		String src=""+document.get(HttpContext.ATTR_BODY);
+		//String src=""+document.get(HttpContext.ATTR_BODY);
 		final long l=document.getDocument().lastUpdate;
 		final ClassConverter c=new ClassConverter(document);
 		

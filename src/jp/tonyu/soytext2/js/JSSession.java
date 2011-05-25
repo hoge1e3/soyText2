@@ -121,10 +121,10 @@ public class JSSession {
 		compileCache.put(id, res);
 		return res;
 	}
-	public void install(DocumentScriptable d) {
+	/*public void install(DocumentScriptable d) {
 		CompileResult res=compile(d);
 		root.put(idref(d, null), root, res.value(Scriptable.class));
-	}
+	}*/
 	public static String idref(DocumentScriptable d, DocumentSet viewPoint) {
 		// viewPoint==null -> full path
 		return "[["+d.getDocument().id+"]]";
