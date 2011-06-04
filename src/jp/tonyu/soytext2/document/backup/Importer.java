@@ -37,7 +37,7 @@ public class Importer {
 					String value=m.group(2);
 					if ("id".equals(key)) {
 						flush();
-						curdoc=sdb.newDocument(value);
+						curdoc=getdoc(value);
 					}
 					if ("summary".equals(key)) {
 						curdoc.summary=value;
@@ -79,6 +79,11 @@ public class Importer {
 		} 
 		flush();
 		s.close();
+	}
+	private DocumentRecord getdoc(String value) {
+		DocumentRecord res = sdb.byId(value);
+		if (res!=null) return res;
+		return sdb.newDocument(value);
 	}
 	private void tryChangeTable(String line) {
 		Matcher m2=table.matcher(line);

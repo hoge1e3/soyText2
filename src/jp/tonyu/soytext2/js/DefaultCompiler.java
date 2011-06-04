@@ -90,7 +90,7 @@ public class DefaultCompiler implements DocumentCompiler {
 	static  final Pattern embedLang=Pattern.compile("<%(=?) *(([^%]*%[^>])*[^%]*)%>");
 	static  final String CONTEXT="context";
 	static  final String PRINT="p",SAVE="save",SEARCH="search";
-	protected static final String ATTR_SRC = "src";
+	protected static final String ATTR_SRC = "documentSource";
 	protected static final String SRCSYM = "__src__";
 	public static final String ATTR_SCOPE = "scope";
 
@@ -126,7 +126,7 @@ public class DefaultCompiler implements DocumentCompiler {
 			}
 		}
 		buf.append("};");
-		buf.append("res."+ATTR_SRC+"="+SRCSYM+";res;");
+		//buf.append("res."+ATTR_SRC+"="+SRCSYM+";res;");
 		return runeval(inf, buf);
 	}
 	private String scriptName(final DocumentScriptable d) {
@@ -149,6 +149,10 @@ public class DefaultCompiler implements DocumentCompiler {
 		final DocumentScriptable d=inf.doc;
 		final JSSession jsSession=JSSession.cur.get();
 		final Object res=jsSession.eval(scriptName(d), buf.toString(), inf.consts);
+		/*if (res instanceof Scriptable) {
+			Scriptable s = (Scriptable) res;
+			s.put(ATTR_SRC, s, d);
+		}*/
 		final long l=d.getDocument().lastUpdate;
 		Log.d(this ,"EvalBuf - "+buf);
 		return new CompileResult() {

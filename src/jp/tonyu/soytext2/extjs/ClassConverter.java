@@ -16,12 +16,13 @@ import jp.tonyu.soytext2.js.CompileResult;
 import jp.tonyu.soytext2.js.DefaultCompiler;
 import jp.tonyu.soytext2.js.DocumentLoader;
 import jp.tonyu.soytext2.js.DocumentScriptable;
+import jp.tonyu.soytext2.js.DocumentSourceable;
 import jp.tonyu.soytext2.js.JSSession;
 import jp.tonyu.soytext2.servlet.HttpContext;
 
 
 
-public class ClassConverter extends Parser implements Wrappable {
+public class ClassConverter extends Parser implements Wrappable, DocumentSourceable {
 	private static final Pattern NUMPAT = Pattern.compile("-?\\d+(\\.\\d+)?");
 	private static final Pattern SYM = Pattern.compile("[\\$\\w][\\$\\w\\d]*");
 	private static final Pattern ONELINECOMMENT = Pattern.compile("//.*\\n");
@@ -38,6 +39,10 @@ public class ClassConverter extends Parser implements Wrappable {
 	boolean success=false;
 	DocumentScriptable src;
 	String lastClassName;
+	@Override
+	public DocumentScriptable getDocumentSource() {
+		return src;
+	}
 	public ClassConverter(DocumentScriptable src) {
 		super(src.get(HttpContext.ATTR_BODY)+"");
 		this.src=src;

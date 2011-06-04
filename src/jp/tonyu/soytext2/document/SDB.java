@@ -147,7 +147,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 			    Log.d("SAVE", d);
 			    //Log.d("SAVE", "Before - "+docCount());
 			    if (!cur.eof()) {
-			    	cur.update(d.id,d.lastUpdate,d.createDate,d.lastAccessed,"javascript",d.summary,d.preContent,d.content,d.owner,d.group,d.permission);
+			    	cur.update(d.id,d.lastUpdate,d.createDate,d.lastAccessed,"javascript",d.summary,d.preContent,d.content,d.owner.get(),d.group.get(),d.permission.get());
 			    } else {
 			    	insertDocument(d, t);
 			    }				
@@ -168,9 +168,9 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 				d.summary,
 				d.preContent,
 				d.content,
-				d.owner,
-				d.group,
-				d.permission);
+				d.owner.get(),
+				d.group.get(),
+				d.permission.get());
 	}
 	public int docCount() throws SqlJetException {
 		ISqlJetTable t=docTable();
@@ -234,9 +234,9 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 				d.summary,
 				d.preContent,
 				d.content,
-				d.owner,
-				d.group,
-				d.permission};
+				d.owner.get(),
+				d.group.get(),
+				d.permission.get()};
 					for (Object rr:r) {
 						System.out.println(rr);
 					}

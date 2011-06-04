@@ -8,6 +8,7 @@ import jp.tonyu.nanoservlet.NanoServlet;
 import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.js.DocumentLoader;
 import jp.tonyu.soytext2.js.JSSession;
+import jp.tonyu.util.SFile;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -43,8 +44,23 @@ public class SMain extends HttpServlet {
 	}
 	SDB sdb;
 	DocumentLoader loader;
+	public static  File getNewest() {
+		long max=0;
+		File res=null;
+		for (SFile d:new SFile("db/")) {
+			if (!d.name().endsWith(".db")) continue;
+			long l=d.lastModified();
+			if (l>max) {
+				res=d.javaIOFile();
+				max=l;
+			}
+		}
+		return res;
+	}
 	public SMain() throws Exception{
-		sdb=new SDB(new File("main.db"));
+		File newest = getNewest();
+		System.out.println("Using "+newest+" as db.");
+		sdb=new SDB(newest);
 		loader=new DocumentLoader(sdb);
 		int port = 3002;
 		AutoRestart auto = new AutoRestart(port, new File("stop.lock"));

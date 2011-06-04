@@ -2,12 +2,14 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Scanner;
-
-import org.tmatesoft.sqljet.core.SqlJetException;
 
 import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.document.backup.Importer;
+import jp.tonyu.soytext2.servlet.SMain;
 
 
 public class ImportFromVer1 {
@@ -33,10 +35,15 @@ public class ImportFromVer1 {
 		sc.close();
 		w.close();
 		
-		SDB s=new SDB(new File("main.db"));
+		DateFormat dfm = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss");
+		File newFile = new File("db/main"+ dfm.format(new Date())+".db");
+		//File newFile = SMain.getNewest();
+		SDB s=new SDB(newFile);
 		Importer i=new Importer(s);
 		i.importDocuments(file);
 		s.close();
+		
+		new SMain();
 	}
 
 }
