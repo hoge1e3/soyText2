@@ -1,9 +1,17 @@
 package jp.tonyu.soytext2.servlet;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
+import java.net.URL;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
@@ -18,6 +26,8 @@ import jp.tonyu.soytext.Origin;
 import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentAction;
 import jp.tonyu.soytext2.document.DocumentSet;
+import jp.tonyu.soytext2.document.SDB;
+import jp.tonyu.soytext2.document.backup.Importer;
 import jp.tonyu.soytext2.js.CompileResult;
 import jp.tonyu.soytext2.js.CompilerResolver;
 import jp.tonyu.soytext2.js.DefaultCompiler;
@@ -237,6 +247,9 @@ public class HttpContext {
         }
         else if (s.length>=2 && s[1].equals("search")) {
         	search();
+        }
+        else if (s.length>=2 && s[1].equals("import1")) {
+        	importFromVer1();
         }
         else if (req.getPathInfo().equals("/")) {
         	topPage();
@@ -647,4 +660,30 @@ public class HttpContext {
 		}
 		return null;
 	}*/
+	public void importFromVer1() {
+		try {
+			URL u=new URL("http://localhost:3001/exec/110412_045800?after=1307074166184");
+			InputStream in=(InputStream)u.getContent();
+			File file = new File("import/import.txt");
+			Scanner sc=new Scanner(in);
+			PrintWriter w=new PrintWriter(file);
+			w.println("[Document]");
+			while (sc.hasNextLine()) {
+				String l=sc.nextLine();
+				if (l.startsWith("<pre>") || l.startsWith("</pre>")) continue;
+				w.println(l);
+				//System.out.println(l);
+			}
+			sc.close();
+			w.close();
+			
+			Importer i=new Importer((SDB)documentSet());
+			i.importDocuments(file);
+			
+			all();
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 }
