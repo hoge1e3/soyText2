@@ -204,9 +204,17 @@ public class HttpContextFunctions  {
 				Object[] args) {
 			if (args.length>0 && args[0] instanceof Scriptable) {
 				Scriptable es=(Scriptable)args[0];
-				Object es2 = es.get(DefaultCompiler.ATTR_SRC, es);
-				Log.d(this, es2);
-				DocumentScriptable eref = (DocumentScriptable) es2;
+				DocumentScriptable eref;
+				if (es instanceof DocumentScriptable) {
+					eref = (DocumentScriptable) es;
+				} else {
+					Object gsrc = es.get(CompileResult.getDocumentSourceName, es);
+					Log.d(this, gsrc);
+					Function gsrcf=(Function) gsrc;
+					Object gsrcr = gsrcf.call(cx, scope, es, new Object[0]);
+					Log.d(this, gsrcr);
+					eref = (DocumentScriptable) gsrcr;
+				}
 				StringBuilder b=new StringBuilder( c().rootPath()+"/exec/"+(toId(eref))+"?" );
 				if (args.length>=2 && args[1] instanceof Scriptable) {
 					Scriptable scr = (Scriptable) args[1];

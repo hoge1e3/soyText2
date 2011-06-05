@@ -327,15 +327,20 @@ public class HttpContext {
 		if (d!=null) {
 	        CompileResult o=JSSession.cur.get().compile(d);
 	        boolean execed=false;
+	        if (o instanceof SWebApplication) {
+				SWebApplication app = (SWebApplication) o;
+				app.run();
+				execed=true;
+			}/*
 	        if (o!=null) {
 	        	SWebApplication app=o.value(SWebApplication.class);
 	        	if (app!=null) {
-	        		app.run(/*params()*/);
+	        		app.run();
 	        		execed=true;
 	        	}
-			}
+			}*/
 	        if (!execed) {
-	        	print(id+" is not executable ");
+	        	print(id+" is not executable :"+o);
 	        }
 		} else {
 			 notfound(id);

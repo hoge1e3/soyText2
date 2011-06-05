@@ -13,10 +13,10 @@ public class ExtJSCompiler implements DocumentCompiler {
 	@Override
 	public CompileResult compile(final DocumentScriptable document)  {
 		//String src=""+document.get(HttpContext.ATTR_BODY);
-		final long l=document.getDocument().lastUpdate;
+		//final long l=document.getDocument().lastUpdate;
 		final ClassConverter c=new ClassConverter(document);
 		
-		return new CompileResult() {
+		return c;/* new CompileResult() {
 			
 			@Override
 			public <T> T value(Class<T> type) {
@@ -28,7 +28,7 @@ public class ExtJSCompiler implements DocumentCompiler {
 			}
 			
 			@Override
-			public DocumentScriptable src() {
+			public DocumentScriptable getDocumentSource() {
 				return document;
 			}
 			
@@ -42,7 +42,7 @@ public class ExtJSCompiler implements DocumentCompiler {
 				
 				return ExtJSCompiler.this;
 			}
-		};
+		};*/
 	}
 
 	

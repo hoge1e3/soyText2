@@ -22,7 +22,7 @@ import jp.tonyu.soytext2.servlet.HttpContext;
 
 
 
-public class ClassConverter extends Parser implements Wrappable, DocumentSourceable {
+public class ClassConverter extends Parser implements Wrappable, CompileResult {
 	private static final Pattern NUMPAT = Pattern.compile("-?\\d+(\\.\\d+)?");
 	private static final Pattern SYM = Pattern.compile("[\\$\\w][\\$\\w\\d]*");
 	private static final Pattern ONELINECOMMENT = Pattern.compile("//.*\\n");
@@ -39,6 +39,7 @@ public class ClassConverter extends Parser implements Wrappable, DocumentSourcea
 	boolean success=false;
 	DocumentScriptable src;
 	String lastClassName;
+	private long compiledTime;
 	@Override
 	public DocumentScriptable getDocumentSource() {
 		return src;
@@ -46,9 +47,14 @@ public class ClassConverter extends Parser implements Wrappable, DocumentSourcea
 	public ClassConverter(DocumentScriptable src) {
 		super(src.get(HttpContext.ATTR_BODY)+"");
 		this.src=src;
+		compiledTime=getDocumentSource().getDocument().lastUpdate;
 		Object object = src.get(DefaultCompiler.ATTR_SCOPE);
 		if (object instanceof Scriptable) {map=(Scriptable)object;}
 		else {map=new BlankScriptableObject();}
+	}
+	@Override
+	public boolean isUp2Date() {
+		return getDocumentSource().getDocument().lastUpdate==compiledTime;
 	}
 	@Override
 	public void onSave(Stack<Object> states) {
@@ -157,7 +163,7 @@ public class ClassConverter extends Parser implements Wrappable, DocumentSourcea
 		CompileResult compileRes =  JSSession.cur.get().compile(sd);
 		if (compileRes==null) Log.die("Compile Result of "+sd+" null. Perhaps forget compiler:extJS?");
 		ClassConverter c= Log.notNull(
-				compileRes.value(ClassConverter.class),
+				(ClassConverter)compileRes,
 				"Compile Result of "+sd+" null. Perhaps forget compiler:extJS?");
 		if (!c.parseInterface()) {
 			Log.d(this, "Parse Error "+c.getLastError());

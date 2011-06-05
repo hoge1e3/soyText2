@@ -90,7 +90,7 @@ public class DefaultCompiler implements DocumentCompiler {
 	static  final Pattern embedLang=Pattern.compile("<%(=?) *(([^%]*%[^>])*[^%]*)%>");
 	static  final String CONTEXT="context";
 	static  final String PRINT="p",SAVE="save",SEARCH="search";
-	protected static final String ATTR_SRC = "documentSource";
+	//protected static final String ATTR_SRC = "documentSource";
 	protected static final String SRCSYM = "__src__";
 	public static final String ATTR_SCOPE = "scope";
 
@@ -155,54 +155,62 @@ public class DefaultCompiler implements DocumentCompiler {
 		}*/
 		final long l=d.getDocument().lastUpdate;
 		Log.d(this ,"EvalBuf - "+buf);
-		return new CompileResult() {
-
-			@Override
-			public DocumentScriptable src() {
-				return d;
-			}
-			@Override
-			public <T> T value(Class<T> type) {
-				if (type==null || type.isAssignableFrom(res.getClass())) {
-					return (T)res;
+		if (res instanceof CompileResult) {
+			CompileResult c = (CompileResult) res;
+			return c; 
+		}
+		if (res instanceof Function) {
+			final Function f = (Function) res;
+			return new SWebApplication(f) {
+				
+				@Override
+				public boolean isUp2Date() {
+					return d.getDocument().lastUpdate==l;
 				}
-				if (res instanceof Function && 	type.isAssignableFrom(SWebApplication.class)) {
-					final Function f = (Function) res;
-					SWebApplication app = new SWebApplication() {
-						
-						@Override
-						public void run() {
-							final HttpContext httpContext = HttpContext.cur.get();
-							final Map<String, String> hparams = httpContext.params();
-							final String []hargs= httpContext.execArgs();
-							//Map<String, Object> params=params(hparams, inf.paramTypes);
-							final Object[] args= new Object[inf.paramValues.size()];
-							for (int i=0 ; i<args.length ; i++) {
-								final String key = inf.paramValues.get(i);
-								final String typeHint=inf.paramTypes.get(key);
-								String value=hparams.get(key);
-								if (value==null && i<hargs.length) {
-									value=hargs[i];
-								}								
-								args[i]=param(value, typeHint);
-							}
-							jsSession.call(f, args);
-						}
-					};
-					return (T)app;
+				
+				@Override
+				public DocumentScriptable getDocumentSource() {
+					return d;
 				}
-				return null;
-			}
-			@Override
-			public boolean isUp2Date() {
-				return d.getDocument().lastUpdate==l;
-			}
-
-			@Override
-			public DocumentCompiler compiler() {
-				return DefaultCompiler.this;
-			}
-		};
+				
+				@Override
+				public void run() {
+					final HttpContext httpContext = HttpContext.cur.get();
+					final Map<String, String> hparams = httpContext.params();
+					final String []hargs= httpContext.execArgs();
+					//Map<String, Object> params=params(hparams, inf.paramTypes);
+					final Object[] args= new Object[inf.paramValues.size()];
+					for (int i=0 ; i<args.length ; i++) {
+						final String key = inf.paramValues.get(i);
+						final String typeHint=inf.paramTypes.get(key);
+						String value=hparams.get(key);
+						if (value==null && i<hargs.length) {
+							value=hargs[i];
+						}								
+						args[i]=param(value, typeHint);
+					}
+					jsSession.call(f, args);
+				}
+			};
+			
+		}
+		if (res instanceof Scriptable) {
+			Scriptable s = (Scriptable) res;
+			return new CompileResultScriptable(s) {
+				
+				@Override
+				public boolean isUp2Date() {
+					return d.getDocument().lastUpdate==l;
+				}
+				
+				@Override
+				public DocumentScriptable getDocumentSource() {
+					return d;
+				}
+			};
+		}
+		Log.die("Error - "+res);
+		return null;
 	}
 	private static DocumentLoader documentLoader() {
 		return HttpContext.cur.get().documentLoader;

@@ -13,9 +13,9 @@ public class CompilerResolver {
 	static CompileResult compile(DocumentScriptable d) {
 		DocumentCompiler c = resolve(d);
 		if (c==null) return null;
-		return injectSource(c.compile(d),d);
+		return c.compile(d);//injectSource(c.compile(d),d);
 	}
-	static private CompileResult injectSource(CompileResult c, DocumentScriptable src) {
+	/*static private CompileResult injectSource(CompileResult c, DocumentScriptable src) {
 		try {
 			Scriptable r = c.value(Scriptable.class);
 			if (r!=null) {
@@ -26,6 +26,6 @@ public class CompilerResolver {
 			Log.d("injectSource", "not convert into scriptable"+c.value(Object.class));
 		}
 		return c;
-	}
+	}*/
 
 }

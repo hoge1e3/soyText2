@@ -49,7 +49,11 @@ public class DocumentScriptable implements Scriptable {
 			//org.mozilla.javascript.IdFunctionObject
 			}*/
 			if (c==null) return DocumentScriptable.this;
-			return c.value(Object.class);
+			if (c instanceof CompileResultScriptable) {
+				CompileResultScriptable cs = (CompileResultScriptable) c;
+				return cs.scriptable;
+			}
+			return c;
 		}
 	};
 	BuiltinFunc hasOwnPropFunc= new BuiltinFunc() {
