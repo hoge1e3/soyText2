@@ -677,7 +677,7 @@ public class HttpContext {
 			sc.close();
 			w.close();
 			
-			Importer i=new Importer((SDB)documentSet());
+			Importer i=new Importer(documentLoader);
 			i.importDocuments(file);
 			
 			all();

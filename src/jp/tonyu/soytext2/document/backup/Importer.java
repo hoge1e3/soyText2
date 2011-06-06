@@ -11,11 +11,13 @@ import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentSet;
 import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.document.LogRecord;
+import jp.tonyu.soytext2.js.DocumentLoader;
 import jp.tonyu.util.SFile;
 
 
 public class Importer {
 	final SDB sdb;
+	final DocumentLoader documentLoader;
 	String curTable=null;
 	DocumentRecord curdoc=null;
 	LogRecord curlog=null;
@@ -99,12 +101,20 @@ public class Importer {
 		}
 		if (curdoc!=null) {
 			curdoc.save();
+			if (documentLoader!=null) {
+				documentLoader.reload(curdoc.id);
+			}
 			curdoc=null;
 		}
 	}
 	public Importer(SDB documentSet) {
 		super();
 		this.sdb = documentSet;
+		documentLoader=null;
+	}
+	public Importer(DocumentLoader documentLoader) {
+		this.documentLoader=documentLoader;
+		sdb=(SDB) documentLoader.getDocumentSet();
 	}
 	
 }

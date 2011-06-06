@@ -32,7 +32,7 @@ public class DocumentLoader implements Wrappable {
 	//private static final Object LOADING = "LOADING";
 	public static final Pattern idpatWiki= DocumentProcessor.idpatWiki ;//Pattern.compile("\\[\\[([^\\]]+)\\]\\]");
 	private static final String ERROR_CONTENT = "err_content";
-		//Map<String, Scriptable>objs=new HashMap<String, Scriptable>();
+	//Map<String, Scriptable>objs=new HashMap<String, Scriptable>();
 	private final DocumentSet documentSet;
 	Map<String, DocumentScriptable> objs=new HashMap<String, DocumentScriptable>();
 	public DocumentLoader(DocumentSet documentSet) {
@@ -47,7 +47,7 @@ public class DocumentLoader implements Wrappable {
 			public Object get(String name, Scriptable start) {
 				if ("create".equals(name)) {
 					return new BuiltinFunc() {
-						
+
 						@Override
 						public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 								Object[] args) {
@@ -66,7 +66,7 @@ public class DocumentLoader implements Wrappable {
 	}
 	public DocumentScriptable byId(String id) {
 		final DocumentRecord src=getDocumentSet().byId(id);
-		
+
 		if (src==null) return null;
 		DocumentScriptable o=objs.get(id);
 		if (o!=null) return o;
@@ -86,6 +86,12 @@ public class DocumentLoader implements Wrappable {
 		loadFromContent(src.content, o);
 		return o;
 
+	}
+	public DocumentScriptable reload(String id) {
+		DocumentScriptable res=objs.get(id);
+		if (res==null) return byId(id);
+		res.setContentAndSave(res.getDocument().content);
+		return res;
 	}
 	private DocumentScriptable defaultDocumentScriptable(final DocumentRecord src) {
 		return new DocumentScriptable(this, src);
@@ -125,7 +131,7 @@ public class DocumentLoader implements Wrappable {
 	public void searchByQuery(final Query q, final Function iter) {
 		Log.d(this, "Search by "+q);
 		getDocumentSet().all(new DocumentAction() {
-			
+
 			@Override
 			public boolean run(DocumentRecord d) {
 				DocumentScriptable s=(DocumentScriptable) byId(d.id);
@@ -218,7 +224,7 @@ public class DocumentLoader implements Wrappable {
 			public Object getFrom(Object src) {
 				return jsSession().call(func, new Object[]{src});
 			}
-			
+
 		});
 	}
 	public Wrappable newInstance(String className) {
