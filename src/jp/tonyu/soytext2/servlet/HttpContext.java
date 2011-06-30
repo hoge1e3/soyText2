@@ -105,8 +105,8 @@ public class HttpContext {
 	
 	static final String OP_="OP_";
 	//public static final String headAttr="_head";
-	public static final String ATTR_CONTENT="[[110414_052728@"+Origin.uid+"]]";
-	public static final String ATTR_BODY = "_body";
+	public static final String ATTR_CONTENT="content"; //"[[110414_052728@"+Origin.uid+"]]";
+	public static final String ATTR_BODY = "body";
 	public static final String AJAXTAG = "AJAXTAG:";
 
 	

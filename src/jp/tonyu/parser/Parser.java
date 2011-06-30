@@ -122,7 +122,8 @@ public class Parser {
 	}
 	public boolean endOfSource() {
 		int s=p;
-		skipSpace();
+		if (spacePattern!=null) matcherWithoutSpace(spacePattern);
+		//skipSpace(); - when override, multiple space will output (double spaced!) 
 		boolean res=p>=src.length();
 		p=s;
 		return res; 

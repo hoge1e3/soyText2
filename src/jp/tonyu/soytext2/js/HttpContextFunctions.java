@@ -23,7 +23,7 @@ public class HttpContextFunctions  {
 	  EXECLINK="execLink",EXECPATH="execPath",HTMLENCODE="h",
 	  USER="user",BYID="byId",PARAMS="params",
 	  ROOTPATH="rootPath",
-	  REDIRECT="redirect",NEWINSTANCE="newInstance",HEADER="header";
+	  REDIRECT="redirect",NEWINSTANCE="newInstance",HEADER="header",JAVAOBJECT="javaObject";
 	
 	public static void load(Map<String,Object> to) {
 		to.put(PRINT, printFunc);
@@ -39,10 +39,32 @@ public class HttpContextFunctions  {
 		to.put(REDIRECT,redirectFunc);
 		to.put(NEWINSTANCE,newInstanceFunc);
 		to.put(HEADER,headerFunc);
+		to.put(JAVAOBJECT,javaObjectFunc);
 	}
+	
 	public static HttpContext c() {
 		return HttpContext.cur.get();
 	}
+	static BuiltinFunc javaObjectFunc=new BuiltinFunc( ) {
+		
+		@Override
+		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
+				Object[] args) {
+			try {
+				return 			Class.forName(args[0]+"").newInstance();
+			} catch (InstantiationException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return null;
+		}
+	};
 	static BuiltinFunc headerFunc=new BuiltinFunc() {
 		@Override
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,

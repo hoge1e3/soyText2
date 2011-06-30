@@ -6,8 +6,15 @@ import org.mozilla.javascript.Scriptable;
 
 
 public class CompilerResolver {
-	static DocumentCompiler def=new DefaultCompiler();
+	static DocumentCompiler def=new DefaultCompiler(false);
+	//static DocumentCompiler defSimple=new DefaultCompiler(true);
+	//static DocumentCompiler defSimple=new DefaultCompiler();
 	private static DocumentCompiler resolve(DocumentScriptable d) {
+		/*String name = d.get("name")+"";
+		if (name.endsWith(".js") && !"extJS".equals(d.get("compiler"))) {
+			Log.d("CR", "Use simple compiler for "+name+" "+d);
+			return defSimple;
+		}*/
 		return def;
 	}
 	static CompileResult compile(DocumentScriptable d) {

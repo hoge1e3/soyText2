@@ -1,6 +1,5 @@
 package jp.tonyu.debug;
 
-import jp.tonyu.soytext2.extjs.ClassConverter;
 
 
 public class Log {

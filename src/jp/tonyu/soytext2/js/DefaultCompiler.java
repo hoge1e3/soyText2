@@ -15,6 +15,7 @@ import jp.tonyu.js.StringPropAction;
 import jp.tonyu.parser.Parser;
 import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.extjs.ExtJSCompiler;
+import jp.tonyu.soytext2.extjs.SimpleJSParser;
 import jp.tonyu.soytext2.servlet.DocumentProcessor;
 import jp.tonyu.soytext2.servlet.HttpContext;
 import jp.tonyu.soytext2.servlet.SWebApplication;
@@ -74,6 +75,13 @@ public class DefaultCompiler implements DocumentCompiler {
 
 		}
 	}
+	/*public DefaultCompiler() {
+		this(false);
+	}*/
+	final boolean shortJS;
+	public DefaultCompiler(boolean shortJS) {
+		this.shortJS=shortJS;
+	}
 	@Override
 	public CompileResult compile(DocumentScriptable s) {
 		String n=""+s.get("name");
@@ -99,13 +107,24 @@ public class DefaultCompiler implements DocumentCompiler {
 		final HeaderInfo inf=new HeaderInfo(d);
 		final StringBuilder buf=new StringBuilder();
 		includeScope(inf, buf);
-		buf.append(notNull(d.get(HttpContext.ATTR_BODY),"No body in "+d));
+		String body = getBody(d);
+		if (shortJS) {
+			SimpleJSParser p = new SimpleJSParser(body);
+			p.parse();
+			buf.append(p.buf+"");
+		} else {
+			buf.append(body);
+		}
 		return runeval(inf, buf);
+	}
+	private String getBody(final DocumentScriptable d) {
+		final String src=notNull(d.get(HttpContext.ATTR_BODY),"No body in "+d).toString();
+		return src;
 	}
 	public CompileResult defaultHtmlDocument(final DocumentScriptable d)  {
 		Log.d(this,"Exec as Html");
 		final HeaderInfo inf=new HeaderInfo(d);
-		final String src=notNull(d.get(HttpContext.ATTR_BODY),"No body in "+d).toString();
+		final String src=getBody(d).toString();
 		final Parser p=new Parser(src);
 		p.setSpacePattern(null);
 		final StringBuilder buf=new StringBuilder();
