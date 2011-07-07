@@ -1,0 +1,62 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>soyNote</title>
+	<link rel=stylesheet href="soyNote.css"/>
+	<script src="prototype-rhino.js"></script>
+	<script src="jquery-min-1.4.2.js"></script>
+	<script src="jquery.ui.core.js"></script>
+	<script src="jquery.ui.widget.js"></script>
+	<script src="jquery.ui.mouse.js"></script>
+	<script src="jquery.ui.draggable.js"></script>
+	<script src="jquery.ui.droppable.js"></script>
+	<script src="jsdeferred.jquery.js"></script>
+	<script src="jslint.js"></script>
+	<script src="keys.js"></script>
+	<script src="sprintf.js"></script>
+	<script src="toHashLiteral.js"></script>
+	<script src="DocumentScriptable.class.js"></script>
+	<script src="soyText4.js"></script>
+	<script src="util.js"></script>
+	<script src="NoteItem.js"></script>
+	<script src="hprintf.js"></script>
+	<script src="TraceDisplay2.class.js"></script>
+	<script src="TagBuilder.jq.js"></script>
+	<script src="frame2.js"></script>
+	<script src="stackTrace.js"></script>
+	<script src="consoleWindow2.js"></script>
+	<script src="jquery-class2class.js"></script>
+	<script src="fiber.js"></script>
+	<script src="modWatcher.js"></script>
+	<script src="indentAdaptor.js"></script>
+	<script src="TextEditor2.class.js"></script>
+	<script src="NoteEditor.js"></script>
+	<script src="NoteApplication.js"></script>
+	<script src="NoteList.class.js"></script>	
+	<script src="soyNote.js"></script>
+	<script> 
+	        SoyText.rootPath=function() {  
+	           return "../..";  
+	        };
+	        SoyText.user=function () {
+	           return "defaultSession";
+	        };
+	        rootPath=SoyText.rootPath;
+	        loginUser=SoyText.user;
+	        $(main);
+	</script>
+</head>
+<body class=NoteApplication>
+	 <div class=NoteList>
+	  <div class=NoteList-find>
+	     検索：<input class=NoteList-findText value=neko>
+	  </div>
+	  <div class=NoteList-items>
+	  </div>
+	 </div>
+	 <div class=NoteEditor>
+	   <div class=NoteEditor-attr>
+	   <textarea rows=40 cols=80 class=NoteEditor-body></textarea>
+	 </div>
+</html>

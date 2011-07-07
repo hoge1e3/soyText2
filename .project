@@ -6,6 +6,27 @@
 	</projects>
 	<buildSpec>
 		<buildCommand>
+			<name>com.rockstarapps.jslint.JsLintBuilder</name>
+			<arguments>
+				<dictionary>
+					<key>buildAll</key>
+					<value>false</value>
+				</dictionary>
+				<dictionary>
+					<key>external_defines</key>
+					<value>$,NoteApplication,NoteEditor,NoteItem,NoteList,Class</value>
+				</dictionary>
+				<dictionary>
+					<key>properties</key>
+					<value>params = {passfail: false,debug: true,undef: true,white: false,evil: false,nomen: false,browser: true,cap: true,eqeqeq: false,widget: false,on: true,plusplus: false,sidebar: false,fragment: true,bitwise: false,rhino: false,laxbreak: true,regexp: false,safe: false,forin: false,onevar: false,adsafe: false,sub: false,strict: false,css: false,newcap: false,maxerrors:50,indent:4};</value>
+				</dictionary>
+				<dictionary>
+					<key>selection</key>
+					<value>js/soyNote/jquery-class2class.js&lt;--&gt;js/soyNote/soyNote.js&lt;--&gt;js/soyNote/consoleWindow2.js&lt;--&gt;js/soyNote/DocumentScriptable.class.js&lt;--&gt;js/soyNote/fiber.js&lt;--&gt;js/soyNote/frame2.js&lt;--&gt;js/soyNote/hprintf.js&lt;--&gt;js/soyNote/indentAdaptor.js&lt;--&gt;js/soyNote/keys.js&lt;--&gt;js/soyNote/modWatcher.js&lt;--&gt;js/soyNote/NoteApplication.js&lt;--&gt;js/soyNote/NoteEditor.js&lt;--&gt;js/soyNote/NoteItem.js&lt;--&gt;js/soyNote/NoteList.class.js&lt;--&gt;js/soyNote/soyText4.js&lt;--&gt;js/soyNote/sprintf.js&lt;--&gt;js/soyNote/TagBuilder.jq.js&lt;--&gt;js/soyNote/TextEditor2.class.js&lt;--&gt;js/soyNote/toHashLiteral.js&lt;--&gt;js/soyNote/TraceDisplay2.class.js&lt;--&gt;js/soyNote/util.js</value>
+				</dictionary>
+			</arguments>
+		</buildCommand>
+		<buildCommand>
 			<name>org.eclipse.jdt.core.javabuilder</name>
 			<arguments>
 			</arguments>

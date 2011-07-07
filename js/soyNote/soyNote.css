@@ -1,0 +1,17 @@
+.NoteApplication {
+  background-color: #eeffdd;
+}
+
+.NoteList {
+  //position: absolute;
+  float:left;
+  width: 200px;
+  height: 100%;
+  background-color: #d0d0e0;
+}
+
+.NoteEditor {
+  margin-left: 200px;
+  background-color: #88ddff;
+  height: 100%;
+}

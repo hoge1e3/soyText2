@@ -594,6 +594,39 @@ public class HttpContext {
 	{
 	    return TimeFormat.toRFC2822(d.lastUpdate());//TimeFormat.toUtcTicks(d.lastUpdate(), TimeZone.getDefault())); 
 	}*/
+	public static String detectContentType(String fileName) {
+		String c = "text/plain; charset=utf-8";
+	    if (fileName != null)
+	    {
+	    	fileName=fileName.toLowerCase();
+	        if (fileName.endsWith(".js"))
+	        {
+	            c = "text/javascript; charset=utf-8";
+	        }
+	        if (fileName.endsWith(".css"))
+	        {
+	            c = "text/css; charset=utf-8";
+	        }
+	        if (fileName.endsWith(".html"))
+	        {
+	            c = "text/html; charset=utf-8";
+	        }
+	        if (fileName.endsWith(".gif"))
+	        {
+	            c = "image/gif";
+	        }
+	        if (fileName.endsWith(".png"))
+	        {
+	            c = "image/png";
+	        }
+	        if (fileName.endsWith(".jpg"))
+	        {
+	            c = "image/jpeg";
+	        }
+	    }
+	    return c;		
+	}
+	
 	public static String detectContentType(DocumentScriptable d)
 	{
 	    Object c = d.get("Content-Type");
@@ -602,7 +635,8 @@ public class HttpContext {
 	    if (c instanceof String) return c.toString();
 	    String n = d.get("name")+"";
 	    Log.d("HTPCON", "Detecting "+d.getDocument().id+" - "+n);
-	    c = "text/plain; charset=utf-8";
+	    return detectContentType(n);
+	  /*  c = "text/plain; charset=utf-8";
 	    if (n != null)
 	    {
 	    	n=n.toLowerCase();
@@ -631,7 +665,7 @@ public class HttpContext {
 	            c = "image/jpeg";
 	        }
 	    }
-	    return c.toString();
+	    return c.toString();*/
 	}
 	/*public Compiler evaluator() {
 		return currentSession().evaluator();

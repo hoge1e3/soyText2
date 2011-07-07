@@ -1,5 +1,6 @@
 package jp.tonyu.soytext2.servlet;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -12,6 +13,7 @@ import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentSet;
 import jp.tonyu.soytext2.js.DocumentScriptable;
 import jp.tonyu.util.Literal;
+import jp.tonyu.util.SFile;
 
 
 
@@ -131,6 +133,16 @@ public class DocumentProcessor {
 		HttpServletResponse res=res();
 
 		res.setContentType( HttpContext.detectContentType(d) );
+		Object dir = d.get("dir");
+		String[] args = args();
+		int PATHSTART=3;
+		if (dir!=null && args.length>PATHSTART) {
+			String[] args2=new String[args.length-PATHSTART];
+			for (int i=0 ; i<args2.length ; i++) {
+				args2[i]=args[i+PATHSTART];
+			}
+			feedDir(dir+"",args2);
+		} else {
 	   // String lastup = HttpContext.lastModifiedField(d);
 	   // res.setHeader( "Last-Modified" ,  lastup);
 	    
@@ -150,7 +162,27 @@ public class DocumentProcessor {
 		//Log.d(this, d.getDocument().id+" cont="+d.getDocument().content+" - "+d.get(HttpContext.bodyAttr));
 	        Object body = d.get(HttpContext.ATTR_BODY);
 			Httpd.respondByString(res, body+"");
-	    //}
+	    }
+	}
+	private void feedDir(String string, String[] rels) throws IOException {
+		SFile f=new SFile(string);
+		SFile token = f.rel(".soyText."+d.getDocument().id);
+		if (token.exists()) {
+			for (String p:rels) {
+				if (p==null) continue;
+				if (p.indexOf("\\")>=0) continue;
+				if (p.indexOf("/")>=0) continue;
+				if ("..".equals(rels)) continue;
+				f=f.rel(p);
+			}
+			if (f.exists()) {
+				Httpd.respondByFile(res(), f.javaIOFile());
+			} else {
+				ctx.notfound(f+"");
+			}
+		} else {
+			ctx.notfound(token+"");
+		}
 	}
 	/*void feedHead() throws IOException
 	{
