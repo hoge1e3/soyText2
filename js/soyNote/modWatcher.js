@@ -1,4 +1,10 @@
+var NOP,printError,fiber;
 var modWatcher=function (handlers) {
+  if (handlers.getModelContent()!=handlers.getEditorContent()) {
+      alert("modWatcher: ensure modelContent==editorContent on startup");
+      return;
+  }
+  var w=fiber(printError(watch));
   function watch() {
      if (handlers.getModelContent()!=handlers.getEditorContent()) {
         handlers.onModified();
@@ -13,10 +19,5 @@ var modWatcher=function (handlers) {
   function stop() {w.die();}
 // onModified(), onSave(editorContent, next), 
 // getModelContent():str, getEditorContent():str
-  if (handlers.getModelContent()!=handlers.getEditorContent()) {
-      alert("modWatcher: ensure modelContent==editorContent on startup");
-      return;
-  } 
-  var w=fiber(printError(watch));
   return {stop:stop};
 }

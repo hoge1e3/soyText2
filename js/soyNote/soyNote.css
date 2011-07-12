@@ -1,3 +1,7 @@
+*{
+	margin:0px;
+	padding:0px;
+}
 .NoteApplication {
   background-color: #eeffdd;
 }
@@ -5,13 +9,33 @@
 .NoteList {
   //position: absolute;
   float:left;
-  width: 200px;
+  width: 20%;
   height: 100%;
   background-color: #d0d0e0;
 }
+html,body{
+   height: 100%;
+}
 
+.NoteEditor-attr {
+   height: 28%;
+   background-color: #ddffdd;
+   position: relative;
+}
+.NoteEditor-errorPanel {
+   position: absolute;
+   bottom: 0px;
+   height: 50%;
+   width: 100%;
+   overflow:auto; 
+}
 .NoteEditor {
-  margin-left: 200px;
+  margin-left: 20%;
   background-color: #88ddff;
+  width: 80%;
   height: 100%;
+}
+.NoteEditor-body {
+  width: 95%;
+  height: 70%; 
 }

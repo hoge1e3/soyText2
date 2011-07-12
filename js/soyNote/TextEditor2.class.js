@@ -1,29 +1,14 @@
-TextEditor2=Class.create({ 
- 
-  
- 
- 
- 
- 
-  initialize:function ( _page  ,options ) {var _THIS_=this;
-   if  ( arguments .length== 2  ||  _page  instanceof  DocumentScriptable )  {
-     (_THIS_.page)= _page ; 
-     (_THIS_.start.bind(_THIS_))( options ) ; 
-   } else  {
-     (_THIS_.start.bind(_THIS_))( _page ) ; 
-   }
-},
-  start:function ( options ) {var _THIS_=this;
-   Object .extend( this , options ) ; 
-   if  ( ! ( (_THIS_.page).id)  )  {
-     if  ( (_THIS_.page).body== null )  (_THIS_.page).body= "" ;     
-     if  ( (_THIS_.onNewDocument))  (_THIS_.onNewDocument)( (_THIS_.page)) ; 
-     (_THIS_.onPageReady.bind(_THIS_))( ) ; 
-   } else  {
-     (_THIS_.page).load( (_THIS_.onPageReady.bind(_THIS_))) ;    
-   }
-},
-  onPageReady:function ( ) {var _THIS_=this;
+var DocumentScriptable;
+var TextEditor2=Class.create({ 
+  initialize:function ( _page  ,options ) {
+	   if  ( arguments .length==1  || !( _page  instanceof  DocumentScriptable) )  {
+	    	_page= options.page;
+	   }
+	   if (options) { Object .extend( this , options ) ; } 
+	   _page.load( this.onPageReady.bind(this) ) ;    
+  },
+  onPageReady:function (_page ) {var _THIS_=this;
+   if (_page) {this.page=_page;}
    if  ( (_THIS_.uis).body)  {
      var  tx = (_THIS_.uis).body.get( 0 ) ; 
      var  ind = "indentAdaptered" ; 
@@ -31,7 +16,8 @@ TextEditor2=Class.create({
         jQuery .data( tx , ind , true ) ; 
         attachIndentAdapter ( tx ) ; 
      }
-     (_THIS_.uis).body.val( (_THIS_.page).body) ; 
+     if (!this.page.body) {this.page.body="";}
+     (_THIS_.uis).body.val(this.page.body) ; 
    }
    (_THIS_.setNameBox.bind(_THIS_))( ) ; 
    if  ( (_THIS_.uis).name)  {
@@ -60,6 +46,10 @@ TextEditor2=Class.create({
       }
    }) ; 
 },
+  getText:function () { 
+  	  if (this.page) { return this.page.body; } 
+      return "";
+  },
   setNameBox:function ( ) {var _THIS_=this;
    var  n = (_THIS_.getName.bind(_THIS_))( ) ; 
    if  ( n  &&  (_THIS_.uis).name)  {
@@ -67,12 +57,14 @@ TextEditor2=Class.create({
    }
 },
   stripExt:function ( n ) {var _THIS_=this;
+    if (!this.extension) return;
    if  ( n .endsWith( (_THIS_.extension)) )  {
       return  n .substring( 0 , n .length- (_THIS_.extension).length) ; 
    }
    return  n ; 
 },
   appendExt:function ( n ) {var _THIS_=this;
+    if (!this.extension) return;
    if  ( n .endsWith( (_THIS_.extension)) )  {
       return  n ; 
    }

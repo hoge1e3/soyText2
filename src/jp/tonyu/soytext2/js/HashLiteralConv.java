@@ -50,6 +50,10 @@ public class HashLiteralConv {
 		"        return document(value);\n"+
 		"     } else if (typeof value==\"number\") {\n"+
 		"        return value;\n"+
+		"     } else if (typeof value==\"boolean\") {\n"+
+		"        return value+\"\";\n"+
+		"     } else if (typeof value==\"function\") {\n"+
+		"        return value+\"\";\n"+
 		"     } else if (typeof value==\"string\") {\n"+
 		"        return str(value);\n"+
 		"     } else if (typeof value==\"object\") {\n"+

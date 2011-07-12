@@ -45,7 +45,7 @@ public class DocumentLoader implements Wrappable {
 
 			@Override
 			public Object get(String name, Scriptable start) {
-				if ("create".equals(name)) {
+				if ("create".equals(name)) { //   src ! create.  (in dolittle)
 					return new BuiltinFunc() {
 
 						@Override

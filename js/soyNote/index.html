@@ -49,14 +49,21 @@
 </head>
 <body class=NoteApplication>
 	 <div class=NoteList>
+	  <button class=NoteList-newNote>新規プログラム</button>
 	  <div class=NoteList-find>
-	     検索：<input class=NoteList-findText value=neko>
+	     検索：<input class=NoteList-findText value="">
 	  </div>
 	  <div class=NoteList-items>
 	  </div>
 	 </div>
 	 <div class=NoteEditor>
 	   <div class=NoteEditor-attr>
-	   <textarea rows=40 cols=80 class=NoteEditor-body></textarea>
+	    <button class=NoteEditor-lint>Check Program</button>
+	    <span class=NoteEditor-modifiedStar></span>
+ 	    <div class=NoteEditor-errorPanel>
+ 	    Errors
+ 	    </div>
+	   </div>
+	   <textarea class=NoteEditor-body></textarea>
 	 </div>
 </html>

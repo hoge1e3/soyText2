@@ -6,9 +6,12 @@ import java.util.Set;
 
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.BuiltinFunc;
+import jp.tonyu.js.Scriptables;
+import jp.tonyu.js.StringPropAction;
 import jp.tonyu.soytext.Origin;
 import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.servlet.HttpContext;
+import jp.tonyu.util.SPrintf;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
@@ -215,10 +218,28 @@ public class DocumentScriptable implements Scriptable {
 	}
 	public void save() {
 		refreshSummary();
-		d.content="$.extend(_,"+HashLiteralConv.toHashLiteral(this)+");";
+		refreshContent();
 		Log.d(this, "save() content changed to "+d.content);
 		d.save();
 		
+	}
+	private void refreshContent() {
+		Object s=get(HttpContext.ATTR_SCOPE);
+		final StringBuilder b=new StringBuilder();
+		if (s instanceof Scriptable) {
+			Scriptables.each((Scriptable)s, new StringPropAction() {
+				
+				@Override
+				public void run(String key, Object value) {
+					if (value instanceof DocumentScriptable) {
+						DocumentScriptable dd = (DocumentScriptable) value;
+						b.append(SPrintf.sprintf("var %s=.byId(\"%s\");\n",key,dd.d.id));						
+					}
+				}
+			});
+		}
+		b.append(SPrintf.sprintf("$.extend(_,%s);",HashLiteralConv.toHashLiteral(this)));
+		d.content=b+"";
 	}
 	public void setContentAndSave(String content) {
 		d.content=content;

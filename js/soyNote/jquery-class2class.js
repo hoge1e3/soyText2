@@ -33,7 +33,7 @@
            This argument is optional, if this class have the method "subPartNames", which returns the subParts' names
  */
 var Class2class={};
- 
+var debug;
 Function.prototype.bindCSS=function (cssName, subParts) {
    var obj=Class2class.get;
    var klass=this;
@@ -54,7 +54,7 @@ Function.prototype.bindCSS=function (cssName, subParts) {
           // Handler of subpart
         var type=k.substring(max);
         type=type.toLowerCase();
-        //alert("Handler of "+subPartName+" - "+type+" "+methodName);
+        debug("Handler of "+cssName+" - "+subPartName+" - "+type+" "+methodName);
         $("."+cssName+"-"+subPartName).live(type,function () {
             var t=klass.closestFrom(this);
             t[methodName].apply(t,arguments);
@@ -63,7 +63,7 @@ Function.prototype.bindCSS=function (cssName, subParts) {
           // Handler of this object itself
         var type2=k;
         type2=type2.toLowerCase();
-        //alert("Handler of this object - "+type);
+        debug("Handler of this object - "+cssName+"- "+type2);
         $("."+cssName).live(type2,function () {
            var t=obj(this);
            t[methodName].apply(t,arguments);

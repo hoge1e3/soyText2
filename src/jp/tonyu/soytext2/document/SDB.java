@@ -191,6 +191,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		DocumentRecord d=new DocumentRecord(this, log.id+"");
 		d.lastUpdate=log.id;
 		d.lastAccessed=log.id;
+		cache.put(d.id, d);
 		return d;
 	}
 	@Override
@@ -200,6 +201,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		DocumentRecord d=new DocumentRecord(this, id);
 		d.lastUpdate=log.id;
 		d.lastAccessed=log.id;
+		cache.put(d.id, d);
 		return d;
 	}
 	public void printLog () {

@@ -3,6 +3,7 @@ function stackTrace(e) {
 	var isCallstackPopulated = false;
 	if (e.stack) { //Firefox
 		var lines = e.stack.split("\n");
+		//console.log("Stk:"+lines);
 		for (var i=0, len=lines.length; i<len; i++) {
                        //debug(lines[i]);
 			//if (lines[i].match(/^\s*[A-Za-z0-9\-_\$]+\(/)) {
@@ -15,6 +16,7 @@ function stackTrace(e) {
 	}
 	else if (window.opera && e.message) { //Opera
 		var lines = e.message.split("\n");
+		//console.log("Stkw:"+lines);
 		for (var i=0, len=lines.length; i<len; i++) {
 			if (lines[i].match(/^\s*[A-Za-z0-9\-_\$]+\(/)) {
 				var entry = lines[i];

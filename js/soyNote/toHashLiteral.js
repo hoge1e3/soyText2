@@ -16,6 +16,8 @@ toHashLiteral=function (hash) {
         return document(value);
      } else if (typeof value=="number") {
         return value;
+     } else if (typeof value=="function") {
+        return value+"";
      } else if (typeof value=="boolean") {
         return value+"";
      } else if (typeof value=="string") {

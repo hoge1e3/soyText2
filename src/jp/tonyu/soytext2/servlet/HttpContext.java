@@ -114,6 +114,7 @@ public class HttpContext {
 	Map<String,String> _params=null;
 	static final String ATTR_FORMAT = "_format";
 	static final String ATTR_PRECONTENT = "precontent";
+	public static final String ATTR_SCOPE = "scope";
 	
     public Map<String,String> params() {
 		if (_params!=null) return _params;

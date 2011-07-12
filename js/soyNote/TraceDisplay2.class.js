@@ -8,10 +8,10 @@ TraceDisplay2=Class.create({
     [ "div#src" ] 
   ] ) ; 
   var  a = stackTrace ( e ) ; 
-  var  auto = true ; 
+  var  auto = true ;
   a .each( ad ) ; 
   function  ad ( s )  {
-     
+     console.log(s);
      if  ( s .match( /([^\/]+)__[^:]*:(\d+)/ ) )  {
        var  d = SoyText .byId( RegExp .$1) ; 
        (_THIS_.frame).list.append( c ( d , RegExp .$2, auto ) ) ; 

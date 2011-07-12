@@ -1,4 +1,5 @@
-Frame=Class.create({
+var fiber,TagBuilderJ;
+var Frame=Class.create({
    initialize: function (bar, content, opt) {
       var t=new TagBuilderJ();
       var closeButton=[
@@ -15,7 +16,7 @@ Frame=Class.create({
                 opacity:"0.75"
              }},
              ["span" ,closeButton,minimizeButton,["span#tbar",bar]]
-          ],//["br"],
+          ],
           ["div#content",
             {style:{backgroundColor: "#dddddd"}},content]
         ]
@@ -29,7 +30,7 @@ Frame=Class.create({
       this.content.toggle(500);
    },
    close: function () {
-      if (this.onClose) this.onClose();
+      if (this.onClose) { this.onClose(); }
       this.top.fadeOut();
       this._closed=true;
    },
@@ -39,7 +40,6 @@ Frame=Class.create({
    },
    jump: function () {
       var vy=-20,pop=true,oy=this.pos().y;
-      fiber(sw.bind(this).pErrf());
       function sw(f) {
         var p=this.pos();
         if (p.y>oy) {
@@ -54,6 +54,7 @@ Frame=Class.create({
            pop=false;
         }
       }
+      fiber(sw.bind(this).pErrf());
    },
    setTitleBar: function (c) {
       var t=new TagBuilderJ();
