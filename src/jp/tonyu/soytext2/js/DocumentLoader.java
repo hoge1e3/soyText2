@@ -39,7 +39,7 @@ public class DocumentLoader implements Wrappable {
 		super();
 		this.documentSet = documentSet;
 	}
-	private Scriptable instanciator(final DocumentRecord src) {
+	/*private Scriptable instanciator(final DocumentRecord src) {
 		return new BlankScriptableObject() {
 			private static final long serialVersionUID = -3858849843957575405L;
 
@@ -59,20 +59,40 @@ public class DocumentLoader implements Wrappable {
 						}
 					};
 				}
+				if ("newInstance".equals(name)) { //  new func() 
+					return new BuiltinFunc() {
+
+						@Override
+						public Object call(Context cx, Scriptable scope, Scriptable thisObj,
+								Object[] args) {
+							DocumentScriptable res = DocumentLoader.this.defaultDocumentScriptable(src);
+							if (args.length>=1) {
+								DocumentScriptable func = byId(args[0]+"");
+								Object proto = func.get("prototype");
+								if (proto instanceof Scriptable) {
+									Scriptable sc = (Scriptable) proto;
+									res.setPrototype(sc);
+								}
+							}
+							return res;
+						}
+					};
+				}
+
 				Log.die(name+" not found ");
 				return super.get(name, start);
 			}
 		};
-	}
+	}*/
 	public DocumentScriptable byId(String id) {
 		final DocumentRecord src=getDocumentSet().byId(id);
 
 		if (src==null) return null;
 		DocumentScriptable o=objs.get(id);
 		if (o!=null) return o;
-		if (src.preContent==null || src.preContent.trim().length()==0) {
+		//if (src.preContent==null || src.preContent.trim().length()==0) {
 			o=defaultDocumentScriptable(src);
-		} else {
+		/*} else {
 			try {
 				Scriptable inst=instanciator(src);
 				o=(DocumentScriptable)jsSession().eval("preLoad:"+id,src.preContent, Maps.create("$", (Object)inst));
@@ -81,7 +101,7 @@ public class DocumentLoader implements Wrappable {
 				Log.d(this, "Instanciation error - "+src.preContent);
 				o=defaultDocumentScriptable(src);
 			}
-		}
+		}*/
 		objs.put(id, o);
 		loadFromContent(src.content, o);
 		return o;

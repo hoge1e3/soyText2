@@ -26,7 +26,7 @@ import jp.tonyu.util.Maps;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
 
-public class DefaultCompiler implements DocumentCompiler {
+public class HTMLPreprocessor {
 	public static final String ARGUMENTORDER = "argumentOrder";
 	class HeaderInfo {
 		final public DocumentScriptable doc;
@@ -60,12 +60,10 @@ public class DefaultCompiler implements DocumentCompiler {
 						} else {
 							if (value instanceof DocumentScriptable) {
 								DocumentScriptable sv = (DocumentScriptable) value;
-								/*JSSession jsSession = JSSession.cur.get();
-								jsSession.install(sv);*/								
+													
 								compiledScope.put(key, sv);
 							}
-							/*Object putval = CompilerResolver.compile(d); // evalValue(d, v);  // evalUnlocked
-							if (putval!=null) consts.put(key, putval);		*/
+							
 						}
 					}
 				});
@@ -79,20 +77,8 @@ public class DefaultCompiler implements DocumentCompiler {
 		this(false);
 	}*/
 	final boolean shortJS;
-	public DefaultCompiler(boolean shortJS) {
+	public HTMLPreprocessor(boolean shortJS) {
 		this.shortJS=shortJS;
-	}
-	@Override
-	public CompileResult compile(DocumentScriptable s) {
-		String n=""+s.get("name");
-		if (n.endsWith(".html")) {
-			return defaultHtmlDocument(s);
-		} else if (n.endsWith(".class.js")) {
-			return new ExtJSCompiler().compile(s);
-		} else if (n.endsWith(".js")) {
-			return defaultJSDocument(s);
-		}
-		return null;
 	}
 	static  final Pattern htmlPlain=Pattern.compile("([^<]*<[^%])*[^<]*");
 	static  final Pattern embedLang=Pattern.compile("<%(=?) *(([^%]*%[^>])*[^%]*)%>");
@@ -102,26 +88,11 @@ public class DefaultCompiler implements DocumentCompiler {
 	protected static final String SRCSYM = "__src__";
 	public static final String ATTR_SCOPE = "scope";
 
-	public CompileResult defaultJSDocument(final DocumentScriptable d)  {
-		Log.d(this,"Exec as JS");
-		final HeaderInfo inf=new HeaderInfo(d);
-		final StringBuilder buf=new StringBuilder();
-		includeScope(inf, buf);
-		String body = getBody(d);
-		if (shortJS) {
-			SimpleJSParser p = new SimpleJSParser(body);
-			p.parse();
-			buf.append(p.buf+"");
-		} else {
-			buf.append(body);
-		}
-		return runeval(inf, buf);
-	}
 	private String getBody(final DocumentScriptable d) {
 		final String src=notNull(d.get(HttpContext.ATTR_BODY),"No body in "+d).toString();
 		return src;
 	}
-	public CompileResult defaultHtmlDocument(final DocumentScriptable d)  {
+	public void defaultHtmlDocument(final DocumentScriptable d)  {
 		Log.d(this,"Exec as Html");
 		final HeaderInfo inf=new HeaderInfo(d);
 		final String src=getBody(d).toString();
@@ -146,7 +117,7 @@ public class DefaultCompiler implements DocumentCompiler {
 		}
 		buf.append("};");
 		//buf.append("res."+ATTR_SRC+"="+SRCSYM+";res;");
-		return runeval(inf, buf);
+		runeval(inf, buf);
 	}
 	private String scriptName(final DocumentScriptable d) {
 		return d.getDocument().id+"__"+d.genSummary();
@@ -160,28 +131,23 @@ public class DefaultCompiler implements DocumentCompiler {
 				buf.append(key+"="+
 						HttpContextFunctions.BYID+"("+Literal.toLiteral(value.getDocument().id)+
 				");\n");
-//						").compile(Function);\n");
 			}
 		});
 	}
 
-	private CompileResult runeval(final HeaderInfo inf, final StringBuilder buf) {
+	private void runeval(final HeaderInfo inf, final StringBuilder buf) {
 		final DocumentScriptable d=inf.doc;
 		final JSSession jsSession=JSSession.cur.get();
 		final Object res=jsSession.eval(scriptName(d), buf.toString(), inf.consts);
-		/*if (res instanceof Scriptable) {
-			Scriptable s = (Scriptable) res;
-			s.put(ATTR_SRC, s, d);
-		}*/
+
 		final long l=d.getDocument().lastUpdate;
+		d.put("lastCompiled", l);
 		Log.d(this ,"EvalBuf - "+buf);
-		if (res instanceof CompileResult) {
-			CompileResult c = (CompileResult) res;
-			return c; 
-		}
+		
 		if (res instanceof Function) {
 			final Function f = (Function) res;
-			return new SWebApplication(f) {
+			d.put(DocumentScriptable.ONCALL, f);
+			d.put("webApplication", new SWebApplication(f) {
 				
 				@Override
 				public boolean isUp2Date() {
@@ -211,26 +177,11 @@ public class DefaultCompiler implements DocumentCompiler {
 					}
 					jsSession.call(f, args);
 				}
-			};
+			});
 			
 		}
-		if (res instanceof Scriptable) {
-			Scriptable s = (Scriptable) res;
-			return new CompileResultScriptable(s) {
-				
-				@Override
-				public boolean isUp2Date() {
-					return d.getDocument().lastUpdate==l;
-				}
-				
-				@Override
-				public DocumentScriptable getDocumentSource() {
-					return d;
-				}
-			};
-		}
+		
 		Log.die("Error - "+res);
-		return null;
 	}
 	private static DocumentLoader documentLoader() {
 		return HttpContext.cur.get().documentLoader;
@@ -267,45 +218,4 @@ public class DefaultCompiler implements DocumentCompiler {
 		Log.d("Param", " o="+o+" src="+value+" type="+typeHint);
 		return o;
 	}
-	/*public static Map<String,Object> params(final Map<String,String> p,final Map<String, ?> typeHints) {
-    	final Map<String,Object> res=new HashMap<String, Object>();
-    	final DocumentLoader documentLoader=documentLoader();
-    	Maps.entries(p).each(new MapAction<String, String>() {
-			
-			@Override
-			public void run(String key, String value) {
-				String typeHint = typeHints.get(key)+"";
-				Object o;
-				if (value==null) {
-					o=null;
-				} else	if (typeHint.startsWith("?doc")) {
-					Matcher m = DocumentProcessor.idpatWiki.matcher(value);
-					String id;
-					if (m.lookingAt()) {
-						id=m.group(1);
-					} else id=value;
-					o=documentLoader.byId(id);									
-				} else 	if (typeHint.startsWith("?str")) {
-					o=value;
-				} else {
-					Matcher m = DocumentProcessor.idpatWiki.matcher(value);
-					String id;
-					if (m.lookingAt()) {
-						id=m.group(1);
-						o=documentLoader.byId(id);
-					} else {
-						m = Literal.DQ.matcher(value);
-						if (m.lookingAt()) {
-							o=Literal.fromQuoteStrippedLiteral(m.group(1));
-						} else {
-							o=value;
-						}
-					}
-				}
-				Log.d("Param", key+"="+key+" o="+o+" src="+value+" type="+typeHint);
-				res.put(key,o);
-			}
-		});
-    	return res;
-    }*/
 }

@@ -14,14 +14,18 @@ import jp.tonyu.soytext2.servlet.HttpContext;
 import jp.tonyu.util.SPrintf;
 
 import org.mozilla.javascript.Context;
+import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
 
-public class DocumentScriptable implements Scriptable {
+public class DocumentScriptable implements Function {
+	private static final String PROTOTYPE = "prototype";
+	private static final String CONSTRUCTOR = "constructor";
 	private static final Object GETTERKEY = "[[110414_051952@"+Origin.uid+"]]";
-	DocumentScriptable __proto__;
+	//Scriptable __proto__;
 	Map<Object, Object>binds=new HashMap<Object, Object>();
 	final DocumentRecord d;
 	final DocumentLoader loader;
+	public static final String ONCALL="onCall";
 	public DocumentRecord getDocument() {
 		return d;
 	}
@@ -68,6 +72,27 @@ public class DocumentScriptable implements Scriptable {
 			return binds.containsKey(args[0]);
 		}
 	};
+	BuiltinFunc callSuperFunc =new BuiltinFunc() {
+		
+		@Override
+		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
+				Object[] args) {
+			Scriptable p = DocumentScriptable.this.getPrototype();
+			if (p!=null && args.length>0) {
+				Object fo = p.get(args[0]+"", p);
+				if (fo instanceof Function) {
+					Function f = (Function) fo;
+					
+					Object[] argShift=new Object[args.length-1];
+					for (int i=0 ; i<argShift.length ; i++) {
+						argShift[i]=args[i+1];
+					}
+					return f.call(cx, scope, thisObj, argShift);
+				}
+			}
+			return null;
+		}
+	};
 
 	public Object get(Object key) {
 		if ("id".equals(key)) return d.id;
@@ -75,6 +100,7 @@ public class DocumentScriptable implements Scriptable {
 		if ("save".equals(key)) return saveFunc;
 		if ("compile".equals(key)) return compileFunc;
 		if ("hasOwnProperty".equals(key)) return hasOwnPropFunc;
+		if ("callSuper".equals(key)) return callSuperFunc;
 		if (key instanceof DocumentScriptable) {
 			DocumentScriptable keyDoc = (DocumentScriptable) key;
 			key=JSSession.idref(keyDoc, d.documentSet);
@@ -86,7 +112,8 @@ public class DocumentScriptable implements Scriptable {
 			Getter g=keyDoc.getGetter();
 			if (g!=null) return g.getFrom(this);
 		}	
-		if (__proto__!=null) return __proto__.get(key);
+		Scriptable __proto__ = getPrototype();
+		if (__proto__!=null) return __proto__.get(key+"",__proto__);
 		return null;
 	}
 	public Getter getGetter() {
@@ -173,10 +200,24 @@ public class DocumentScriptable implements Scriptable {
 		// TODO Auto-generated method stub
 		return null;
 	}
-
+	public Scriptable getConstructor() {
+		Object cons = binds.get(CONSTRUCTOR);
+		if (cons instanceof Scriptable) {
+			Scriptable s = (Scriptable) cons;
+			return s;
+		}
+		return null;
+	}
 	@Override
-	public DocumentScriptable getPrototype() {
-		return __proto__;
+	public Scriptable getPrototype() {
+		Scriptable s=getConstructor();
+		if (s==null) return null;
+		Object res=s.get(PROTOTYPE,s);
+		if (res instanceof Scriptable) {
+			Scriptable ss = (Scriptable) res;
+			return ss;
+		}
+		return null;
 	}
 
 	@Override
@@ -213,8 +254,8 @@ public class DocumentScriptable implements Scriptable {
 
 	@Override
 	public void setPrototype(Scriptable prototype) {
-		Log.d(this, "__proto__"+prototype);
-		this.__proto__=(DocumentScriptable) prototype;
+		//Log.d(this, "__proto__"+prototype);
+		//this.__proto__= prototype;
 	}
 	public void save() {
 		refreshSummary();
@@ -233,7 +274,7 @@ public class DocumentScriptable implements Scriptable {
 				public void run(String key, Object value) {
 					if (value instanceof DocumentScriptable) {
 						DocumentScriptable dd = (DocumentScriptable) value;
-						b.append(SPrintf.sprintf("var %s=.byId(\"%s\");\n",key,dd.d.id));						
+						b.append(SPrintf.sprintf("var %s=$.byId(\"%s\");\n",key,dd.d.id));						
 					}
 				}
 			});
@@ -267,5 +308,30 @@ public class DocumentScriptable implements Scriptable {
 		res=get(HttpContext.ATTR_BODY)+"";
 		if (!res.equals("null") && res.length()>0) return res.substring(0,Math.min(res.length(), 20));
 		return d.id;
+	}
+	@Override
+    public Object call(Context cx, Scriptable scope, Scriptable thisObj,
+            Object[] args) {
+		Object r=get(ONCALL);
+		if (r instanceof Function) {
+			Function f = (Function) r;
+			f.call(cx, scope, thisObj, args);
+		}
+		return null;
+	}
+	@Override
+	 public Scriptable construct(Context cx, Scriptable scope, Object[] args) {
+		DocumentScriptable d=loader.newDocument(null);
+		Scriptable cons = getConstructor();
+		d.put(CONSTRUCTOR, cons);
+		Scriptable p=getPrototype();
+		if (p!=null) {
+			Object init=p.get("initialize", p);
+			if (init instanceof Function) {
+				Function f = (Function) init;
+				f.call(cx, scope, d, args);
+			}
+		}
+		return d;
 	}
 }
