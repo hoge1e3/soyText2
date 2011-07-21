@@ -30,6 +30,7 @@ import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.document.backup.Importer;
 import jp.tonyu.soytext2.js.CompileResult;
 import jp.tonyu.soytext2.js.CompilerResolver;
+import jp.tonyu.soytext2.js.ContentChecker;
 import jp.tonyu.soytext2.js.DefaultCompiler;
 import jp.tonyu.soytext2.js.DocumentLoader;
 import jp.tonyu.soytext2.js.DocumentScriptable;
@@ -391,47 +392,75 @@ public class HttpContext {
 		}
 		
 	}
-	private void newDocument() throws IOException {
-		if (req.getMethod().equals("POST")) {
-			DocumentScriptable d = documentLoader.newDocument(null);
-			documentProcessor(d).proc();
-		} else {
-			Httpd.respondByString(res, Html.p("<html><title>New Document</title>"+
-					"<body><form action=\"./new\" method=\"POST\">"+
-					"preContent: <br/>\n"+
-					"<input name=%a /><br/>"+
-					"<br/>\nContent: <br/>\n"+
-					"<textarea name=%a rows=5 cols=40></textarea>"+
-					"<input type=submit>"+
-					"</form></body></html>", ATTR_PRECONTENT, ATTR_CONTENT)
-			);
+	private String contentStatus(ContentChecker c) {
+		StringBuilder msg=new StringBuilder(c.getMsg()+"<br/>\n");
+		for (String s:c.undefinedSymbols) {
+			msg.append(s+"<br/>\n");
 		}
+		return msg+"";
+	}
+	private void newDocument() throws IOException {
+		String content="";
+		String msg="";
+		if (req.getMethod().equals("POST")) {
+			content=params().get(ATTR_CONTENT);
+			ContentChecker c=new ContentChecker(content);
+			if (c.check()) {
+				DocumentScriptable d = documentLoader.newDocument(null);
+				documentProcessor(d).proc();
+				return;
+			}
+			msg=contentStatus(c);
+		}
+		Httpd.respondByString(res, Html.p("<html><title>New Document</title>"+
+				"<body><form action=%a method=POST>%s"+
+				"preContent: <br/>\n"+
+				"<input name=%a /><br/>"+
+				"<br/>\nContent: <br/>\n"+
+				"<textarea name=%a rows=5 cols=40>%t</textarea>"+
+				"<input type=submit>"+
+				"</form></body></html>",
+				 "./new", msg, ATTR_PRECONTENT, ATTR_CONTENT , content)
+		);
 	}
 	private void edit() throws IOException {
 		String[] s=args();
 		//   $soyText/edit/00000
 		String id=s[2];
+		String msg="";
 		DocumentScriptable d = documentLoader.byId(id);
 		if (d==null) {
 		    notfound(id);
-		} else if (req.getMethod().equals("POST")) {
-			documentProcessor(d).proc();
-		} else {
-			
-			String preContent = d.getDocument().preContent;
-			Httpd.respondByString(res, menuBar()+Html.p(
-					"<form action=%a method=\"POST\">"+
-					"preContent: <br/>\n"+
-					"<input name=%a value=%a /><br/>"+
-					"Content: <br/>\n"+
-					"<textarea name=%a rows=20 cols=80>%t</textarea>"+
-					"<input type=submit>"+
-					"</form></body></html>","./"+id, HttpContext.ATTR_PRECONTENT,
-					preContent==null?"":preContent,
-					HttpContext.ATTR_CONTENT, d.getDocument().content)
-			);
+		    return;
 		}
+		String content = d.getDocument().content;	
+		if (req.getMethod().equals("POST")) {
+			content=params().get(ATTR_CONTENT);
+			ContentChecker c=new ContentChecker(content);
+			if (c.check()) {
+				documentProcessor(d).proc();
+				return;
+			}
+			msg=contentStatus(c);
+		}
+		String preContent = d.getDocument().preContent;
+		Httpd.respondByString(res, menuBar()+Html.p(
+				"<br/><form action=%a method=POST>%s"+
+				"preContent: <br/>\n"+
+				"<input name=%a value=%a /><br/>"+
+				"Content: <br/>\n"+
+				"<textarea name=%a rows=20 cols=80>%t</textarea>"+
+				"<input type=submit>"+
+				"</form></body></html>",
+				"./"+id, 
+				msg,
+				HttpContext.ATTR_PRECONTENT,
+				preContent==null?"":preContent,
+						HttpContext.ATTR_CONTENT, content)
+		);
+
 	}
+
 	private void editBody() throws IOException {
 		String[] s=args();
 		//   $soyText/edit/00000

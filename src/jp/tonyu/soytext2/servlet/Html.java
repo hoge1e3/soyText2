@@ -23,6 +23,8 @@ public class Html {
 			if (m.lookingAt()) {
 				if (m.group().equals("%a") && i<params.length) {
 					res.append("\""+HTMLDecoder_encode(params[i])+"\"");
+				} else if (m.group().equals("%s") && i<params.length) {
+					res.append(params[i]);
 				} else if (m.group().equals("%t") && i<params.length) {
 					res.append(HTMLDecoder_encode(params[i]));
 				} else if (m.group().equals("%u")  && i<params.length){
