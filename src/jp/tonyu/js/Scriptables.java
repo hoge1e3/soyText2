@@ -53,7 +53,7 @@ public class Scriptables {
 			}
 		}
 	}
-	public static void extend(Scriptable s,Map<?,?> map) {
+	public static Scriptable extend(Scriptable s,Map<?,?> map) {
 		for (Object k:map.keySet()) {
 			Object value=map.get(k);
 			if (k instanceof String) {
@@ -65,6 +65,7 @@ public class Scriptables {
 				s.put(n.intValue(), s, value);
 			}
 		}
+		return s;
 		
 	}
     public static String literal(String raw) {

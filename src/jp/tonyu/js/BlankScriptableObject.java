@@ -22,5 +22,10 @@ public class BlankScriptableObject extends ScriptableObject {
 	public String getClassName() {
 		return "Blank";
 	}
-
+	public void put(String key,Object value) {
+		put(key,this,value);
+	}
+	public Object get(String key) {
+		return get(key,this);
+	}
 }

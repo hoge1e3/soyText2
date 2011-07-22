@@ -35,7 +35,7 @@ public class HashLiteralConv {
 		"   var res=\"{\";\n"+
 		"   var com=\"\";\n"+
 		"   for (var key in hash) {\n"+
-		"     if (!hash.hasOwnProperty(key)) continue;\n"+
+		"     if (hash.hasOwnProperty && !hash.hasOwnProperty(key)) continue;\n"+
 		"     var value=hash[key];\n"+
 		"     var valueStr=lit(value);\n"+
 		"     //if (valueStr!=null) {\n"+

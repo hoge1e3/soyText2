@@ -54,7 +54,21 @@ public class JSSession {
 	public Object eval (String name, String s) {
 		return eval(name, s, new HashMap<String, Object>());
 	}
+	public Object eval (final String name, final String s , final Scriptable scope) {
+		return withContext(new ContextRunnable() {
+			@Override
+			public Object run(Context cx) {
+				try {
+					Object result = cx.evaluateString(scope , s, name , 1, null);
+					return result;
+				} catch (EvaluatorException e) {
+					Log.die("JS -error at ||"+e.lineSource()+"|| "+e.details());
+					return null;
+				}
+			}
+		});
 
+	}
 	@SuppressWarnings("serial")
 	public Object eval (final String name, final String s , final Map<String,Object> scope) {
 		return withContext(new ContextRunnable() {

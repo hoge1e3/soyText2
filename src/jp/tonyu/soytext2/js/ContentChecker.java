@@ -1,49 +1,92 @@
 package jp.tonyu.soytext2.js;
 
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.Vector;
 
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.EvaluatorException;
-import org.mozilla.javascript.Scriptable;
-import org.mozilla.javascript.ScriptableObject;
-import org.mozilla.javascript.Undefined;
-import org.mozilla.javascript.UniqueTag;
-
-import jp.tonyu.debug.Log;
 import jp.tonyu.js.BlankScriptableObject;
 import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.js.ContextRunnable;
+import jp.tonyu.js.Scriptables;
 import jp.tonyu.util.MapAction;
 import jp.tonyu.util.Maps;
-import jp.tonyu.util.Ref;
+import jp.tonyu.util.SPrintf;
+
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.Undefined;
+import org.mozilla.javascript.UniqueTag;
 
 public class ContentChecker {
-	String src;
-	String msg;
-	public boolean syntaxOK=false, objectInitialized=false;
-	public ContentChecker(String src) {
+	private static final String OK = "OK"	;
+	public final String content;
+	private StringBuffer changedContent=new StringBuffer();
+	String errorMsg;
+	public String getChangedContent() {
+		return changedContent.toString();
+	}
+	public boolean isObjectInitialized() {
+		return objectInitialized;
+	}
+	public boolean isErrorOcurred() {
+		return errorOcurred;
+	}
+	public String getErrorMsg() {
+		return errorMsg;
+	}
+	public List<String> getUndefinedSymbols() {
+		return undefinedSymbols;
+	}
+	private boolean objectInitialized=false, errorOcurred=false,scopeFieldChanged=false;
+	//Scriptable initializedObject;
+	final private Map<String, String> newVars;
+	public ContentChecker(String content, Map<String, String> newVars) {
 		super();
-		this.src = src;
+		this.content = content;
+		this.newVars=newVars;
+	}
+	private Object dummyDocument(Object id) {
+		return Scriptables.extend(new BlankScriptableObject(), Maps.create("id", id));
 	}
 	public boolean check() {
 		final JSSession jssession = JSSession.cur.get();
 		//final Ref<Boolean> res=Ref.create(false);
 		JSSession.withContext(new ContextRunnable() {
 			
+			@SuppressWarnings("serial")
 			@Override
 			public Object run(Context cx) {
 				try {
 					//final Set<String> undefinedSymbols=new HashSet<String>();
 					undefinedSymbols.clear();
-					final Scriptable scope=new BlankScriptableObject(jssession.root) {
+					final BlankScriptableObject tools=new BlankScriptableObject(jssession.root);
+					BlankScriptableObject extender=new BlankScriptableObject();
+					extender.put("byId", new BuiltinFunc() {
+						@Override
+						public Object call(Context cx, Scriptable scope, Scriptable thisObj,
+								Object[] args) {
+							return dummyDocument(args[0]);
+						}
+
+
+					});
+					extender.put("extend", new BuiltinFunc() {
+						@Override
+						public Object call(Context cx, Scriptable scope, Scriptable thisObj,
+								Object[] args) {
+							objectInitialized=true;
+							return null;
+						}
+					});
+					tools.put("_", 0);
+					tools.put("$", extender);
+					final BlankScriptableObject scope=new BlankScriptableObject(jssession.root) {
 						@Override
 						public Object get(String name, Scriptable start) {
 							Object r = super.get(name, start);
 							System.out.println("Get - "+name+" - "+r);
-							if (r==UniqueTag.NOT_FOUND) {
+							if (r==UniqueTag.NOT_FOUND && !tools.has(name, tools)) {
 								undefinedSymbols.add(name);
 								return null;
 							}
@@ -60,41 +103,32 @@ public class ContentChecker {
 							super.put(name, start, value);
 						}
 					};
-					Scriptable extender=new BlankScriptableObject();
-					extender.put("byId", extender, new BuiltinFunc() {
+					scope.setPrototype(tools);
+					changedContent.delete(0, changedContent.length());
+					Maps.entries(newVars).each(new MapAction<String, String>() {
+						
 						@Override
-						public Object call(Context cx, Scriptable scope, Scriptable thisObj,
-								Object[] args) {
-							return args[0];
+						public void run(String key, String value) {
+							changedContent.append(SPrintf.sprintf("var %s=%s;\n", key,value));
 						}
 					});
-					extender.put("extend", extender, new BuiltinFunc() {
-						@Override
-						public Object call(Context cx, Scriptable scope, Scriptable thisObj,
-								Object[] args) {
-							objectInitialized=true;
-							msg="";
-							return null;
-						}
-					});
-					scope.put("_", scope, 0);
-					scope.put("$", scope, extender);
-					msg="Object not inited(Perhaps $.extend did not called)";
-					Object result = cx.evaluateString(scope , src, "check" , 1, null);
-					//ContentChecker.this.undefinedSymbols.addAll(undefinedSymbols);
-					syntaxOK=true;
+					changedContent.append(content);
+					
+					Object result = cx.evaluateString(scope , changedContent.toString(), "check" , 1, null);
 					return result;
 				} catch (Exception e) {
-					msg=e.getMessage();
+					errorOcurred=true;
+					errorMsg=e.getMessage();
+					
 					return null;
 				}
 			}
 		});
-		return objectInitialized && undefinedSymbols.isEmpty();
+		return getMsg().equals(OK);
 	}
 	public final List<String> undefinedSymbols=new Vector<String>();
 	public static void main(String[] args) {
-		final ContentChecker c = new ContentChecker("var a,c; function () {a=b;}");
+		final ContentChecker c = new ContentChecker("var a,c; function () {a=b;}", new HashMap<String, String>());
 		JSSession.cur.enter(new JSSession(),	new Runnable() {
 			
 			@Override
@@ -106,6 +140,13 @@ public class ContentChecker {
 		});
 	}
 	public String getMsg() {
-		return msg + (undefinedSymbols.isEmpty()?"":"There are undefined symbols.");
+		if (errorOcurred) return errorMsg;
+		if (!objectInitialized) return "Object not inited(Perhaps $.extend did not called)";
+		if (!undefinedSymbols.isEmpty()) return "There are undefined symbols.";
+		if (isContentChanged()) return "Content is changed. Confirm again.";
+		return OK;
+	}
+	private boolean isContentChanged() {
+		return !content.equals(changedContent.toString());
 	}
 }

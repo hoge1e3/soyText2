@@ -44,6 +44,7 @@ import jp.tonyu.util.Literal;
 import jp.tonyu.util.MapAction;
 import jp.tonyu.util.Maps;
 import jp.tonyu.util.Ref;
+import jp.tonyu.util.SPrintf;
 import jp.tonyu.util.Util;
 
 import org.mozilla.javascript.Context;
@@ -52,6 +53,7 @@ import org.mozilla.javascript.Scriptable;
 
 
 public class HttpContext {
+	private static final String SEL = "sel_";
 	public static final jp.tonyu.util.Context<HttpContext> cur=new jp.tonyu.util.Context<HttpContext>();
 	private static final String SESSION_NAME = "soyText_Session";
 	/*public final soytext.script.Context context= new soytext.script.Context(true);
@@ -394,8 +396,16 @@ public class HttpContext {
 	}
 	private String contentStatus(ContentChecker c) {
 		StringBuilder msg=new StringBuilder(c.getMsg()+"<br/>\n");
-		for (String s:c.undefinedSymbols) {
-			msg.append(s+"<br/>\n");
+		for (String name:c.undefinedSymbols) {
+			String sel = SEL+name;
+			String searchAddr = Html.p(rootPath()+"/search?sel=%u&q=%u",sel, "name:"+name);
+			msg.append(Html.p("<a href=%a target=%a>%t</a> <input id=%a name=%a/> <br/>\n", 
+					 searchAddr,
+					 "frame_"+name,
+					 name,
+					 sel,
+					 sel
+			));
 		}
 		return msg+"";
 	}
@@ -404,19 +414,20 @@ public class HttpContext {
 		String msg="";
 		if (req.getMethod().equals("POST")) {
 			content=params().get(ATTR_CONTENT);
-			ContentChecker c=new ContentChecker(content);
+			ContentChecker c=new ContentChecker(content,addedVars());
 			if (c.check()) {
 				DocumentScriptable d = documentLoader.newDocument(null);
 				documentProcessor(d).proc();
 				return;
 			}
+			content=c.getChangedContent();
 			msg=contentStatus(c);
 		}
 		Httpd.respondByString(res, Html.p("<html><title>New Document</title>"+
 				"<body><form action=%a method=POST>%s"+
-				"preContent: <br/>\n"+
-				"<input name=%a /><br/>"+
-				"<br/>\nContent: <br/>\n"+
+				"<!--preContent: <br/>\n"+
+				"<input name=%a /><br/-->\n"+
+				"Content: <br/>\n"+
 				"<textarea name=%a rows=5 cols=40>%t</textarea>"+
 				"<input type=submit>"+
 				"</form></body></html>",
@@ -436,18 +447,19 @@ public class HttpContext {
 		String content = d.getDocument().content;	
 		if (req.getMethod().equals("POST")) {
 			content=params().get(ATTR_CONTENT);
-			ContentChecker c=new ContentChecker(content);
+			ContentChecker c=new ContentChecker(content,addedVars());
 			if (c.check()) {
 				documentProcessor(d).proc();
 				return;
 			}
+			content=c.getChangedContent();
 			msg=contentStatus(c);
 		}
 		String preContent = d.getDocument().preContent;
 		Httpd.respondByString(res, menuBar()+Html.p(
-				"<br/><form action=%a method=POST>%s"+
-				"preContent: <br/>\n"+
-				"<input name=%a value=%a /><br/>"+
+				"<form action=%a method=POST>%s"+
+				"<!--preContent: <br/>\n"+
+				"<input name=%a value=%a /><br/-->"+
 				"Content: <br/>\n"+
 				"<textarea name=%a rows=20 cols=80>%t</textarea>"+
 				"<input type=submit>"+
@@ -461,6 +473,19 @@ public class HttpContext {
 
 	}
 
+	private Map<String,String> addedVars() {
+		final Map<String,String> b=new HashMap<String, String>();
+		Maps.entries(params()).each(new MapAction<String, String>() {
+			@Override
+			public void run(String key, String value) {
+				if (key.startsWith(SEL) && value.length()>0) {
+					String name=key.substring(SEL.length());
+					b.put(name,value);//(SPrintf.sprintf("var %s=%s;\n", name, value));
+				}
+			}
+		});
+		return b;
+	}
 	private void editBody() throws IOException {
 		String[] s=args();
 		//   $soyText/edit/00000
@@ -526,19 +551,33 @@ public class HttpContext {
 		search("",null);
 	}
 	private String linkBar(DocumentScriptable ds) {
+		return linkBar(ds,null);
+	}
+	private String linkBar(DocumentScriptable ds,String sel) {
 		DocumentRecord d=ds.getDocument();
 		String id=d.id; 
 		
 		if (isAjaxRequest()) {
 			return 	Util.encodeTabJoin(new Object[] {d.lastUpdate , id, d.summary})+"\n";
 		} else {
+			String selt="";
+			if (sel!=null) {
+				selt=Html.p("<a href=%a>Sel</a> ", 
+					  SPrintf.sprintf(
+						 "javascript:window.opener.document.getElementById(%s).value=%s;window.close();",
+						 Literal.toLiteral(sel), 
+						 Literal.toLiteral(SPrintf.sprintf("$.byId(%s)",Literal.toLiteral(id)))
+					  )
+				);
+			}
 			return Html.p(
 				"<!--%t-->"+
-				"<a href=%a>View</a>  "+
+				"%s <a href=%a>View</a>  "+
 				"<a href=%a>Edit</a> "+
 				"<a href=%a>EditBody</a> "+
 				"<a href=%a>Exec</a> %t<br/>\n"
 				, AJAXTAG+id
+				, selt
 				, rootPath()+"/byId/"+id 
 				, rootPath()+"/edit/"+id 
 				, rootPath()+"/editbody/"+id 
@@ -559,11 +598,11 @@ public class HttpContext {
     	if (cstr==null) {
     		Httpd.respondByString(res,"<form action=\"search\" method=POST><input name=q></form>");
     	} else {
-    		search(cstr,null);
+    		search(cstr,params.get("sel"));
     		
     	}
     }
-    private void search(String cstr, Object object) throws IOException {
+    private void search(String cstr, final String sel) throws IOException {
     	final StringBuffer buf = new StringBuffer(isAjaxRequest() ? "" : menuBar());
         documentLoader.search(cstr, null, new BuiltinFunc() {		
         	int c=0;
@@ -571,7 +610,7 @@ public class HttpContext {
 			public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 					Object[] args) {
 				DocumentScriptable s=(DocumentScriptable)args[0];
-				buf.append(linkBar(s ));
+				buf.append(linkBar(s,sel));
 				c++;
 				return c>100;
 			}

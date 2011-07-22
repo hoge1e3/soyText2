@@ -117,12 +117,15 @@ public class DocumentLoader implements Wrappable {
 		return new DocumentScriptable(this, src);
 	}
 	public void loadFromContent(String newContent, DocumentScriptable dst) {
-		Map<String, Object> vars=new HashMap<String, Object>();
+		BlankScriptableObject tools=new BlankScriptableObject(jsSession().root);
 		dst.clear();
-		vars.put("$", this);
-		vars.put("_", dst);
+		tools.put("$", this);
+		tools.put("_", dst);
+		BlankScriptableObject scope = new BlankScriptableObject(jsSession().root);
+		scope.setPrototype(tools);
 		try {
-			jsSession().eval("Load:"+dst.getDocument().id, newContent, vars);
+			jsSession().eval("Load:"+dst.getDocument().id, newContent, scope);
+			dst.put(HttpContext.ATTR_SCOPE, scope);
 		} catch (Exception e) {
 			e.printStackTrace();
 			Log.d(this , dst.getDocument().id+" has invalid content "+newContent);
