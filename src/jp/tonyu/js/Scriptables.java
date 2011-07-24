@@ -4,6 +4,8 @@ package jp.tonyu.js;
 import java.util.HashMap;
 import java.util.Map;
 
+import jp.tonyu.debug.Log;
+
 import org.mozilla.javascript.Scriptable;
 
 public class Scriptables {
@@ -58,6 +60,7 @@ public class Scriptables {
 			Object value=map.get(k);
 			if (k instanceof String) {
 				String kstr = (String) k;
+				Log.d("Scriptables", "Put "+k+"="+value);
 				s.put(kstr, s, value);
 			}
 			if (k instanceof Number) {

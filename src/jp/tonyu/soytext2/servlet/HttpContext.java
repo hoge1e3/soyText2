@@ -396,7 +396,7 @@ public class HttpContext {
 	}
 	private String contentStatus(ContentChecker c) {
 		StringBuilder msg=new StringBuilder(c.getMsg()+"<br/>\n");
-		for (String name:c.undefinedSymbols) {
+		for (String name:c.getUndefinedSymbols()) {
 			String sel = SEL+name;
 			String searchAddr = Html.p(rootPath()+"/search?sel=%u&q=%u",sel, "name:"+name);
 			msg.append(Html.p("<a href=%a target=%a>%t</a> <input id=%a name=%a/> <br/>\n", 

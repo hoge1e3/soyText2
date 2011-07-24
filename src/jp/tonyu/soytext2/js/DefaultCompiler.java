@@ -232,7 +232,7 @@ public class DefaultCompiler implements DocumentCompiler {
 		Log.die("Error - "+res);
 		return null;
 	}
-	private static DocumentLoader documentLoader() {
+	private static IDocumentLoader documentLoader() {
 		return HttpContext.cur.get().documentLoader;
 	}
 	public static Object param(String value, Object _typeHint) {

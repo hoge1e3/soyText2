@@ -183,7 +183,7 @@ public class HTMLPreprocessor {
 		
 		Log.die("Error - "+res);
 	}
-	private static DocumentLoader documentLoader() {
+	private static IDocumentLoader documentLoader() {
 		return HttpContext.cur.get().documentLoader;
 	}
 	public static Object param(String value, Object _typeHint) {

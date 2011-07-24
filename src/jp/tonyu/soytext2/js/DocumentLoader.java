@@ -28,7 +28,7 @@ import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
 
 
-public class DocumentLoader implements Wrappable {
+public class DocumentLoader implements Wrappable, IDocumentLoader {
 	//private static final Object LOADING = "LOADING";
 	public static final Pattern idpatWiki= DocumentProcessor.idpatWiki ;//Pattern.compile("\\[\\[([^\\]]+)\\]\\]");
 	private static final String ERROR_CONTENT = "err_content";
@@ -84,6 +84,9 @@ public class DocumentLoader implements Wrappable {
 			}
 		};
 	}*/
+	/* (non-Javadoc)
+	 * @see jp.tonyu.soytext2.js.IDocumentLoader#byId(java.lang.String)
+	 */
 	public DocumentScriptable byId(String id) {
 		final DocumentRecord src=getDocumentSet().byId(id);
 
@@ -117,15 +120,16 @@ public class DocumentLoader implements Wrappable {
 		return new DocumentScriptable(this, src);
 	}
 	public void loadFromContent(String newContent, DocumentScriptable dst) {
-		BlankScriptableObject tools=new BlankScriptableObject(jsSession().root);
+		//BlankScriptableObject tools=new BlankScriptableObject(jsSession().root);
 		dst.clear();
-		tools.put("$", this);
-		tools.put("_", dst);
-		BlankScriptableObject scope = new BlankScriptableObject(jsSession().root);
-		scope.setPrototype(tools);
+		//tools.put("$", this);
+		//tools.put("_", dst);
+		//BlankScriptableObject scope = new BlankScriptableObject(jsSession().root);
+		//scope.setPrototype(tools);
+		DocumentLoaderScriptable loaderScope = new DocumentLoaderScriptable(jsSession().root, this, dst);
 		try {
-			jsSession().eval("Load:"+dst.getDocument().id, newContent, scope);
-			dst.put(HttpContext.ATTR_SCOPE, scope);
+			jsSession().eval("Load:"+dst.getDocument().id, newContent, loaderScope);
+			dst.put(HttpContext.ATTR_SCOPE, loaderScope.scope());
 		} catch (Exception e) {
 			e.printStackTrace();
 			Log.d(this , dst.getDocument().id+" has invalid content "+newContent);
@@ -206,6 +210,9 @@ public class DocumentLoader implements Wrappable {
 		final Query q=qb.toQuery();
 		return q;
 	}
+	/* (non-Javadoc)
+	 * @see jp.tonyu.soytext2.js.IDocumentLoader#extend(jp.tonyu.soytext2.js.DocumentScriptable, org.mozilla.javascript.Scriptable)
+	 */
 	public void extend(final DocumentScriptable dst, Scriptable src) {
 		if (src==null) return;
 		Scriptables.each(src, new StringPropAction() {
