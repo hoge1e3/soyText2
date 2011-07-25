@@ -27,6 +27,10 @@ public class ContentChecker implements IDocumentLoader, Wrappable {
 	public final String content;
 	private StringBuffer changedContent=new StringBuffer();
 	String errorMsg;
+	@Override
+	public Wrappable javaNative(String className) {
+		return this;
+	}
 	public String getChangedContent() {
 		return changedContent.toString();
 	}
@@ -157,6 +161,21 @@ public class ContentChecker implements IDocumentLoader, Wrappable {
 		});
 	}*/
 	public static void main(String[] args) {
+		Context c=Context.enter();
+		final ScriptableObject root = c.initStandardObjects();
+		BlankScriptableObject test = new BlankScriptableObject();
+		BlankScriptableObject p = new BlankScriptableObject();
+		p.put("a","b");
+		test.setPrototype(p);
+		root.put("test", root, test);
+		Object res=c.evaluateString(root, "test.a;", "sourceName", 1, null);
+		System.out.println(res);
+		System.out.println(test.has("a", test));
+		System.out.println(test.get("a", test));
+		System.out.println(ScriptableObject.getProperty(test,"a"));
+		System.out.println(ScriptableObject.getProperty(test,"aa"));
+	}
+	public static void main2(String[] args) {
 		Context c=Context.enter();
 		final ScriptableObject root = c.initStandardObjects();
 		BlankScriptableObject scope1 = new BlankScriptableObject(root) {

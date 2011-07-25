@@ -217,7 +217,7 @@ public class ResponseWrapper implements HttpServletResponse,Wrappable {
 	@Override
 	public PrintWriter getWriter() throws IOException {
 		if (writer!=null) return writer;
-		return writer=new PrintWriter(new OutputStreamWriter(getOutputStream(),"utf-8"));
+		return writer=new WrappablePrintWriter(new OutputStreamWriter(getOutputStream(),"utf-8"));
 	}
 
 	@Override

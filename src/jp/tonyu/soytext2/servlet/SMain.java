@@ -47,13 +47,17 @@ public class SMain extends HttpServlet {
 	public static  File getNewest() {
 		long max=0;
 		File res=null;
-		for (SFile d:new SFile("db/")) {
+		SFile dbDir = new SFile("db/");
+		for (SFile d:dbDir) {
 			if (!d.name().endsWith(".db")) continue;
 			long l=d.lastModified();
 			if (l>max) {
 				res=d.javaIOFile();
 				max=l;
 			}
+		}
+		if (res==null) {
+			return dbDir.rel("main.db").javaIOFile();
 		}
 		return res;
 	}

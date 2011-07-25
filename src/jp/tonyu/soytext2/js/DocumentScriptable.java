@@ -16,6 +16,7 @@ import jp.tonyu.util.SPrintf;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.UniqueTag;
 
 public class DocumentScriptable implements Function {
 	private static final String PROTOTYPE = "prototype";
@@ -112,9 +113,9 @@ public class DocumentScriptable implements Function {
 			Getter g=keyDoc.getGetter();
 			if (g!=null) return g.getFrom(this);
 		}	
-		Scriptable __proto__ = getPrototype();
-		if (__proto__!=null) return __proto__.get(key+"",__proto__);
-		return null;
+		/*Scriptable __proto__ = getPrototype();
+		if (__proto__!=null) return __proto__.get(key+"",__proto__);*/
+		return UniqueTag.NOT_FOUND;
 	}
 	public Getter getGetter() {
 		return (Getter)get(GETTERKEY);

@@ -257,7 +257,8 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 
 		});
 	}
-	public Wrappable newInstance(String className) {
+	@Override
+	public Wrappable javaNative(String className) {
 		try {
 			return (Wrappable) Class.forName(className).newInstance();
 		} catch (InstantiationException e) {

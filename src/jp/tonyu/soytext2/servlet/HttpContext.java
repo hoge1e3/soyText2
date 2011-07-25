@@ -22,6 +22,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.BuiltinFunc;
+import jp.tonyu.js.ContextRunnable;
 import jp.tonyu.soytext.Origin;
 import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentAction;
@@ -50,6 +51,7 @@ import jp.tonyu.util.Util;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.ScriptableObject;
 
 
 public class HttpContext {
@@ -118,6 +120,7 @@ public class HttpContext {
 	static final String ATTR_FORMAT = "_format";
 	static final String ATTR_PRECONTENT = "precontent";
 	public static final String ATTR_SCOPE = "scope";
+	private static final String DOGET = "doGet";
 	
     public Map<String,String> params() {
 		if (_params!=null) return _params;
@@ -202,8 +205,14 @@ public class HttpContext {
 			public void run() {
 				try {
 					proc2();
-				}catch (IOException e) {
-					ee.set(e);
+				}catch (Exception e) {
+					//ee.set(e);
+					try {
+						Httpd.respondByString(getRes(), "Error - "+e.getMessage());
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+					e.printStackTrace();
 				}
 			}
 		});
@@ -339,16 +348,17 @@ public class HttpContext {
         
         
 		String id=s[2];
-		DocumentScriptable d= documentLoader.byId(id);
+		final DocumentScriptable d= documentLoader.byId(id);
         
 		if (d!=null) {
-	        CompileResult o=JSSession.cur.get().compile(d);
+	        /*CompileResult o=JSSession.cur.get().compile(d);
 	        boolean execed=false;
 	        if (o instanceof SWebApplication) {
 				SWebApplication app = (SWebApplication) o;
 				app.run();
 				execed=true;
-			}/*
+			}*/
+			/*
 	        if (o!=null) {
 	        	SWebApplication app=o.value(SWebApplication.class);
 	        	if (app!=null) {
@@ -356,12 +366,32 @@ public class HttpContext {
 	        		execed=true;
 	        	}
 			}*/
+			boolean execed=false;
+			Object doGet = ScriptableObject.getProperty(d, DOGET);
+			if (doGet instanceof Function ) {
+				final Function f=(Function) doGet;
+				/*JSSession jsSession = jssession();
+				jsSession.call(f, new Object[]{getReq(),getRes()});
+				*/
+				JSSession.withContext(new ContextRunnable() {
+					
+					@Override
+					public Object run(Context cx) {
+						f.call(cx, jssession().root, d, new Object[]{getReq(),getRes()});
+						return null;
+					}
+				});
+				execed=true;
+			}
 	        if (!execed) {
-	        	print(id+" is not executable :"+o);
+	        	print(id+" is not executable :"+d);
 	        }
 		} else {
 			 notfound(id);
 		}
+	}
+	private JSSession jssession() {
+		return JSSession.cur.get();
 	}
 	/*public Cursor query(Query q) {
 		Debug.syslog("Query starting "+q.toString());
@@ -410,7 +440,7 @@ public class HttpContext {
 		return msg+"";
 	}
 	private void newDocument() throws IOException {
-		String content="";
+		String content="$.extend(_,{\n    name:\"New_Document\"\n});";
 		String msg="";
 		if (req.getMethod().equals("POST")) {
 			content=params().get(ATTR_CONTENT);
@@ -428,7 +458,7 @@ public class HttpContext {
 				"<!--preContent: <br/>\n"+
 				"<input name=%a /><br/-->\n"+
 				"Content: <br/>\n"+
-				"<textarea name=%a rows=5 cols=40>%t</textarea>"+
+				"<textarea name=%a rows=25 cols=60>%t</textarea>"+
 				"<input type=submit>"+
 				"</form></body></html>",
 				 "./new", msg, ATTR_PRECONTENT, ATTR_CONTENT , content)

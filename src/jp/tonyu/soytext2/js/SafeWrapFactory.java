@@ -1,5 +1,7 @@
 package jp.tonyu.soytext2.js;
 
+import java.util.Map;
+
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.Wrappable;
 
@@ -20,6 +22,9 @@ public class SafeWrapFactory extends WrapFactory {
 				javaObject instanceof org.mozilla.javascript.JavaScriptException ||
 					javaObject instanceof Wrappable ) {
 			return super.wrapAsJavaObject(cx, scope, javaObject, staticType);
+		}
+		if (javaObject instanceof Map) {
+			return new MapScriptable((Map)javaObject);
 		}
 		Log.die(javaObject.getClass()+": Only Wrappable can be wrapped.");
 		return null;
