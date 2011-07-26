@@ -3,6 +3,9 @@ package jp.tonyu.js;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.Vector;
 
 import jp.tonyu.debug.Log;
 
@@ -41,6 +44,19 @@ public class Scriptables {
 			}
 		}
 	}
+	public static void each(Scriptable s, NumberPropAction action) {
+		SortedSet<Integer> ord=new TreeSet<Integer>();
+		for (Object o:s.getIds()) {
+			if (o instanceof Number) {
+				Number key = (Number) o;
+				ord.add(key.intValue());
+			}
+		}
+		for (int i: ord) {
+			action.run(i, s.get(i, s));
+		}
+	}
+
 	public static Map<String,Object> toStringKeyMap(Scriptable s) {
 		Map<String, Object> res = new HashMap<String, Object>();
 		extend(res,s);

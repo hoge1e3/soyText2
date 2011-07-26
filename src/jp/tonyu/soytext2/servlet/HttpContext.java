@@ -113,6 +113,7 @@ public class HttpContext {
 	public static final String ATTR_CONTENT="content"; //"[[110414_052728@"+Origin.uid+"]]";
 	public static final String ATTR_BODY = "body";
 	public static final String AJAXTAG = "AJAXTAG:";
+	public static final String ATTR_ARGUMENTORDER="argumentOrder";
 
 	
 	
