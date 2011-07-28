@@ -30,8 +30,8 @@ public class Scriptables {
 	}
 
 	public static Integer toInt(Object i,Integer defValue) {
-		if (i instanceof Integer) {
-			return (Integer) i;
+		if (i instanceof Number) {
+			return ((Number) i).intValue();
 		}
 		return defValue;
 	}

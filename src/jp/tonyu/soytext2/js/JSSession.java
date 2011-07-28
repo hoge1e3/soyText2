@@ -100,11 +100,14 @@ public class JSSession {
 		});
 	}
 	public Object call(final Function f, final Object[] args) {
+		return call(f,root,args);
+	}
+	public Object call(final Function f, final Scriptable thisObject, final Object[] args) {
 		return withContext(new ContextRunnable() {			
 			@Override
 			public Object run(Context cx) {
 				//cx.setWrapFactory(new SafeWrapFactory());
-				Object result = f.call(cx, root, root, args);
+				Object result = f.call(cx, root, thisObject , args);
 				return result;
 			}
 		});

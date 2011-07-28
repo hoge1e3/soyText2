@@ -163,17 +163,31 @@ public class ContentChecker implements IDocumentLoader, Wrappable {
 	public static void main(String[] args) {
 		Context c=Context.enter();
 		final ScriptableObject root = c.initStandardObjects();
-		BlankScriptableObject test = new BlankScriptableObject();
-		BlankScriptableObject p = new BlankScriptableObject();
-		p.put("a","b");
-		test.setPrototype(p);
-		root.put("test", root, test);
+		BlankScriptableObject child = new BlankScriptableObject() {
+			@Override
+			public Object get(String name, Scriptable start) {
+				System.out.println(this+": Get name- start="+start);
+				return super.get(name, start);
+			}
+		};
+		BlankScriptableObject prot = new BlankScriptableObject() {
+			@Override
+			public Object get(String name, Scriptable start) {
+				System.out.println(this+": Get name- start="+start);
+				return super.get(name, start);
+			}
+		};
+		prot.put("a","b");
+		child.setPrototype(prot);
+		root.put("test", root, child);
 		Object res=c.evaluateString(root, "test.a;", "sourceName", 1, null);
 		System.out.println(res);
-		System.out.println(test.has("a", test));
+		/*System.out.println(test.has("a", test));
 		System.out.println(test.get("a", test));
 		System.out.println(ScriptableObject.getProperty(test,"a"));
-		System.out.println(ScriptableObject.getProperty(test,"aa"));
+		System.out.println(ScriptableObject.getProperty(test,"aa"));*/
+		System.out.println(prot.getIds().length);
+		System.out.println(child.getIds().length);
 	}
 	public static void main2(String[] args) {
 		Context c=Context.enter();
