@@ -9,6 +9,7 @@ import jp.tonyu.debug.Log;
 
 
 public class Parser {
+	public static final Pattern DEFAULT_SPACE = Pattern.compile("[ \\n\\t\\r]*");
 	public Parser(CharSequence src) {
 		super();
 		this.src = src;
@@ -118,7 +119,7 @@ public class Parser {
 		}
 	}
 	public void debug(String elem) {
-		//Debug.syslog(indent+"Reading "+elem+" at "+p+" "+current());
+		//Log.d(this,indent+"Reading "+elem+" at "+p+" "+current());
 	}
 	public boolean endOfSource() {
 		int s=p;
@@ -128,7 +129,7 @@ public class Parser {
 		p=s;
 		return res; 
 	}
-	Pattern spacePattern=Pattern.compile("[ \\n\\t\\r]*");
+	Pattern spacePattern=DEFAULT_SPACE;
 	public void setSpacePattern(Pattern p) {
 		spacePattern=p;
 	}
