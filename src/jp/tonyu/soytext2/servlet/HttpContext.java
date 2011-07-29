@@ -52,7 +52,8 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
-
+import static jp.tonyu.util.SPrintf.sprintf;
+import static jp.tonyu.util.Literal.toLiteral;
 
 public class HttpContext {
 	private static final String SEL = "sel_";
@@ -442,6 +443,15 @@ public class HttpContext {
 	}
 	private void newDocument() throws IOException {
 		String content="$.extend(_,{\n    name:\"New_Document\"\n});";
+		String ctr=params().get("constructor");
+		if (ctr!=null) {			
+			content=sprintf(
+					"$.extend(_,{\n"+
+					"  name:\"New_Document\",\n"+
+			        "  constructor: $.byId(%s) \n" +
+			        "});"
+					, toLiteral(ctr) ); ;
+		}
 		String msg="";
 		if (req.getMethod().equals("POST")) {
 			content=params().get(ATTR_CONTENT);
@@ -606,13 +616,16 @@ public class HttpContext {
 				"%s <a href=%a>View</a>  "+
 				"<a href=%a>Edit</a> "+
 				"<a href=%a>EditBody</a> "+
-				"<a href=%a>Exec</a> %t<br/>\n"
+				"<a href=%a>Exec</a> "+
+				"<a href=%a>NewObj</a> "+
+				"%t<br/>\n"
 				, AJAXTAG+id
 				, selt
 				, rootPath()+"/byId/"+id 
 				, rootPath()+"/edit/"+id 
 				, rootPath()+"/editbody/"+id 
 				, rootPath()+"/exec/"+id 
+				, rootPath()+"/new?constructor="+id 
 				, d.summary);
 		}
 	}

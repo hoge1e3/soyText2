@@ -180,7 +180,11 @@ public class ContentChecker implements IDocumentLoader, Wrappable {
 		prot.put("a","b");
 		child.setPrototype(prot);
 		root.put("test", root, child);
-		Object res=c.evaluateString(root, "test.a;", "sourceName", 1, null);
+		child.put("s","c");
+		Object res=c.evaluateString(root, 
+				"var buf='';" +
+				"for (var x in test) { buf+=x+'='+test[x]+',';" +
+				"}; buf", "sourceName", 1, null);
 		System.out.println(res);
 		/*System.out.println(test.has("a", test));
 		System.out.println(test.get("a", test));
