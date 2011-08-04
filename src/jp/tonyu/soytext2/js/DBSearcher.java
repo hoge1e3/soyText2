@@ -18,7 +18,7 @@ public class DBSearcher {
 		super();
 		this.dbscr = dbscr;
 	}	
-	private QueryBuilder qb;
+	private QueryBuilder qb=QueryBuilder.create(null);
 	public void each(Function iter) {
 		dbscr.loader.searchByQuery(qb.toQuery(), iter);
 	}

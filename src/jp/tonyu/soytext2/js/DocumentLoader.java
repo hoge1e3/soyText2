@@ -164,7 +164,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 				DocumentScriptable s=(DocumentScriptable) byId(d.id);
 				QueryResult r = q.matches(s);
 				if (r.filterMatched) {
-					Object brk=jsSession().call(iter, new Object[]{s});
+					Object brk=jsSession().call(iter, iter, new Object[]{s});
 					if (brk instanceof Boolean) {
 						Boolean b = (Boolean) brk;
 						if (b.booleanValue()) return true;

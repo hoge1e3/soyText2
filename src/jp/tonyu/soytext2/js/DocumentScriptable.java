@@ -317,7 +317,8 @@ public class DocumentScriptable implements Function {
 		Object r=ScriptableObject.getProperty(this,ONCALL);
 		if (r instanceof Function) {
 			Function f = (Function) r;
-			f.call(cx, scope, thisObj, args);
+			Object[] args2=new Object[] { thisObj ,args };
+			f.call(cx, scope, this, args2);
 		}
 		return null;
 	}
