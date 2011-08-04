@@ -16,6 +16,7 @@ import jp.tonyu.util.SPrintf;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.UniqueTag;
 
 public class DocumentScriptable implements Function {
@@ -313,7 +314,7 @@ public class DocumentScriptable implements Function {
 	@Override
     public Object call(Context cx, Scriptable scope, Scriptable thisObj,
             Object[] args) {
-		Object r=get(ONCALL);
+		Object r=ScriptableObject.getProperty(this,ONCALL);
 		if (r instanceof Function) {
 			Function f = (Function) r;
 			f.call(cx, scope, thisObj, args);
