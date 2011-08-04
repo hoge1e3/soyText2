@@ -12,6 +12,7 @@ import jp.tonyu.soytext2.document.DocumentSet;
 import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.document.LogRecord;
 import jp.tonyu.soytext2.js.DocumentLoader;
+import jp.tonyu.util.Literal;
 import jp.tonyu.util.SFile;
 
 
@@ -36,7 +37,7 @@ public class Importer {
 				Matcher m=field.matcher(line);
 				if (m.matches()) {
 					String key=m.group(1).toLowerCase();
-					String value=m.group(2);
+					String value=Literal.fromLiteral(m.group(2));
 					if ("id".equals(key)) {
 						flush();
 						curdoc=getdoc(value);
@@ -50,6 +51,15 @@ public class Importer {
 					if ("precontent".equals(key)) {
 						curdoc.preContent=value;
 					}				
+					if ("owner".equals(key)) {
+						curdoc.owner.set(value);
+					}
+					if ("group".equals(key)) {
+						curdoc.group.set(value);
+					}
+					if ("permission".equals(key)) {
+						curdoc.permission.set(value);
+					}
 				} else {
 					tryChangeTable(line);
 				}
@@ -57,7 +67,7 @@ public class Importer {
 				Matcher m=field.matcher(line);
 				if (m.matches()) {
 					String key=m.group(1).toLowerCase();
-					String value=m.group(2);
+					String value=Literal.fromLiteral(m.group(2));
 					if ("id".equals(key)) {
 						flush();
 						curlog=new LogRecord(Integer.parseInt(value));

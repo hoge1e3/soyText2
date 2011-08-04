@@ -7,6 +7,12 @@ public class Literal {
 	public static final Pattern DQ = Pattern.compile("\"(.*)\"");
 	public static final Pattern SQ = Pattern.compile("'(.*)'");
 
+	public static String toLiteralPreserveCR(String value) {
+		return "\""+value.toString().replaceAll("\\\\","\\\\\\\\")
+        .replaceAll("\r", "\\\\r")
+        .replaceAll("\n", "\\\\n")
+        .replaceAll("\"", "\\\\\"")+"\"";
+	}
 	public static String toLiteral(String value) {
 		return "\""+value.toString().replaceAll("\\\\","\\\\\\\\")
         .replaceAll("\r", "")

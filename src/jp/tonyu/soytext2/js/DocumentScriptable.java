@@ -25,7 +25,7 @@ public class DocumentScriptable implements Function {
 	//Scriptable __proto__;
 	Map<Object, Object>binds=new HashMap<Object, Object>();
 	final DocumentRecord d;
-	final DocumentLoader loader;
+	public final DocumentLoader loader;
 	public static final String ONCALL="onCall";
 	public DocumentRecord getDocument() {
 		return d;

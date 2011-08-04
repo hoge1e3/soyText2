@@ -15,15 +15,22 @@ import org.mozilla.javascript.Undefined;
 import org.mozilla.javascript.UniqueTag;
 
 public class DocumentLoaderScriptable implements Scriptable, Wrappable {
-	public static final String LOADER="$",THISDOC="_";
+	public static final String LOADER="$",THISDOC="_",DB="db";
 	public final IDocumentLoader loader;
 	private Scriptable parentScope;
+	public final DBHelper dbscr;
 	public DocumentLoaderScriptable(Scriptable parentScope, IDocumentLoader loader,
 			DocumentScriptable thisDoc) {
 		super();
 		this.parentScope=parentScope;
 		this.loader = loader;
 		this.thisDoc = thisDoc;
+		if (loader instanceof DocumentLoader) {
+			DocumentLoader ld = (DocumentLoader) loader;
+			this.dbscr=new DBHelper(ld);			
+		} else {
+			this.dbscr=null;
+		}
 	}
 	public final DocumentScriptable thisDoc;
 	private final Set<String> undefinedSymbols=new HashSet<String>();
@@ -46,6 +53,7 @@ public class DocumentLoaderScriptable implements Scriptable, Wrappable {
 	public Object get(String name, Scriptable start) {
 		if (LOADER.equals(name)) return loader;
 		if (THISDOC.equals(name)) return thisDoc;
+		if (DB.equals(name)) return dbscr;
 		Object res = values.get(name);
 		if (res==null) {
 			undefinedSymbols.add(name);

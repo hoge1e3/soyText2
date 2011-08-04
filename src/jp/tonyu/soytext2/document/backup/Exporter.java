@@ -9,10 +9,11 @@ import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.LogAction;
 import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.document.LogRecord;
+import jp.tonyu.util.Literal;
 
 public class Exporter {
-	public static void printNonNull(PrintStream p,String field, String value) {
-		if (value!=null) p.printf("%s: %s\n", field, value);
+	public static void printNonNull(PrintStream p,String field, Object value) {
+		if (value!=null) p.printf("%s: %s\n", field, Literal.toLiteralPreserveCR(value+""));
 	}
 	public Exporter(SDB db, File out) throws FileNotFoundException {
 		final PrintStream p=new PrintStream(out);
@@ -21,10 +22,10 @@ public class Exporter {
 			
 			@Override
 			public boolean run(DocumentRecord d) {
-				p.printf("id: %s\n", d.id);
-				p.printf("createdate: %d\n", d.createDate);
-				p.printf("lastaccessed: %d\n", d.lastAccessed);
-				p.printf("lastupdate: %d\n", d.lastUpdate);
+				printNonNull(p,"id", d.id);
+				printNonNull(p,"createdate", d.createDate);
+				printNonNull(p,"lastaccessed", d.lastAccessed);
+				printNonNull(p,"lastupdate", d.lastUpdate);
 				printNonNull(p, "summary", d.summary);
 				printNonNull(p, "precontent", d.preContent);
 				printNonNull(p, "content", d.content);
@@ -39,7 +40,7 @@ public class Exporter {
 			
 			@Override
 			public boolean run(LogRecord log) {
-				p.printf("id: %d\n", log.id);
+				printNonNull(p,"id", log.id);
 				printNonNull(p,	"date", log.date);
 				printNonNull(p,	"action", log.action);
 				printNonNull(p,	"target", log.target);
