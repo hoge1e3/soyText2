@@ -1,8 +1,6 @@
 package jp.tonyu.soytext2.js;
 
 import jp.tonyu.js.Wrappable;
-import jp.tonyu.soytext2.search.Query;
-import jp.tonyu.soytext2.search.expr.AttrOperator;
 
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
