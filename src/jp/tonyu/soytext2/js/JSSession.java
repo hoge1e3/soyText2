@@ -26,7 +26,7 @@ public class JSSession {
 	private Scriptable initObject(Context cx) {
 		ScriptableObject o=cx.initStandardObjects();
 		String[] builtinsa=new String[] {"String","Boolean","Number","Function","Object","Array","RegExp","undefined","null","true","false"
-				,"NaN","Infinity","Date","Math","parseInt","TypeError","InternalError"};
+				,"NaN","Infinity","Date","Math","parseInt","TypeError","InternalError","JavaException"};
 		Set<String> builtins=new HashSet<String>();
 		for (String s:builtinsa) {
 			builtins.add(s);

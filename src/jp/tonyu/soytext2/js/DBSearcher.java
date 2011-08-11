@@ -2,6 +2,7 @@ package jp.tonyu.soytext2.js;
 
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.BuiltinFunc;
+import jp.tonyu.js.Wrappable;
 import jp.tonyu.soytext2.search.Query;
 import jp.tonyu.soytext2.search.QueryBuilder;
 import jp.tonyu.soytext2.search.expr.AttrOperator;
@@ -12,7 +13,7 @@ import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 
-public class DBSearcher {
+public class DBSearcher implements Wrappable {
 	public final DBHelper dbscr;
 	public DBSearcher(DBHelper dbscr) {
 		super();

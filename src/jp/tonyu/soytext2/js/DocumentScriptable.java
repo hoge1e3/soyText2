@@ -325,16 +325,16 @@ public class DocumentScriptable implements Function {
 	@Override
 	 public Scriptable construct(Context cx, Scriptable scope, Object[] args) {
 		DocumentScriptable d=loader.newDocument(null);
-		Scriptable cons = getConstructor();
-		d.put(CONSTRUCTOR, cons);
-		Scriptable p=getPrototype();
-		if (p!=null) {
-			Object init=p.get("initialize", p);
+		//Scriptable cons = getConstructor();
+		d.put(CONSTRUCTOR, this); //cons);
+		/*Scriptable p=getPrototype();
+		if (p!=null) {*/
+			Object init=ScriptableObject.getProperty(d,"initialize");
 			if (init instanceof Function) {
 				Function f = (Function) init;
 				f.call(cx, scope, d, args);
 			}
-		}
+		//}
 		return d;
 	}
 }
