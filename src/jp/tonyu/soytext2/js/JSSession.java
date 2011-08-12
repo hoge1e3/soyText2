@@ -54,6 +54,13 @@ public class JSSession {
 	public Object eval (String name, String s) {
 		return eval(name, s, new HashMap<String, Object>());
 	}
+	/**
+	 * Warning! scope must have root as parent scope
+	 * @param name
+	 * @param s
+	 * @param scope   scope must have root as parent scope
+	 * @return
+	 */
 	public Object eval (final String name, final String s , final Scriptable scope) {
 		return withContext(new ContextRunnable() {
 			@Override

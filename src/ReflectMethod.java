@@ -17,8 +17,8 @@ public class ReflectMethod implements Wrappable {
 	}
 	public static void main(String[] args) {
 		JSSession s = new JSSession();
-		
-		Object r = s.eval("test","a.foo24(3,4);", Maps.create("a",(Object)new ReflectMethod()) );
+		//; 
+		Object r = s.eval("test","a=(function (a,b) {return a+b;})+\"baka\";", Maps.create("b",(Object)new ReflectMethod()) );
 		System.out.println(r);
 
 	}
