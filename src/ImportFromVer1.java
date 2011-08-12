@@ -7,6 +7,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Scanner;
 
+import jp.tonyu.soytext.Origin;
 import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.document.backup.Importer;
 import jp.tonyu.soytext2.servlet.SMain;
@@ -38,12 +39,13 @@ public class ImportFromVer1 {
 		DateFormat dfm = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss");
 		File newFile = new File("db/main"+ dfm.format(new Date())+".db");
 		//File newFile = SMain.getNewest();
-		SDB s=new SDB(newFile);
+		String uid= Origin.uid;
+		SDB s=new SDB(newFile,uid);
 		Importer i=new Importer(s);
 		i.importDocuments(file);
 		s.close();
 		
-		new SMain();
+		new SMain(uid);
 	}
 
 }

@@ -2,6 +2,7 @@ import java.io.File;
 
 import org.tmatesoft.sqljet.core.SqlJetException;
 
+import jp.tonyu.soytext.Origin;
 import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentAction;
 import jp.tonyu.soytext2.document.SDB;
@@ -9,7 +10,7 @@ import jp.tonyu.soytext2.document.SDB;
 
 public class Test {
 	public static void main(String[] args) throws SqlJetException {
-		final SDB s=new SDB(new File("test.db"));
+		final SDB s=new SDB(new File("test.db"), Origin.uid);
 		/*Document d=s.newDocument();
 		d.content="test"+d.id;
 		s.save(d);*/

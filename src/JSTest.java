@@ -5,6 +5,7 @@ import org.mozilla.javascript.Scriptable;
 import org.tmatesoft.sqljet.core.SqlJetException;
 
 import jp.tonyu.js.BuiltinFunc;
+import jp.tonyu.soytext.Origin;
 import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.js.DocumentLoader;
 
@@ -16,7 +17,7 @@ public class JSTest {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		SDB s=new SDB(new File("test.db"));
+		SDB s=new SDB(new File("test.db"), Origin.uid);
 		DocumentLoader l=new DocumentLoader(s);
 		l.search("", null, new BuiltinFunc() {
 			

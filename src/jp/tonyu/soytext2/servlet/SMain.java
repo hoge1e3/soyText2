@@ -61,10 +61,10 @@ public class SMain extends HttpServlet {
 		}
 		return res;
 	}
-	public SMain() throws Exception{
+	public SMain(String uid) throws Exception{
 		File newest = getNewest();
 		System.out.println("Using "+newest+" as db.");
-		sdb=new SDB(newest);
+		sdb=new SDB(newest, uid);
 		loader=new DocumentLoader(sdb);
 		int port = 3002;
 		AutoRestart auto = new AutoRestart(port, new File("stop.lock"));
@@ -79,6 +79,11 @@ public class SMain extends HttpServlet {
 		n.stop();
 	}
 	public static void main(String[] args) throws Exception {
-		new SMain();
+		if (args.length==0) {
+			System.err.println("Usage: java SMain uid");
+			System.err.println("uid must be world-unique id such as UUID, time.domain or some string that google returns 0 results.");
+			return;
+		}
+		new SMain(args[0]);
 	}
 }

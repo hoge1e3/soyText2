@@ -8,6 +8,7 @@ import java.util.Vector;
 import jp.tonyu.db.DBAction;
 import jp.tonyu.db.SqlJetHelper;
 import jp.tonyu.debug.Log;
+import jp.tonyu.util.Ref;
 
 import org.tmatesoft.sqljet.core.SqlJetException;
 import org.tmatesoft.sqljet.core.table.ISqlJetCursor;
@@ -15,7 +16,7 @@ import org.tmatesoft.sqljet.core.table.ISqlJetTable;
 import org.tmatesoft.sqljet.core.table.SqlJetDb;
 
 public class SDB extends SqlJetHelper implements DocumentSet {
-	static final int version=2;
+	static final int version=3;
 	static final String DOCUMENT_1="document_1";
 	static final String LOG_1="log_1";
 	
@@ -26,15 +27,76 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	static final String DOCUMENT_CUR_LASTUPDATE = DOCUMENT_1_LASTUPDATE;
 	static final String DOCUMENT_CUR=DOCUMENT_1;
 	static final String LOG_CUR=LOG_1;
-
-	public SDB(File file) throws SqlJetException {
+	static final String UID_3="uid";
+	//static final String UID_3_ID=UID_3+"_id";
+	public static final String UID_IMPORT = "77a729a1-5c5d-4d09-9141-72108ee9b634";
+	public static final String UID_EXISTENT_FILE = "86e08ee0-0bd5-4d1f-a7f5-66c2251e60ad";
+	
+	String uid;
+	public SDB(File file , String uid) throws SqlJetException {
 		super(file, version);
+		this.uid=uid;
 		logManager=new LogManager(this);
+		//setupUID();
+	}
+	private void setupUID() throws SqlJetException {
+		String gu = getUID();
+		if (gu==null) {
+			setUID(uid);
+			return;
+		}
+		if (gu.equals(uid)) return;
+		if (gu.equals(UID_EXISTENT_FILE) || gu.equals(UID_IMPORT)) {
+			uid=gu;
+		}
+		throw new RuntimeException(" Uid not match: indb="+gu+"  expect="+uid);
+	}
+	public void setUID(final String uid) throws SqlJetException {
+		writeTransaction(new DBAction() {
+			
+			@Override
+			public void run(SqlJetDb db) throws SqlJetException {
+				ISqlJetTable t = uidTable();
+				ISqlJetCursor cur = t.order(null);
+				if (!cur.eof()) {
+					cur.delete();
+				}
+				cur.close();
+				t.insert(uid);
+			}
+		},-1);
+		this.uid=uid;
+	}
+	public String getUID() throws SqlJetException {
+		final Ref<String> res=new Ref<String>();
+		readTransaction(new DBAction() {
+			@Override
+			public void run(SqlJetDb db) throws SqlJetException {
+				ISqlJetTable t = uidTable();
+				ISqlJetCursor cur = t.order(null);
+				if (!cur.eof()) {
+					res.set(cur.getString("id"));
+				}
+				cur.close();
+			}
+		}, -1);
+		if (res.isSet()) return res.get();
+		return null;
 	}
 	@Override
 	protected void onCreate(SqlJetDb db) throws SqlJetException {
 		createDocumentTable(db);
 		createLogTable(db);		
+		createUIDTable(db);
+	}
+	
+	private void createUIDTable(SqlJetDb db) throws SqlJetException {
+		db.createTable("CREATE TABLE "+UID_3+" (\n"+
+				"     id TEXT NOT NULL PRIMARY KEY\n"+
+			    ")\n"+
+	    "");
+		//db.createIndex("CREATE INDEX "+UID_3_ID+" ON "+UID_3+"(id)");	
+		
 	}
 	private void createLogTable(SqlJetDb db) throws SqlJetException {
 		db.createTable("CREATE TABLE "+LOG_1+" (\n"+
@@ -178,6 +240,9 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		int res=(int) cur2.getRowCount();
 	    cur2.close();
 	    return res;
+	}
+	public ISqlJetTable uidTable() throws SqlJetException {
+		return db.getTable(UID_3);
 	}
 	public ISqlJetTable docTable() throws SqlJetException {
 		return db.getTable(DOCUMENT_CUR);

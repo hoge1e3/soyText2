@@ -3,9 +3,12 @@ package jp.tonyu.soytext2.document.backup;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.tmatesoft.sqljet.core.SqlJetException;
 
 import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentSet;
@@ -24,7 +27,7 @@ public class Importer {
 	LogRecord curlog=null;
 	static final Pattern table=Pattern.compile("\\[([\\d\\w]+)\\]");
 	static final Pattern field=Pattern.compile("([\\d\\w]+): (.*)");
-	public void importDocuments(File file) throws IOException {
+	public void importDocuments(File file) throws IOException,SqlJetException {
 		Scanner s=new Scanner(file);
 		curTable=null;
 		curdoc=null;
@@ -32,6 +35,9 @@ public class Importer {
 		while (s.hasNextLine()) {
 			String line=s.nextLine();
 			if (curTable==null) {
+				tryChangeTable(line);
+			} else if ("UID".equals(curTable)) {
+				sdb.setUID(line);
 				tryChangeTable(line);
 			} else if ("Document".equals(curTable)) {
 				Matcher m=field.matcher(line);
