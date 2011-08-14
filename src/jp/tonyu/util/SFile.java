@@ -9,6 +9,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
@@ -47,17 +48,19 @@ public class SFile implements Iterable<SFile>{
 		return buf.toString();
 	}
 	public void text(String content) throws FileNotFoundException {
-		File parentFile = f.getParentFile();
-		if (parentFile!=null) parentFile.mkdirs();
 		PrintWriter p;
 		try {
-			p = new PrintWriter(new OutputStreamWriter(new FileOutputStream(f), "utf-8"));
+			p = new PrintWriter(new OutputStreamWriter(outputStream(), "utf-8"));
 			p.print(content);
 			p.close();
 		} catch (UnsupportedEncodingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	private void mkdirs() {
+		File parentFile = f.getParentFile();
+		if (parentFile!=null) parentFile.mkdirs();
 	}
 	public boolean isDir() {
 		return f.exists() && f.isDirectory();
@@ -102,5 +105,17 @@ public class SFile implements Iterable<SFile>{
 	@Override
 	public String toString() {
 		return javaIOFile().toString();
+	}
+	public OutputStream outputStream() throws FileNotFoundException {
+		mkdirs();
+		return new FileOutputStream(f);
+	}
+	public String fullPath() {
+		try {
+			return f.getCanonicalPath();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 }

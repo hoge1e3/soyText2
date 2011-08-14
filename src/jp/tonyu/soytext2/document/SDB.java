@@ -253,7 +253,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	@Override
 	public DocumentRecord newDocument() {
 		LogRecord log = logManager.write("create","<sameAsThisId>");
-		DocumentRecord d=new DocumentRecord(this, log.id+"");
+		DocumentRecord d=new DocumentRecord(this, log.id+"@"+uid);
 		d.lastUpdate=log.id;
 		d.lastAccessed=log.id;
 		cache.put(d.id, d);
