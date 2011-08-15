@@ -165,5 +165,7 @@ public class SqlJetHelper {
 		db.close();
 		Log.d(this,"Closed");
 	}
-
+	public SqlJetTableHelper table(String name) {
+		return new SqlJetTableHelper(db, name);
+	}
 }
