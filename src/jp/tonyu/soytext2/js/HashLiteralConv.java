@@ -1,8 +1,11 @@
 package jp.tonyu.soytext2.js;
 
+import java.util.Scanner;
+
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.util.Maps;
+import jp.tonyu.util.Resource;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
@@ -13,7 +16,9 @@ public class HashLiteralConv {
 	static Function compiled;
 	public static Function compile() {
 		if (compiled!=null) return compiled;
-		compiled=(Function)JSSession.cur.get().eval("toHashLiteral",value,Maps.create("debug", (Object)debug));
+		compiled=(Function)JSSession.cur.get().eval("toHashLiteral",
+				Resource.text(HashLiteralConv.class, ".js"),
+				Maps.create("debug", (Object)debug));
 		return compiled;
 	}
 	static BuiltinFunc debug=new BuiltinFunc() {
@@ -28,7 +33,18 @@ public class HashLiteralConv {
 	public static String toHashLiteral(Object res) {
 		return JSSession.cur.get().call(compile(), new Object[]{res})+"";
 	}
-	public static final String value=
+	public static void main(String[] args) {
+		/*Scanner in= new Scanner(
+				HashLiteralConv.class.getResourceAsStream("HashLiteralConv.js")
+				);
+		while (in.hasNextLine()) {
+			System.out.println("> "+in.nextLine());
+		}
+		in.close();*/
+		//System.out.println(value);
+		System.out.println("get:"+Resource.text(HashLiteralConv.class, ".js") );
+	}
+/*	public static final String value=
 		"res=function (hash) {\n"+
 		" return _self(hash);\n"+
 		" function _self(hash) {\n"+
@@ -82,7 +98,7 @@ public class HashLiteralConv {
 		"     return \"[\"+s.map(lit).join(\", \")+\"]\";\n"+
 		"   }\n"+
 		"};";
-
+*/
 	/*	public static String toHashLiteral(Scriptable s) {
 		String res="{";
 		String com="";
