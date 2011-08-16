@@ -6,5 +6,10 @@
 	<classpathentry kind="lib" path="lib/servlet-api.jar"/>
 	<classpathentry kind="lib" path="lib/sqljet.1.0.3.b914.jar" sourcepath="C:/bin/Downloads/sqljet.1.0.4.b963/sqljet.1.0.4.b963.src.zip"/>
 	<classpathentry kind="lib" path="lib/js.jar" sourcepath="/Rhino"/>
+	<classpathentry kind="lib" path="lib/activation.jar"/>
+	<classpathentry kind="lib" path="lib/mail.jar"/>
+	<classpathentry kind="lib" path="lib/bnd.jar"/>
+	<classpathentry kind="lib" path="lib/dnsjava-2.1.2.jar"/>
+	<classpathentry kind="lib" path="lib/log4j-1.2.14.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
