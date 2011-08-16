@@ -3,6 +3,7 @@ package jp.tonyu.soytext2.search;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import jp.tonyu.debug.Log;
 import jp.tonyu.soytext2.document.DocumentSet;
 import jp.tonyu.soytext2.search.expr.AttrExpr;
 import jp.tonyu.soytext2.search.expr.AttrOperator;
@@ -28,6 +29,7 @@ public class QueryBuilder {
 		if (emptyCond) {
 			cond+=name+AttrOperator.toString(op)+"? ";
 		}
+		Log.d(this, "Cur Conds -"+cond+" tmpls - "+tmpls);
 		return this;
 	}
 	public Query toQuery() {

@@ -18,6 +18,7 @@ import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.UniqueTag;
+import org.omg.CosNaming.NamingContextPackage.NotFound;
 
 public class DocumentScriptable implements Function {
 	private static final String PROTOTYPE = "prototype";
@@ -300,15 +301,17 @@ public class DocumentScriptable implements Function {
 	}
 	public void refreshSummary() {
 		d.summary=genSummary();
+		Log.d(this, "Sumamry changed to "+d.summary);
 	}
 	public String genSummary() {
-		String res;
-		res=get("name")+"";
-		if (!res.equals("null") && res.length()>0) return res;
-		res=get("title")+"";
-		if (!res.equals("null") && res.length()>0) return res;
-		res=get(HttpContext.ATTR_BODY)+"";
-		if (!res.equals("null") && res.length()>0) return res.substring(0,Math.min(res.length(), 20));
+		Object res;
+		res=get("name");
+		String ress = res+"";
+		if (res!=null && res!=UniqueTag.NOT_FOUND && ress.length()>0) return ress;
+		res=get("title");ress = res+"";
+		if (res!=null && res!=UniqueTag.NOT_FOUND && ress.length()>0) return ress;
+		res=get(HttpContext.ATTR_BODY);ress = res+"";
+		if (res!=null && res!=UniqueTag.NOT_FOUND && ress.length()>0) return ress.substring(0,Math.min(ress.length(), 20));
 		return d.id;
 	}
 	@Override

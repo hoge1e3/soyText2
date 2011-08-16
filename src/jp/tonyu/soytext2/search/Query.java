@@ -3,6 +3,7 @@ package jp.tonyu.soytext2.search;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import jp.tonyu.debug.Log;
 import jp.tonyu.soytext2.js.DocumentScriptable;
 import jp.tonyu.soytext2.search.expr.AttrExpr;
 
@@ -33,6 +34,7 @@ public class Query {
 
 	public Query(QueryTemplate queryTemplate, SortedSet<AttrExpr> attrs) {
 		super();
+		Log.d("Query", "Create query cond="+queryTemplate+" attrs="+attrs);
 		this.queryTemplate = queryTemplate;
 		this.attrs = attrs;
 	}

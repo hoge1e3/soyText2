@@ -24,6 +24,7 @@ import jp.tonyu.debug.Log;
 import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.js.ContextRunnable;
 import jp.tonyu.soytext.Origin;
+import jp.tonyu.soytext2.browserjs.IndentAdaptor;
 import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentAction;
 import jp.tonyu.soytext2.document.DocumentSet;
@@ -45,6 +46,7 @@ import jp.tonyu.util.Literal;
 import jp.tonyu.util.MapAction;
 import jp.tonyu.util.Maps;
 import jp.tonyu.util.Ref;
+import jp.tonyu.util.Resource;
 import jp.tonyu.util.SPrintf;
 import jp.tonyu.util.Util;
 
@@ -263,6 +265,9 @@ public class HttpContext {
         else if (s.length>=2 && s[1].equals("search")) {
         	search();
         }
+        else if (s.length>=2 && s[1].equals("browserjs")) {
+        	browserjs();
+        }
         else if (s.length>=2 && s[1].equals("import1")) {
         	importFromVer1();
         }
@@ -273,7 +278,24 @@ public class HttpContext {
         	byName();
         }
     }
-    private void fileUpload() {
+    public String browserjsPath(Class klass) {
+    	return rootPath()+"/browserjs/"+klass.getName();
+    }
+    private void browserjs() throws IOException {
+		//0  1          2        
+		// /browserjs/path.to.Class
+    	String[] a = args();
+    	if (a.length<3) return ;
+    	try {
+			Class c = Class.forName(a[2]);
+			String src = Resource.text(c, ".js");
+			res.setContentType("text/javascript");
+			Httpd.respondByString(res,src);
+    	} catch (ClassNotFoundException e) {
+			notfound("Class "+a[2]+" Not found.");
+		}    	
+	}
+	private void fileUpload() {
     	//new FileUpload().uploadForm(this);		
 	}
     private void fileUploadDone() {
@@ -469,11 +491,15 @@ public class HttpContext {
 				"<!--preContent: <br/>\n"+
 				"<input name=%a /><br/-->\n"+
 				"Content: <br/>\n"+
-				"<textarea name=%a rows=25 cols=60>%t</textarea>"+
+				"<textarea id=edit name=%a rows=25 cols=60>%t</textarea>"+
 				"<input type=submit>"+
-				"</form></body></html>",
+				"</form>"+indentAdap()+"</body></html>",
 				 "./new", msg, ATTR_PRECONTENT, ATTR_CONTENT , content)
 		);
+	}
+	private String indentAdap() {
+		return  Html.p("<script src=%a></script><script>attachIndentAdaptor('edit')</script>"
+				,browserjsPath(IndentAdaptor.class));
 	}
 	private void edit() throws IOException {
 		String[] s=args();
@@ -502,9 +528,9 @@ public class HttpContext {
 				"<!--preContent: <br/>\n"+
 				"<input name=%a value=%a /><br/-->"+
 				"Content: <br/>\n"+
-				"<textarea name=%a rows=20 cols=80>%t</textarea>"+
+				"<textarea id=edit name=%a rows=20 cols=80>%t</textarea>"+
 				"<input type=submit>"+
-				"</form></body></html>",
+				"</form>"+indentAdap()+"</body></html>",
 				"./"+id, 
 				msg,
 				HttpContext.ATTR_PRECONTENT,

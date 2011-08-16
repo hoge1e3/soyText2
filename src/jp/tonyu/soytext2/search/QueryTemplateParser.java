@@ -76,7 +76,7 @@ public class QueryTemplateParser {
 		}
 		return false;
 	}
-	static final Pattern tmplCondPat=Pattern.compile("([^:\\s]+):\\?");
+	static final Pattern tmplCondPat=Pattern.compile("([^:\\s]+):[=<]?\\?");
 	public boolean parseTemplateCond() {
 		// tmplcond := ([^:]+):?
 		Matcher m=p.matcher(tmplCondPat);
