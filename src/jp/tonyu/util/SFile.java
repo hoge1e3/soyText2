@@ -118,4 +118,7 @@ public class SFile implements Iterable<SFile>{
 		}
 		return null;
 	}
+	public long size() {
+		return f.length();
+	}
 }
