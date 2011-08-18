@@ -23,7 +23,11 @@ import javax.servlet.http.HttpServletResponse;
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.js.ContextRunnable;
+import jp.tonyu.js.Wrappable;
 import jp.tonyu.soytext.Origin;
+import jp.tonyu.soytext2.auth.AuthentificatorList;
+import jp.tonyu.soytext2.auth.Session;
+import jp.tonyu.soytext2.auth.SessionSet;
 import jp.tonyu.soytext2.browserjs.IndentAdaptor;
 import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentAction;
@@ -57,27 +61,29 @@ import org.mozilla.javascript.ScriptableObject;
 import static jp.tonyu.util.SPrintf.sprintf;
 import static jp.tonyu.util.Literal.toLiteral;
 
-public class HttpContext {
+public class HttpContext implements Wrappable {
 	private static final String SEL = "sel_";
 	public static final jp.tonyu.util.Context<HttpContext> cur=new jp.tonyu.util.Context<HttpContext>();
 	private static final String SESSION_NAME = "soyText_Session";
 	/*public final soytext.script.Context context= new soytext.script.Context(true);
 	public SessionManager sessionManager() {
 		return appCtx.sessionManager;
-	}
+	}*/
 	Session currentSession=null;
 	public Session currentSession() {
 		if (currentSession!=null) return currentSession;
 		if (req.getCookies()!=null) {
 			for (Cookie c:req.getCookies()) {
 				if (c.getName().equals(SESSION_NAME)) {
-					return currentSession= sessionManager().get(c.getValue());
+					currentSession= SessionSet.get(c.getValue());
+					if (currentSession!=null) return currentSession;
+					break;
 				}
 			}
 		}
-		return currentSession=sessionManager().defaultSession();
+		return currentSession=Session.NOBODY;
 	}
-	public ApplicationContext applicationContext() {
+	/*public ApplicationContext applicationContext() {
 		return currentSession().applicationContext();
 	}*/
 	public final DocumentLoader documentLoader;
@@ -401,7 +407,8 @@ public class HttpContext {
 					
 					@Override
 					public Object run(Context cx) {
-						f.call(cx, jssession().root, d, new Object[]{getReq(),getRes()});
+						f.call(cx, jssession().root, d, 
+								new Object[]{getReq(),getRes(),HttpContext.this});
 						return null;
 					}
 				});
@@ -574,38 +581,37 @@ public class HttpContext {
 		}
 	}
     private void auth() throws IOException {
-		/*String user=params().get("user");
+		String user=params().get("user");
 		String pass=params().get("pass");
+		Session s=null;
+		String msg="";
 		if ("logout".equals(user) || (user!=null && user.length()>0 && pass!=null && pass.length()>0)) {
-			Session s;
 			if ("logout".equals(user)) {
 				user="";
-				s=sessionManager().defaultSession();
+				s=Session.NOBODY;
 			}  else {
-				try {
-					s=sessionManager().create(user,pass);
-				} catch (AuthException e) {
-		    		Httpd.respondByString(res, e.getMessage());
-		    		return;
+				if (AuthentificatorList.alist.check(user, pass)) {
+					s=SessionSet.create(user);
+		    		res.addCookie(new Cookie(SESSION_NAME, s.id()));
+		    		String after=params().get("after");
+		    		if (after!=null) {
+		    			res.sendRedirect(rootPath()+"/"+after);
+		    		} else {
+		    			res.sendRedirect(rootPath()+"/");
+		    		}
+				} else {
+					msg="ユーザ名、パスワードが間違っています。";
 				}
 			}
-    		res.addCookie(new Cookie(SESSION_NAME, s.id()));
-    		//res.setHeader("Location", rootPath()+"/all");
-    		//Httpd.respondByString(res, menuBar()+"Logged in");
-    		String after=params().get("after");
-    		if (after!=null) {
-    			res.sendRedirect(rootPath()+"/"+after);
-    		} else {
-    			res.sendRedirect(rootPath()+"/");
-    		}
-    	} else {
-    		Httpd.respondByString(res, "<form action=\"./auth\" method=\"POST\">"+
+    	} 
+		if (s==null) {
+    		Httpd.respondByString(res, msg+"<form action=\"./auth\" method=\"POST\">"+
     				"ユーザ名： <input name=\"user\" value=\""+user+"\"><br/>"+
     				"パスワード: <input type=\"password\" name=\"pass\">"+
     				"<br><input type=submit>"+
     				"</form>"
     		);
-    	}*/
+    	}
 	}
     public void redirect(String url) {
     	try {
@@ -721,7 +727,7 @@ public class HttpContext {
         buf.append(Html.p("<html><head><meta http-equiv=%a content=%a></head>"
         		                ,"Content-type","text/html; charset=utf8"));
         buf.append("<body>");
-        //buf.append("User: "+currentSession().id()+" | ");
+        buf.append("User: "+currentSession().userName()+" | ");
         buf.append(Html.p("<a href=%a>ログイン</a>  |" , path+"/auth"));
         buf.append(Html.p("<a href=%a>ホーム</a>  |" , path+"/all"));
         buf.append(Html.p("<a href=%a>新規作成</a> | ", path+"/new"));

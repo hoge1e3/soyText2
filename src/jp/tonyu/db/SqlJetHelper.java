@@ -89,6 +89,7 @@ public class SqlJetHelper {
 		}
 		return false;
 	}
+	
 	public void readTransaction(DBAction action, int timeOut) throws SqlJetException {
 		try {
 			waitForTransaction(SqlJetTransactionMode.READ_ONLY, timeOut);
@@ -126,7 +127,7 @@ public class SqlJetHelper {
 		db.rollback();
 		mode=null;
 	}	
-	private synchronized void commit() throws SqlJetException {
+	public synchronized void commit() throws SqlJetException {
 		if (mode==SqlJetTransactionMode.READ_ONLY) {
 			readCount--;
 			if (readCount>0) return;
