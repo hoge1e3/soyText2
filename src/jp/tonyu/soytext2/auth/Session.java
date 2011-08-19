@@ -15,4 +15,8 @@ public class Session implements Wrappable {
 	public String userName() {
 		return userName;
 	}
+	@Override
+	public String toString() {
+		return "(Session "+id+"  -  "+userName+")";
+	}
 }

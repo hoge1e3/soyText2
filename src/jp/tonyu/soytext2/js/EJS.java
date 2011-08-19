@@ -3,10 +3,13 @@ package jp.tonyu.soytext2.js;
 import java.util.regex.Pattern;
 
 import jp.tonyu.debug.Log;
+import jp.tonyu.js.BlankScriptableObject;
+import jp.tonyu.js.Scriptables;
 import jp.tonyu.js.Wrappable;
 import jp.tonyu.parser.Parser;
 import jp.tonyu.soytext2.servlet.HttpContext;
 import jp.tonyu.util.Literal;
+import jp.tonyu.util.SPrintf;
 
 import org.mozilla.javascript.ScriptRuntime;
 import org.mozilla.javascript.Scriptable;
@@ -26,7 +29,12 @@ public class EJS implements Wrappable {
 		Parser p=new Parser(src);
 		p.setSpacePattern(null);
 		StringBuilder buf=new StringBuilder();
+		Object[] argo=Scriptables.toArray(ScriptableObject.getProperty(d, HttpContext.ATTR_ARGUMENTORDER));
 		buf.append("res=function ($,params) { \n"); {
+			for (Object arg:argo) {
+				buf.append(SPrintf.sprintf("var %s=$.params.%s;\n"
+						, arg, arg));
+			}
   	    	while (true) {
   	    		p.read(htmlPlain);
   	    		buf.append(PRINT+"("+Literal.toLiteral(p.group())+");\n");
@@ -46,7 +54,9 @@ public class EJS implements Wrappable {
 //		buf.append("res.str=res+\"\"; \n");
 //		buf.append("res;\n");
 		System.out.println("EvalBuf - "+buf);
-		Object res=jssession.eval("HtmlComp"+d,   buf.toString());
+		BlankScriptableObject scope2 = new BlankScriptableObject(jssession.root);
+		Scriptables.extend(scope2, scope);
+		Object res=jssession.eval("HtmlComp"+d,   buf.toString(), scope2);
 		if (res instanceof Scriptable) {
 			Scriptable s = (Scriptable) res;
 			//Log.d(this, " Compiled - "+d+" to "+s);

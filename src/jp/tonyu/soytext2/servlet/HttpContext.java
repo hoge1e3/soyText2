@@ -1,19 +1,17 @@
 package jp.tonyu.soytext2.servlet;
 
+import static jp.tonyu.util.Literal.toLiteral;
+import static jp.tonyu.util.SPrintf.sprintf;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.URL;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Scanner;
-import java.util.SortedSet;
-import java.util.TreeSet;
 import java.util.regex.Matcher;
 
 import javax.servlet.http.Cookie;
@@ -24,28 +22,20 @@ import jp.tonyu.debug.Log;
 import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.js.ContextRunnable;
 import jp.tonyu.js.Wrappable;
-import jp.tonyu.soytext.Origin;
 import jp.tonyu.soytext2.auth.AuthentificatorList;
 import jp.tonyu.soytext2.auth.Session;
 import jp.tonyu.soytext2.auth.SessionSet;
 import jp.tonyu.soytext2.browserjs.IndentAdaptor;
 import jp.tonyu.soytext2.document.DocumentRecord;
-import jp.tonyu.soytext2.document.DocumentAction;
 import jp.tonyu.soytext2.document.DocumentSet;
-import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.document.backup.Importer;
-import jp.tonyu.soytext2.js.CompileResult;
-import jp.tonyu.soytext2.js.CompilerResolver;
 import jp.tonyu.soytext2.js.ContentChecker;
-import jp.tonyu.soytext2.js.DefaultCompiler;
 import jp.tonyu.soytext2.js.DocumentLoader;
 import jp.tonyu.soytext2.js.DocumentScriptable;
 import jp.tonyu.soytext2.js.JSSession;
 import jp.tonyu.soytext2.search.Query;
 import jp.tonyu.soytext2.search.QueryBuilder;
 import jp.tonyu.soytext2.search.expr.AttrOperator;
-import jp.tonyu.soytext2.value.Value;
-import jp.tonyu.soytext2.value.Values;
 import jp.tonyu.util.Literal;
 import jp.tonyu.util.MapAction;
 import jp.tonyu.util.Maps;
@@ -58,8 +48,6 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
-import static jp.tonyu.util.SPrintf.sprintf;
-import static jp.tonyu.util.Literal.toLiteral;
 
 public class HttpContext implements Wrappable {
 	private static final String SEL = "sel_";
@@ -218,6 +206,8 @@ public class HttpContext implements Wrappable {
 				}catch (Exception e) {
 					//ee.set(e);
 					try {
+						Log.d(this, "spawned Error - "+e.getMessage());
+						res.setContentType("text/plain; charset=utf8");
 						Httpd.respondByString(getRes(), "Error - "+e.getMessage());
 					} catch (IOException e1) {
 						e1.printStackTrace();
@@ -605,7 +595,8 @@ public class HttpContext implements Wrappable {
 			}
     	} 
 		if (s==null) {
-    		Httpd.respondByString(res, msg+"<form action=\"./auth\" method=\"POST\">"+
+    		if (user==null) user="";
+			Httpd.respondByString(res, msg+"<form action=\"./auth\" method=\"POST\">"+
     				"ユーザ名： <input name=\"user\" value=\""+user+"\"><br/>"+
     				"パスワード: <input type=\"password\" name=\"pass\">"+
     				"<br><input type=submit>"+

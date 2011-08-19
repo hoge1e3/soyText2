@@ -10,6 +10,7 @@ import java.util.Vector;
 import jp.tonyu.debug.Log;
 
 import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.ScriptableObject;
 
 public class Scriptables {
 	public static Object[] toArray(Object scriptable) {
@@ -95,5 +96,21 @@ public class Scriptables {
    	 cook=cook.replaceAll("'","\\\\'");
    	 return "'"+cook+"'";
     }
+
+	public static void extend(Scriptable to, Scriptable from) {
+		for (Object k:from.getIds()) {
+			if (k instanceof String) {
+				String kstr = (String) k;
+				Object value=ScriptableObject.getProperty(from, kstr); 
+				ScriptableObject.putProperty(to, kstr, value);
+			}
+			if (k instanceof Number) {
+				int kint = ((Number) k).intValue();
+				Object value=ScriptableObject.getProperty(from, kint); 
+				ScriptableObject.putProperty(to, kint, value);
+			}
+		}
+		
+	}
 
 }

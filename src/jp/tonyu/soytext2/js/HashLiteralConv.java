@@ -4,11 +4,13 @@ import java.util.Scanner;
 
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.BuiltinFunc;
+import jp.tonyu.js.Scriptables;
 import jp.tonyu.util.Maps;
 import jp.tonyu.util.Resource;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
+import org.mozilla.javascript.NativeJavaArray;
 import org.mozilla.javascript.Scriptable;
 
 public class HashLiteralConv {
@@ -18,14 +20,27 @@ public class HashLiteralConv {
 		if (compiled!=null) return compiled;
 		compiled=(Function)JSSession.cur.get().eval("toHashLiteral",
 				Resource.text(HashLiteralConv.class, ".js"),
-				Maps.create("debug", (Object)debug));
+				Maps. create("debug", (Object)debug));
 		return compiled;
 	}
+	static BuiltinFunc isJavaNative=new BuiltinFunc() {
+		public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
+			if (args.length==0) return false;
+			return !(args[0] instanceof Scriptable)  ;
+		}
+	};
 	static BuiltinFunc debug=new BuiltinFunc() {
 		
 		@Override
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 				Object[] args) {
+			if (args[0] instanceof NativeJavaArray) {
+				NativeJavaArray jar = (NativeJavaArray) args[0];
+				Object[] r= Scriptables.toArray(jar);
+				for (Object o :r ){
+					Log.d("TOHASH b", o);
+				}
+			}
 			Log.d("TOHASHLIT", args[0]);
 			return null;
 		}

@@ -28,7 +28,7 @@ public class DocumentScriptable implements Function {
 	Map<Object, Object>binds=new HashMap<Object, Object>();
 	final DocumentRecord d;
 	public final DocumentLoader loader;
-	public static final String ONCALL="onCall";
+	public static final String ONAPPLY="onApply";
 	public DocumentRecord getDocument() {
 		return d;
 	}
@@ -185,7 +185,11 @@ public class DocumentScriptable implements Function {
 				
 				res[i] = JSSession.idref(s, d.documentSet);
 				Log.d(this, "Put res["+i+"]="+res[i]);
-			} else*/ 	if (key instanceof String || key instanceof Number) {
+			} else*/
+			if ("contentEquals".equals(key)) {
+				Log.die("Why are you have it? "+this+" "+this.getParentScope()+" "+this.getPrototype());
+			}
+			if (key instanceof String || key instanceof Number) {
 				res[i]=key;
 			} else {
 				Log.die("Wrong key! "+key);
@@ -241,6 +245,7 @@ public class DocumentScriptable implements Function {
 
 	@Override
 	public void put(String name, Scriptable start, Object value) {
+		//if (name.equals("contentEquals")) Log.die("Who set it?");
 		put(name,value);
 	}
 
@@ -317,12 +322,13 @@ public class DocumentScriptable implements Function {
 	@Override
     public Object call(Context cx, Scriptable scope, Scriptable thisObj,
             Object[] args) {
-		Object r=ScriptableObject.getProperty(this,ONCALL);
+		Object r=ScriptableObject.getProperty(this,ONAPPLY);
 		if (r instanceof Function) {
 			Function f = (Function) r;
 			Object[] args2=new Object[] { thisObj ,args };
-			f.call(cx, scope, this, args2);
+			return f.call(cx, scope, this, args2);
 		}
+		Log.die(this+" is not function-callable.");
 		return null;
 	}
 	@Override

@@ -6,6 +6,8 @@ res=function (hash) {
    for (var key in hash) {
      if (hash.hasOwnProperty && !hash.hasOwnProperty(key)) continue;
      var value=hash[key];
+     debug(key);
+     debug(value);
      var valueStr=lit(value);
      res+=com; com=",";
      res+="\""+key+"\": "+valueStr;

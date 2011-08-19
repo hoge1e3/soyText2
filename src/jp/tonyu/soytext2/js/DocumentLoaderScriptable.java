@@ -56,6 +56,7 @@ public class DocumentLoaderScriptable implements Scriptable, Wrappable {
 		if (DB.equals(name)) return dbscr;
 		Object res = values.get(name);
 		if (res==null) {
+			if (parentScope.has(name, parentScope)) return UniqueTag.NOT_FOUND;
 			undefinedSymbols.add(name);
 			return null;
 		}
