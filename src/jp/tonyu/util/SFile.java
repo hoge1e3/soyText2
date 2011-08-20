@@ -121,4 +121,7 @@ public class SFile implements Iterable<SFile>{
 	public long size() {
 		return f.length();
 	}
+	public String[] lines() throws IOException {
+		return text().split("[\\r\\n]+");
+	}
 }

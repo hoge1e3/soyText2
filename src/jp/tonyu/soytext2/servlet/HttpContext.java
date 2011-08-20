@@ -564,9 +564,10 @@ public class HttpContext implements Wrappable {
 			Httpd.respondByString(res, menuBar()+Html.p(
 					"<form action=%a method=\"POST\">"+
 					"Body: <br/>\n"+
-					"<textarea name=%a rows=20 cols=80>%t</textarea>"+
+					"<textarea id=edit name=%a rows=20 cols=80>%t</textarea>"+
 					"<input type=submit>"+
-					"</form></body></html>","./"+id, HttpContext.ATTR_BODY, d.get(ATTR_BODY)+"")
+					"</form>"+indentAdap()+"</body></html>",
+					"./"+id, HttpContext.ATTR_BODY, d.get(ATTR_BODY)+"")
 			);
 		}
 	}
