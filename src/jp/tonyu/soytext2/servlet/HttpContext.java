@@ -135,6 +135,7 @@ public class HttpContext implements Wrappable {
 		_params=res;
 		return res;
 	}
+
     public Map<String,Object> params(final Map<String, ?> typeHints) {
     	final Map<String, String> p = params();
     	final Map<String,Object> res=new HashMap<String, Object>();
@@ -426,7 +427,6 @@ public class HttpContext implements Wrappable {
 		Query q=QueryBuilder.create("name:?").tmpl("name", str, AttrOperator.exact).toQuery();
 		final Ref<Boolean> found=new Ref<Boolean>(false);
 		documentLoader.searchByQuery(q, new BuiltinFunc() {
-			
 			@Override
 			public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 					Object[] args) {
@@ -618,6 +618,12 @@ public class HttpContext implements Wrappable {
 	private String linkBar(DocumentScriptable ds) {
 		return linkBar(ds,null);
 	}
+	/**
+	 * 
+	 * @param ds
+	 * @param sel
+	 * @return
+	 */
 	private String linkBar(DocumentScriptable ds,String sel) {
 		DocumentRecord d=ds.getDocument();
 		String id=d.id; 
