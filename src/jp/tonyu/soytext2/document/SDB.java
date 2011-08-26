@@ -185,16 +185,17 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		}
 	}
 	private DocumentRecord fromCursor(ISqlJetCursor cur) throws SqlJetException {
-    	DocumentRecord d = new DocumentRecord(this, cur.getString("id"));
+    	DocumentRecord d = new DocumentRecord();
+    	d.id=cur.getString("id");
     	d.lastUpdate=cur.getInteger("lastupdate");
     	d.createDate=cur.getInteger("createdate");
     	d.lastAccessed=cur.getInteger("lastaccessed");
     	d.summary=cur.getString("summary");
     	d.preContent=cur.getString("precontent");
     	d.content=cur.getString("content");
-    	d.owner.set(cur.getString("owner"));
-    	d.group.set(cur.getString("group"));
-    	d.permission.set(cur.getString("permission"));
+    	d.owner=(cur.getString("owner"));
+    	d.group=(cur.getString("group"));
+    	d.permission=(cur.getString("permission"));
     	return d;
 	}
 	@Override
@@ -209,7 +210,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 			    Log.d("SAVE", d);
 			    //Log.d("SAVE", "Before - "+docCount());
 			    if (!cur.eof()) {
-			    	cur.update(d.id,d.lastUpdate,d.createDate,d.lastAccessed,"javascript",d.summary,d.preContent,d.content,d.owner.get(),d.group.get(),d.permission.get());
+			    	cur.update(d.id,d.lastUpdate,d.createDate,d.lastAccessed,"javascript",d.summary,d.preContent,d.content,d.owner,d.group,d.permission);
 			    } else {
 			    	insertDocument(d, t);
 			    }				
@@ -230,9 +231,9 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 				d.summary,
 				d.preContent,
 				d.content,
-				d.owner.get(),
-				d.group.get(),
-				d.permission.get());
+				d.owner,
+				d.group,
+				d.permission);
 	}
 	public int docCount() throws SqlJetException {
 		ISqlJetTable t=docTable();
@@ -253,7 +254,8 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	@Override
 	public DocumentRecord newDocument() {
 		LogRecord log = logManager.write("create","<sameAsThisId>");
-		DocumentRecord d=new DocumentRecord(this, log.id+"@"+uid);
+		DocumentRecord d=new DocumentRecord();
+		d.id=log.id+"@"+uid;
 		d.lastUpdate=log.id;
 		d.lastAccessed=log.id;
 		cache.put(d.id, d);
@@ -263,7 +265,8 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	public DocumentRecord newDocument(String id) {
 		if (byId(id)!=null) return null;
 		LogRecord log = logManager.write("create",id);
-		DocumentRecord d=new DocumentRecord(this, id);
+		DocumentRecord d=new DocumentRecord();
+		d.id=id;
 		d.lastUpdate=log.id;
 		d.lastAccessed=log.id;
 		cache.put(d.id, d);
@@ -273,7 +276,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		logManager.printAll();
 	}
 	// migration - error CORUPPT
-	@Override
+	/*@Override
 	protected void onUpgrade(SqlJetDb db, int oldVersion, int newVersion)
 			throws SqlJetException {
 		if (oldVersion==1 && newVersion==2) {
@@ -294,16 +297,16 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 				System.out.println(d);
 				if (d.id.equals("100309_210119")) {
 					Object[] r=new Object[]{				d.id,
-				d.lastUpdate,
-				d.createDate,
-				d.lastAccessed,
-				"javascript",
-				d.summary,
-				d.preContent,
-				d.content,
-				d.owner.get(),
-				d.group.get(),
-				d.permission.get()};
+							d.lastUpdate,
+							d.createDate,
+							d.lastAccessed,
+							"javascript",
+							d.summary,
+							d.preContent,
+							d.content,
+							d.owner,
+							d.group,
+							d.permission};
 					for (Object rr:r) {
 						System.out.println(rr);
 					}
@@ -312,8 +315,8 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 				insertDocument(d,t);
 			}
 		}
-	}
-	private void dropDocumentTable1(SqlJetDb db) throws SqlJetException {
+	}*/
+	/*private void dropDocumentTable1(SqlJetDb db) throws SqlJetException {
 		db.dropIndex(DOCUMENT_1_LASTACCESSED);
 		db.dropIndex(DOCUMENT_1_LASTUPDATE);
 		db.dropIndex(DOCUMENT_1_OWNER);
@@ -331,7 +334,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
     	d.group.set(cur.getString("group"));
     	d.permission.set(cur.getString("permission"));
     	return d;
-	}
+	}*/
 	public void importLog(LogRecord curlog) {
 		logManager.importLog(curlog);
 	}

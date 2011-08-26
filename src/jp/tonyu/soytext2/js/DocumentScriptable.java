@@ -104,10 +104,10 @@ public class DocumentScriptable implements Function {
 		if ("compile".equals(key)) return compileFunc;
 		if ("hasOwnProperty".equals(key)) return hasOwnPropFunc;
 		if ("callSuper".equals(key)) return callSuperFunc;
-		if (key instanceof DocumentScriptable) {
+		/*if (key instanceof DocumentScriptable) {
 			DocumentScriptable keyDoc = (DocumentScriptable) key;
 			key=JSSession.idref(keyDoc, d.documentSet);
-		}
+		}*/
 		Object res = binds.get(key);
 		if (res!=null) return res;
 		if (key instanceof DocumentScriptable) {
@@ -126,10 +126,11 @@ public class DocumentScriptable implements Function {
 		put(GETTERKEY, g);
 	}
 	public Object put(Object key,Object value) {
-		if (key instanceof DocumentScriptable) {
+		/*if (key instanceof DocumentScriptable) {
 			DocumentScriptable s = (DocumentScriptable) key;			
 			binds.put(JSSession.idref(s, d.documentSet),value);
-		} else	if (key instanceof String || key instanceof Number) {
+		} else*/
+		if (key instanceof String || key instanceof Number) {
 			binds.put(key, value);
 		} else if (value==null){
 			binds.remove(key);
@@ -269,7 +270,7 @@ public class DocumentScriptable implements Function {
 		refreshSummary();
 		refreshContent();
 		Log.d(this, "save() content changed to "+d.content);
-		d.save();
+		loader.getDocumentSet().save(d);// d.save();
 		
 	}
 	private void refreshContent() {
@@ -295,7 +296,7 @@ public class DocumentScriptable implements Function {
 		Log.d(this, "setContentAndSave() content changed to "+d.content);
 		loader.loadFromContent(content, this);		
 		refreshSummary();
-		d.save();
+		loader.getDocumentSet().save(d);//d.save();
 	}
 	@Override
 	public String toString() {

@@ -25,8 +25,8 @@ public class Importer {
 	String curTable=null;
 	DocumentRecord curdoc=null;
 	LogRecord curlog=null;
-	static final Pattern table=Pattern.compile("\\[([\\d\\w]+)\\]");
-	static final Pattern field=Pattern.compile("([\\d\\w]+): (.*)");
+	public static final Pattern table=Pattern.compile("\\[([\\d\\w]+)\\]");
+	public static final Pattern field=Pattern.compile("([\\d\\w]+): (.*)");
 	public void importDocuments(File file) throws IOException,SqlJetException {
 		Scanner s=new Scanner(file);
 		curTable=null;
@@ -58,13 +58,13 @@ public class Importer {
 						curdoc.preContent=value;
 					}				
 					if ("owner".equals(key)) {
-						curdoc.owner.set(value);
+						curdoc.owner=value;
 					}
 					if ("group".equals(key)) {
-						curdoc.group.set(value);
+						curdoc.group=value;
 					}
 					if ("permission".equals(key)) {
-						curdoc.permission.set(value);
+						curdoc.permission=value;
 					}
 				} else {
 					tryChangeTable(line);
@@ -76,7 +76,7 @@ public class Importer {
 					String value=Literal.fromLiteral(m.group(2));
 					if ("id".equals(key)) {
 						flush();
-						curlog=new LogRecord(Integer.parseInt(value));
+						curlog=LogRecord.create(Integer.parseInt(value));
 					}
 					if ("option".equals(key)) {
 						curlog.option=value;
@@ -116,7 +116,7 @@ public class Importer {
 			curlog=null;
 		}
 		if (curdoc!=null) {
-			curdoc.save();
+			sdb.save(curdoc);// curdoc.save();
 			if (documentLoader!=null) {
 				documentLoader.reload(curdoc.id);
 			}

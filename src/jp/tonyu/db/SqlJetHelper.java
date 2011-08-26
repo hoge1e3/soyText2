@@ -169,4 +169,11 @@ public class SqlJetHelper {
 	public SqlJetTableHelper table(String name) {
 		return new SqlJetTableHelper(db, name);
 	}
+	public static String tableName(Class klass) {
+		return klass.getName().replaceAll("\\.", "_");
+	}
+	public SqlJetTableHelper table(Class klass) {
+		return table(tableName(klass));
+	}
+
 }

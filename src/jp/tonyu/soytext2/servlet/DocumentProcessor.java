@@ -311,7 +311,7 @@ public class DocumentProcessor {
 				}
 				d.setContentAndSave(keys.get(HttpContext.ATTR_CONTENT));				
 			} else {
-				classicPost(d,keys);
+				//classicPost(d,keys);
 			}
 			res.setContentType("text/html; charset=utf8");
 			String docBase=rootPath();
@@ -325,7 +325,7 @@ public class DocumentProcessor {
 
 		}
 	}
-	@Deprecated
+	/*@Deprecated
 	private void classicPost(DocumentScriptable d, Map<String, String> keys) {
 		for (String k :keys.keySet())
 		{
@@ -335,7 +335,7 @@ public class DocumentProcessor {
 			d.put(k,vv);
 		}
 		d.save();
-	}
+	}*/
 	public String rootPath() {
 		return ctx.rootPath();
 	}
