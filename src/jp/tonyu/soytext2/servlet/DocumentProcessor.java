@@ -310,7 +310,9 @@ public class DocumentProcessor {
 					d.getDocument().preContent= keys.get(HttpContext.ATTR_PRECONTENT);
 				}
 				d.setContentAndSave(keys.get(HttpContext.ATTR_CONTENT));				
-			} else {
+			} else if (keys.containsKey(HttpContext.ATTR_BODY)) {
+				d.put(HttpContext.ATTR_BODY, keys.get(HttpContext.ATTR_BODY));
+				d.save();
 				//classicPost(d,keys);
 			}
 			res.setContentType("text/html; charset=utf8");
