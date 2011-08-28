@@ -1,6 +1,9 @@
 package jp.tonyu.soytext2.document;
 
+import org.tmatesoft.sqljet.core.SqlJetException;
+
 import jp.tonyu.db.SqlJetRecord;
+import jp.tonyu.db.SqlJetTableHelper;
 import jp.tonyu.util.Ref;
 
 
@@ -25,11 +28,15 @@ public class DocumentRecord extends SqlJetRecord /*implements Wrappable*/ {
 				"summary","preContent","content","owner","group","permission"
 		};
 	}
+	@Override
+	public String tableName() {
+		return "DocumentRecord";
+	}
 	//private DocumentSet documentSet;
 	public String id;
 	public long lastUpdate,createDate,lastAccessed;
 	public String summary,content,preContent;
-	public String language;
+	public String language="javascript";
 	public String owner="",group="",permission="";
 	/*public DocumentRecord(String id) {
 		//this.documentSet=documentSet;
@@ -41,8 +48,15 @@ public class DocumentRecord extends SqlJetRecord /*implements Wrappable*/ {
 	public String toString() {
 		return "(Document "+id+")";
 	}
+	@Override
+	public String[] indexNames() {
+		return q("lastUpdate","lastAccessed","owner");
+	}
 	/*public void save() {
 		documentSet.save(this);
 	}*/
+	public void insertTo(SqlJetTableHelper t) throws SqlJetException {
+		insertTo(t.table());
+	}
 	
 }

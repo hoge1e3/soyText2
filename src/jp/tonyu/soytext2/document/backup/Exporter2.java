@@ -10,12 +10,14 @@ import org.tmatesoft.sqljet.core.table.SqlJetDb;
 
 import jp.tonyu.db.DBAction;
 import jp.tonyu.db.SqlJetRecord;
+import jp.tonyu.db.SqlJetTableHelper;
 import jp.tonyu.debug.Log;
 import jp.tonyu.soytext2.document.DocumentAction;
 import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.LogAction;
 import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.document.LogRecord;
+import jp.tonyu.soytext2.document.UIDRecord;
 import jp.tonyu.util.Literal;
 
 public class Exporter2 {
@@ -25,40 +27,49 @@ public class Exporter2 {
 		this.db=db;
 		this.out=out;
 	}
-	public <T extends SqlJetRecord> void  exportTable(Class<T> klass) throws Exception {
-		ISqlJetCursor cur = db.table(klass).order();
-		T d=klass.newInstance();
-		while (!cur.eof()) {
-			d.set(cur);			
-			d.export(p);
-			cur.next();
-		}
-		cur.close();
+	/*public <T extends SqlJetRecord> void  exportTable(Class<T> klass) throws Exception {
+		SqlJetTableHelper table = db.table(klass);
+		exportTable(klass, table);
+	}*/
+	private void exportTable(SqlJetRecord uidRecord) throws Exception {
+		exportTable(uidRecord.tableName(), uidRecord);
+		
 	}
-	public <T extends SqlJetRecord> void  exportTable(String actTable, Class<T> klass) throws Exception {
-		ISqlJetCursor cur = db.table(actTable).order();
-		T d=klass.newInstance();
+	public <T extends SqlJetRecord> void  exportTable(String actTable, SqlJetRecord r) throws Exception {
+		SqlJetTableHelper table = db.table(actTable);
+		exportTable(r, table);
+	}
+	private <T extends SqlJetRecord> void exportTable(SqlJetRecord r, SqlJetTableHelper table)
+			throws SqlJetException, InstantiationException,
+			IllegalAccessException {
+		ISqlJetCursor cur = table.order();
 		while (!cur.eof()) {
-			d.set(cur);			
-			d.export(p);
+			r.fetch(cur);			
+			r.export(p);
 			cur.next();
 		}
 		cur.close();
 	}
 	public void export() throws Exception {
 		p=new PrintStream(out);
+		p.println("version=1");
 		db.readTransaction(new DBAction() {
 			
 			@Override
 			public void run(SqlJetDb db) throws SqlJetException {
 				try {
-					exportTable("Document_1",DocumentRecord.class);
-					exportTable("Log_1",LogRecord.class);
+					/*exportTable("Document_1",new DocumentRecord());
+					exportTable("Log_1",new LogRecord());*/
+					exportTable(new UIDRecord());
+					exportTable(new DocumentRecord());
+					exportTable(new LogRecord());
 				} catch (Exception e) {
 					e.printStackTrace();
 					Log.die("Excep: "+e);
 				}
 			}
+
+
 		}, -1);
 		p.close();
 	}

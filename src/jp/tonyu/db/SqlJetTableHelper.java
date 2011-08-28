@@ -61,12 +61,18 @@ public class SqlJetTableHelper {
 		return table().order(indexName);
 	}
 	public ISqlJetCursor order(String attrNames) throws SqlJetException {
+		if (attrNames==null) {
+			return orderByIndexName(null);
+		}
 		return orderByIndexName(indexName(attrNames));
 	}
 	public ISqlJetCursor lookup(Object pkey) throws SqlJetException {
 		return table().lookup(null, pkey);
 	}
 	public ISqlJetCursor lookup(String attrNames, Object... objects) throws SqlJetException {
+		if (attrNames==null) {
+			return table().lookup(null, objects);
+		}
 		return table().lookup(indexName(attrNames), objects);
 	}
 	public void insert(Object... object) throws SqlJetException {

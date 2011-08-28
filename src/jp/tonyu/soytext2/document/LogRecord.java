@@ -1,6 +1,9 @@
 package jp.tonyu.soytext2.document;
 
+import org.tmatesoft.sqljet.core.SqlJetException;
+
 import jp.tonyu.db.SqlJetRecord;
+import jp.tonyu.db.SqlJetTableHelper;
 
 public class LogRecord extends SqlJetRecord {
 	/*static String schema="CREATE TABLE "+LOG_1+" (\n"+
@@ -19,6 +22,11 @@ public class LogRecord extends SqlJetRecord {
 	public String[] fieldOrder() {
 		return new String[]{"id","date","action","target","option"};
 	}
+	@Override
+	public String tableName() {
+		return "LogRecord";
+	}
+
 	/*public LogRecord(int id) {
 		super();
 		this.id = id;
@@ -28,5 +36,6 @@ public class LogRecord extends SqlJetRecord {
 		res.id=id;
 		return res;
 	}
+
 	
 }

@@ -1,10 +1,14 @@
 package jp.tonyu.db;
 
 import java.io.File;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Vector;
 
 import jp.tonyu.debug.Log;
+import jp.tonyu.util.MapAction;
+import jp.tonyu.util.Maps;
 
 import org.tmatesoft.sqljet.core.SqlJetException;
 import org.tmatesoft.sqljet.core.SqlJetTransactionMode;
@@ -136,7 +140,7 @@ public class SqlJetHelper {
 		mode=null;
 	}
 	private void create(SqlJetDb db,int newVersion) throws SqlJetException {
-		onCreate(db);
+		onCreate(db,newVersion);
 		db.getOptions().setUserVersion(newVersion);
 	}
 	private void upgrade(int oldVersion, int newVersion) throws SqlJetException {
@@ -147,8 +151,16 @@ public class SqlJetHelper {
 		//System.out.println("Version "+oldVersion+" -> "+newVersion);
 	}
 	
-	protected void onCreate(SqlJetDb db) throws SqlJetException {
+	protected void onCreate(final SqlJetDb db, int version) throws SqlJetException {
 		//System.out.println("Created");
+		for (SqlJetRecord r: tables(version)) {
+			try {
+				r.createTableAndIndex(SqlJetHelper.this);
+			} catch (NoSuchFieldException e) {
+				//e.printStackTrace();
+				throw new SqlJetException(e);
+			}
+		}
 	}
 	/*public static void main(String[] args) throws SqlJetException {
 		new SqlJetHelper(new File("empty.db"), 3);
@@ -169,11 +181,17 @@ public class SqlJetHelper {
 	public SqlJetTableHelper table(String name) {
 		return new SqlJetTableHelper(db, name);
 	}
-	public static String tableName(Class klass) {
+	/*public static String tableName(Class klass) {
 		return klass.getName().replaceAll("\\.", "_");
+	}*/
+	public SqlJetTableHelper table(SqlJetRecord r) {
+		return table(r.tableName());
 	}
-	public SqlJetTableHelper table(Class klass) {
-		return table(tableName(klass));
+	public SqlJetRecord[] tables(int version) {
+		return q();
+	}
+	public static <T> T[] q(T...ts) {
+		return ts;
 	}
 
 }

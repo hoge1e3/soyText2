@@ -10,6 +10,7 @@ import org.tmatesoft.sqljet.core.table.ISqlJetTable;
 import org.tmatesoft.sqljet.core.table.SqlJetDb;
 
 import jp.tonyu.db.DBAction;
+import jp.tonyu.db.SqlJetTableHelper;
 import jp.tonyu.debug.Log;
 
 public class LogManager {
@@ -22,7 +23,7 @@ public class LogManager {
 			
 			@Override
 			public void run(SqlJetDb db) throws SqlJetException {
-				ISqlJetTable t = sdb.logTable();
+				SqlJetTableHelper t = sdb.logTable();
 				ISqlJetCursor c = t.order(null);
 				lastNumber=0;
 				if (c.last()) {
@@ -36,7 +37,7 @@ public class LogManager {
 			sdb.readTransaction(new DBAction () {
 				@Override
 				public void run(SqlJetDb db) throws SqlJetException {
-					ISqlJetTable t = sdb.logTable();
+					SqlJetTableHelper t = sdb.logTable();
 					ISqlJetCursor c = t.order(null);
 					while (!c.eof()) {
 						Log.d("LOG", c.getValue("id")+","+c.getValue("date")+","+c.getValue("action")+","+c.getValue("target") );
@@ -56,7 +57,7 @@ public class LogManager {
 
 				@Override
 				public void run(SqlJetDb db) throws SqlJetException {
-					ISqlJetTable t = sdb.logTable();
+					SqlJetTableHelper t = sdb.logTable();
 					ISqlJetCursor cur = t.lookup(null, id);
 					LogRecord res=LogRecord.create(id);
 					if (!cur.eof()) {
@@ -75,7 +76,7 @@ public class LogManager {
 
 				@Override
 				public void run(SqlJetDb db) throws SqlJetException {
-					ISqlJetTable t = sdb.logTable();
+					SqlJetTableHelper t = sdb.logTable();
 					ISqlJetCursor c = t.order(null);
 					while (!c.eof()) {
 						long id=c.getInteger("id");
@@ -120,13 +121,15 @@ public class LogManager {
 			
 			@Override
 			public void run(SqlJetDb db) throws SqlJetException {
-				ISqlJetTable t = sdb.logTable();
+				SqlJetTableHelper t = sdb.logTable();
 				ISqlJetCursor cur = t.lookup(null, log.id);
 
 				if (!cur.eof()) {
-			    	cur.update(log.id,log.date,log.action,log.target,log.option);
+					log.update(cur);
+					//cur.update(log.id,log.date,log.action,log.target,log.option);
 			    } else {
-			    	t.insert(log.id,log.date,log.action,log.target,log.option);
+			    	log.insertTo(t);
+			    	//t.insert(log.id,log.date,log.action,log.target,log.option);
 			    }
 			}
 		});

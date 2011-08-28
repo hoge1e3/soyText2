@@ -20,4 +20,8 @@ public class Log {
 		if (value==null) die(msg);
 		return value;
 	}
+
+	public static void die(Exception e) {
+		die("Wrapped Exception :"+e);
+	}
 }

@@ -53,4 +53,13 @@ public class Util {
 		 .replaceAll("\\\\\\\\", "\\\\")
 	    ;
 	}
+	public static Object join(String sep, Object[] array) {
+		String ss="";
+		StringBuilder b=new StringBuilder();
+		for (Object e: array) {
+			b.append(ss+e);
+			ss=sep;
+		}
+		return b.toString();
+	}
 }
