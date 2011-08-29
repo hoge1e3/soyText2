@@ -212,4 +212,10 @@ public class SqlJetHelper {
 		ISqlJetCursor cur = t.order(attrNames);
 		return new SqlJetRecordCursor<T>(record, cur);
 	}
+	public <T extends SqlJetRecord> SqlJetRecordCursor<T> reverseOrder(T record, String attrNames) throws SqlJetException {
+		SqlJetTableHelper t = table(record);
+		ISqlJetCursor cur = t.order(attrNames);
+		return new SqlJetRecordCursor<T>(record, cur.reverse());
+	}
+
 }

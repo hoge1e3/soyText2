@@ -171,6 +171,7 @@ public class DocumentScriptable implements Function {
 
 	@Override
 	public Object getDefaultValue(Class<?> hint) {
+		if (hint.equals(String.class)) return toString();
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -18,7 +18,7 @@ public class Ref<T> {
 	public boolean isSet() {
 		return isset;
 	}
-	public T set(T v) {return val=v;}
+	public T set(T v) {isset=true;return val=v;}
 	public boolean notNull() {
 		return val!=null;
 	}

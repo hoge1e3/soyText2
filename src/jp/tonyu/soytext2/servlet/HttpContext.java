@@ -208,7 +208,7 @@ public class HttpContext implements Wrappable {
 					//ee.set(e);
 					try {
 						Log.d(this, "spawned Error - "+e.getMessage());
-						res.setContentType("text/plain; charset=utf8");
+						res.setContentType("text/plain; charset=utf-8");
 						Httpd.respondByString(getRes(), "Error - "+e.getMessage());
 					} catch (IOException e1) {
 						e1.printStackTrace();
@@ -222,7 +222,7 @@ public class HttpContext implements Wrappable {
     private void proc2() throws IOException
     {
 		req.setCharacterEncoding("UTF-8");
-		res.setContentType("text/html; charset=utf8");
+		res.setContentType("text/html; charset=utf-8");
 		String[] s=args();
         Log.d(this,"pathinfo = "+req.getPathInfo());
         Log.d(this,"qstr = "+req.getQueryString());
@@ -387,30 +387,31 @@ public class HttpContext implements Wrappable {
 	        		execed=true;
 	        	}
 			}*/
-			boolean execed=false;
-			Object doGet = ScriptableObject.getProperty(d, DOGET);
-			if (doGet instanceof Function ) {
-				final Function f=(Function) doGet;
-				/*JSSession jsSession = jssession();
-				jsSession.call(f, new Object[]{getReq(),getRes()});
-				*/
-				JSSession.withContext(new ContextRunnable() {
-					
-					@Override
-					public Object run(Context cx) {
-						f.call(cx, jssession().root, d, 
-								new Object[]{getReq(),getRes(),HttpContext.this});
-						return null;
-					}
-				});
-				execed=true;
-			}
+			boolean execed = exec(d);
 	        if (!execed) {
 	        	print(id+" is not executable :"+d);
 	        }
 		} else {
 			 notfound(id);
 		}
+	}
+	private boolean exec(final DocumentScriptable d) {
+		boolean execed=false;
+		Object doGet = ScriptableObject.getProperty(d, DOGET);
+		if (doGet instanceof Function ) {
+			final Function f=(Function) doGet;
+			JSSession.withContext(new ContextRunnable() {
+				
+				@Override
+				public Object run(Context cx) {
+					f.call(cx, jssession().root, d, 
+							new Object[]{getReq(),getRes(),HttpContext.this});
+					return null;
+				}
+			});
+			execed=true;
+		}
+		return execed;
 	}
 	private JSSession jssession() {
 		return JSSession.cur.get();
@@ -425,14 +426,16 @@ public class HttpContext implements Wrappable {
 	private void byName() throws IOException {
 		String str=req.getPathInfo().replaceAll("^/", "");
 		Query q=QueryBuilder.create("name:?").tmpl("name", str, AttrOperator.exact).toQuery();
-		final Ref<Boolean> found=new Ref<Boolean>(false);
+		final Ref<Boolean> found=Ref.create(false);
 		documentLoader.searchByQuery(q, new BuiltinFunc() {
 			@Override
 			public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 					Object[] args) {
 				DocumentScriptable s=(DocumentScriptable)args[0];
 				try {
-					documentProcessor(s).proc();
+					if (!exec(s)) {
+						documentProcessor(s).proc();
+					}
 					found.set(true);
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -723,7 +726,7 @@ public class HttpContext implements Wrappable {
 		String path=rootPath();
 		StringBuilder buf=new StringBuilder();
         buf.append(Html.p("<html><head><meta http-equiv=%a content=%a></head>"
-        		                ,"Content-type","text/html; charset=utf8"));
+        		                ,"Content-type","text/html; charset=utf-8"));
         buf.append("<body>");
         buf.append("User: "+currentSession().userName()+" | ");
         buf.append(Html.p("<a href=%a>ログイン</a>  |" , path+"/auth"));

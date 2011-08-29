@@ -8,6 +8,7 @@ import java.util.Map;
 import jp.tonyu.db.DBAction;
 import jp.tonyu.db.SqlJetHelper;
 import jp.tonyu.db.SqlJetRecord;
+import jp.tonyu.db.SqlJetRecordCursor;
 import jp.tonyu.db.SqlJetTableHelper;
 import jp.tonyu.debug.Log;
 import jp.tonyu.util.Ref;
@@ -39,17 +40,22 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		super(file, version);
 		this.uid=uid;
 		logManager=new LogManager(this);
-		//setupUID();
+		setupUID();
+		Log.d(this, "UID = "+getUID());
 	}
 	private void setupUID() throws SqlJetException {
 		String gu = getUID();
 		if (gu==null) {
+			if (uid.equals(UID_EXISTENT_FILE)) {
+				throw new RuntimeException("Although UID_EXISTENT_FILE, Uid does not set  ");				
+			}
 			setUID(uid);
 			return;
 		}
 		if (gu.equals(uid)) return;
-		if (gu.equals(UID_EXISTENT_FILE) || gu.equals(UID_IMPORT)) {
+		if (uid.equals(UID_EXISTENT_FILE) || uid.equals(UID_IMPORT)) {
 			uid=gu;
+			return;
 		}
 		throw new RuntimeException(" Uid not match: indb="+gu+"  expect="+uid);
 	}
@@ -148,16 +154,17 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 			readTransaction(new DBAction() {
 				@Override
 				public void run(SqlJetDb db) throws SqlJetException {
-					SqlJetTableHelper t = docTable();
-					ISqlJetCursor cur = t.order("lastUpdate");//DOCUMENT_CUR_LASTUPDATE);
-					if (fromNewest) cur=cur.reverse();
+					//SqlJetTableHelper t = docTable();
+					SqlJetRecordCursor<DocumentRecord> cur;
+					if (fromNewest) cur=reverseOrder(documentRecord,"lastUpdate");
+					else cur = order(documentRecord,"lastUpdate");
 					while (!cur.eof()) {
 						String id=cur.getString("id");
 						DocumentRecord d=null;
 						synchronized (cache) {
 							d=cache.get(id);
 							if (d==null) {
-								d=fromCursor(cur);
+								d=cur.fetch();
 								cache.put(id,d);
 							}
 						}
@@ -197,22 +204,11 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 			return cache.get(id);			
 		}
 	}
-	private DocumentRecord fromCursor(ISqlJetCursor cur) throws SqlJetException {
+	/*private DocumentRecord fromCursor(ISqlJetCursor cur) throws SqlJetException {
     	DocumentRecord d = new DocumentRecord();
-    	/*d.id=cur.getString("id");
-    	d.lastUpdate=cur.getInteger("lastupdate");
-    	d.createDate=cur.getInteger("createdate");
-    	d.lastAccessed=cur.getInteger("lastaccessed");
-    	d.summary=cur.getString("summary");
-    	d.preContent=cur.getString("precontent");
-    	d.content=cur.getString("content");
-    	d.owner=(cur.getString("owner"));
-    	d.group=(cur.getString("group"));
-    	d.permission=(cur.getString("permission"));
-    	*/
     	d.fetch(cur);
     	return d;
-	}
+	}*/
 	@Override
 	public void save(final DocumentRecord d) {
 		reserveWriteTransaction(new DBAction() {

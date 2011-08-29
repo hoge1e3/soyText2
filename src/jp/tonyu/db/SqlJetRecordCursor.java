@@ -3,6 +3,8 @@ package jp.tonyu.db;
 import java.io.InputStream;
 import java.util.Map;
 
+import jp.tonyu.soytext2.document.DocumentRecord;
+
 import org.tmatesoft.sqljet.core.SqlJetException;
 import org.tmatesoft.sqljet.core.SqlJetValueType;
 import org.tmatesoft.sqljet.core.schema.SqlJetConflictAction;
@@ -183,6 +185,9 @@ public class SqlJetRecordCursor<T extends SqlJetRecord> implements ISqlJetCursor
 	public long updateWithRowIdOr(SqlJetConflictAction arg0, long arg1,
 			Object... arg2) throws SqlJetException {
 		return cur.updateWithRowIdOr(arg0, arg1, arg2);
+	}
+	public SqlJetRecordCursor<T> reverseRecordCursor() throws SqlJetException {
+		return new SqlJetRecordCursor<T>(record, cur.reverse());
 	}
 	
 }
