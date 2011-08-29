@@ -2,12 +2,17 @@ package jp.tonyu.soytext2.document;
 
 import org.tmatesoft.sqljet.core.SqlJetException;
 
+import jp.tonyu.db.SqlJetHelper;
 import jp.tonyu.db.SqlJetRecord;
 import jp.tonyu.db.SqlJetTableHelper;
 import jp.tonyu.util.Ref;
 
 
 public class DocumentRecord extends SqlJetRecord /*implements Wrappable*/ {
+	/*public DocumentRecord(SqlJetHelper db) {
+		super(db);
+	}*/
+	
 	/*	db.createTable("CREATE TABLE "+DOCUMENT_1+"(\n"+
 			    "   id TEXT NOT NULL PRIMARY KEY,\n"+
 			    "   lastupdate INTEGER NOT NULL,\n"+
@@ -42,8 +47,6 @@ public class DocumentRecord extends SqlJetRecord /*implements Wrappable*/ {
 		//this.documentSet=documentSet;
 		this.id=id;
 	}*/
-	public DocumentRecord() {
-	}
 	@Override
 	public String toString() {
 		return "(Document "+id+")";

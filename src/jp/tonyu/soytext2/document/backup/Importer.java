@@ -76,7 +76,7 @@ public class Importer {
 					String value=Literal.fromLiteral(m.group(2));
 					if ("id".equals(key)) {
 						flush();
-						curlog=LogRecord.create(Integer.parseInt(value));
+						curlog=LogRecord.create(Integer.parseInt(value),sdb);
 					}
 					if ("option".equals(key)) {
 						curlog.option=value;

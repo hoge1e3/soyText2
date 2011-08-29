@@ -12,7 +12,9 @@ import jp.tonyu.util.Maps;
 
 import org.tmatesoft.sqljet.core.SqlJetException;
 import org.tmatesoft.sqljet.core.SqlJetTransactionMode;
+import org.tmatesoft.sqljet.core.table.ISqlJetCursor;
 import org.tmatesoft.sqljet.core.table.SqlJetDb;
+import org.xbill.DNS.Lookup;
 
 public class SqlJetHelper {
 	protected final SqlJetDb db;
@@ -194,4 +196,20 @@ public class SqlJetHelper {
 		return ts;
 	}
 
+	public <T extends SqlJetRecord> T find1(T record, String attrNames, Object... values) throws SqlJetException {
+		SqlJetTableHelper t = table(record);
+		ISqlJetCursor cur = t.lookup(attrNames, values);
+		T res=null;
+		if (!cur.eof()) {	
+			res = record.dup(record);
+			res.fetch(cur);
+		}
+		cur.close();
+		return res;
+	}
+	public <T extends SqlJetRecord> SqlJetRecordCursor<T> order(T record, String attrNames) throws SqlJetException {
+		SqlJetTableHelper t = table(record);
+		ISqlJetCursor cur = t.order(attrNames);
+		return new SqlJetRecordCursor<T>(record, cur);
+	}
 }

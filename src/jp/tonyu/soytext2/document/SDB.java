@@ -85,9 +85,12 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		if (res.isSet()) return res.get();
 		return null;
 	}
+	DocumentRecord documentRecord=new DocumentRecord();
+	LogRecord logRecord=new LogRecord();
+	UIDRecord uidRecord=new UIDRecord();
 	@Override
 	public SqlJetRecord[] tables(int version) {
-		return q(new DocumentRecord(),new LogRecord(), new UIDRecord());
+		return q(documentRecord,logRecord, uidRecord);
 	}
 	/*@Override
 	protected void onCreate(SqlJetDb db,int version) throws SqlJetException {
@@ -176,11 +179,15 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 					readTransaction(new DBAction() {
 						@Override
 						public void run(SqlJetDb db) throws SqlJetException {
-							SqlJetTableHelper t = docTable();
+							DocumentRecord d=find1(documentRecord, null, id);
+							if (d!=null) {
+								cache.put(id, d);
+							}
+							/*SqlJetTableHelper t = docTable();
 							ISqlJetCursor cur = t.lookup(id);
 							if (!cur.eof()) {
 								cache.put(id, fromCursor(cur));
-							}
+							}*/
 						}
 					},-1);
 				} catch (SqlJetException e) {
@@ -262,13 +269,13 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		return db.getTable(LOG_CUR);
 	}*/
 	public SqlJetTableHelper uidTable() throws SqlJetException {
-		return table(new UIDRecord());
+		return table(uidRecord);
 	}
 	public SqlJetTableHelper docTable() throws SqlJetException {
-		return table(new DocumentRecord());
+		return table(documentRecord);
 	}
 	public SqlJetTableHelper logTable() throws SqlJetException {
-		return table(new LogRecord());
+		return table(logRecord);
 	}
 	@Override
 	public DocumentRecord newDocument() {

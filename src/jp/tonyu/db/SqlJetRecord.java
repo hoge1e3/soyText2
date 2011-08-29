@@ -1,7 +1,9 @@
 package jp.tonyu.db;
 
 import java.io.PrintStream;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Scanner;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -14,10 +16,55 @@ import jp.tonyu.util.Literal;
 import jp.tonyu.util.Util;
 
 import org.tmatesoft.sqljet.core.SqlJetException;
+import org.tmatesoft.sqljet.core.internal.table.SqlJetCursor;
 import org.tmatesoft.sqljet.core.table.ISqlJetCursor;
 import org.tmatesoft.sqljet.core.table.ISqlJetTable;
 
 public abstract class SqlJetRecord {
+	/*private SqlJetHelper db;
+	public SqlJetRecord(SqlJetHelper db) {
+		this.db=db;
+	}*/
+	public SqlJetRecord newInstance() {
+		return newInstance(getClass());
+	}
+	public <T extends SqlJetRecord> T dup(T thiz) throws SqlJetException {
+		if (thiz!=this) Log.die("thiz must be equal to this");
+		try {
+			T res=(T)newInstance();
+			for (String fname:fieldOrder()) {
+				Field f=getField(fname);
+				f.set(res, f.get(this));
+			}
+			return res;
+		} catch (NoSuchFieldException e) {
+			throw new SqlJetException(e);
+		} catch (IllegalArgumentException e) {
+			throw new SqlJetException(e);
+		} catch (IllegalAccessException e) {
+			throw new SqlJetException(e);
+		}
+	}
+	public <T extends SqlJetRecord> T newInstance(Class<T> src) {
+		try {
+			//Constructor<T> c = src.getConstructor(SqlJetHelper.class);
+			return src.newInstance();//  c.newInstance(db);
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InstantiationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+		
+	}
 	public void createTableAndIndex(SqlJetHelper db) throws SqlJetException, NoSuchFieldException {
 		SqlJetTableHelper tbl=db.table(this);
 		createTable(tbl);

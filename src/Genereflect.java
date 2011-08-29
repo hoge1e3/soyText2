@@ -8,7 +8,10 @@ import jp.tonyu.util.Util;
 public class Genereflect {
 	public Ref<String> s;
 	public Ref<Integer> i;
-	
+	public static <T> T go(T t) {
+		Genereflect g = new Genereflect();
+		return (T) g;
+	}
 	public static void main(String[] args) throws SecurityException, NoSuchFieldException {
 		ParameterizedType t = (ParameterizedType) Genereflect.class.getField("s").getGenericType();
 		System.out.println(Util.join(",", t.getActualTypeArguments()));

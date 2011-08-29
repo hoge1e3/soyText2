@@ -59,7 +59,7 @@ public class LogManager {
 				public void run(SqlJetDb db) throws SqlJetException {
 					SqlJetTableHelper t = sdb.logTable();
 					ISqlJetCursor cur = t.lookup(null, id);
-					LogRecord res=LogRecord.create(id);
+					LogRecord res=LogRecord.create(id,sdb);
 					if (!cur.eof()) {
 						cache.put(id, res);
 						fromCursor(cur, res);
@@ -82,7 +82,7 @@ public class LogManager {
 						long id=c.getInteger("id");
 						LogRecord l=cache.get(id); //TODO: cache
 						if (l==null) {
-							l=LogRecord.create((int) id);
+							l=LogRecord.create((int) id,sdb);
 							fromCursor(c, l);
 						}
 						if (action.run(l)) break;
@@ -104,7 +104,7 @@ public class LogManager {
 	}
 	public synchronized LogRecord create() {
 		lastNumber++;
-		LogRecord res=LogRecord.create(lastNumber);
+		LogRecord res=LogRecord.create(lastNumber,sdb);
 		res.date=new Date().toString();
 		return res;
 	}

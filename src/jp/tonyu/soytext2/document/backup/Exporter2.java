@@ -56,7 +56,7 @@ public class Exporter2 {
 		db.readTransaction(new DBAction() {
 			
 			@Override
-			public void run(SqlJetDb db) throws SqlJetException {
+			public void run(SqlJetDb db2) throws SqlJetException {
 				try {
 					/*exportTable("Document_1",new DocumentRecord());
 					exportTable("Log_1",new LogRecord());*/
