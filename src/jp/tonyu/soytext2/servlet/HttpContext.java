@@ -7,7 +7,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
@@ -422,10 +424,9 @@ public class HttpContext implements Wrappable {
 		Debug.syslog("Query started "+q.toString());
 		return cursor;
 	}*/
-	@Deprecated
 	private void byName() throws IOException {
-		String str=req.getPathInfo().replaceAll("^/", "");
-		Query q=QueryBuilder.create("name:?").tmpl("name", str, AttrOperator.exact).toQuery();
+		String name=req.getPathInfo().replaceAll("^/", "").replaceAll("/.*", "");
+		Query q=QueryBuilder.create("name:?").tmpl("name", name, AttrOperator.exact).toQuery();
 		final Ref<Boolean> found=Ref.create(false);
 		documentLoader.searchByQuery(q, new BuiltinFunc() {
 			@Override
@@ -444,7 +445,7 @@ public class HttpContext implements Wrappable {
 			}
 		});
 		if (!found.get()) {
-			notfound(str);
+			notfound(name);
 		}
 		
 	}
@@ -608,9 +609,15 @@ public class HttpContext implements Wrappable {
     		);
     	}
 	}
+    public String fullURL() {
+    	return req.getRequestURL()+"";
+    }
+    public String encodeURI(String str) throws UnsupportedEncodingException {
+    	return URLEncoder.encode(str, "utf-8");
+    }
     public void redirect(String url) {
     	try {
-			res.sendRedirect(url);
+    		res.sendRedirect(url);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

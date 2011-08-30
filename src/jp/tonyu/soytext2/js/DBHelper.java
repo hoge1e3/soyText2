@@ -23,6 +23,7 @@ public class DBHelper implements Wrappable{
 		loader.search("", null, iter);
 		return this;
 	}
+
 	public Object insert(Scriptable obj) {
 		DocumentScriptable d = loader.newDocument(obj);		
 		return d;

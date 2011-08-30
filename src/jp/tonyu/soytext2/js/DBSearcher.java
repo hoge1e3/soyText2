@@ -40,9 +40,10 @@ public class DBSearcher implements Wrappable {
 			public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 					Object[] args) {
 				res.set(args[0]);
-				return null;
+				return true;
 			}
 		});
-		return res.get();	
+		if (res.isSet()) return res.get();	
+		return null;
 	}
 }
