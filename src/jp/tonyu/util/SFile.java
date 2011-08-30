@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.nio.channels.FileChannel;
 import java.util.Iterator;
 
 public class SFile implements Iterable<SFile>{
@@ -123,5 +124,47 @@ public class SFile implements Iterable<SFile>{
 	}
 	public String[] lines() throws IOException {
 		return text().split("[\\r\\n]+");
+	}
+	public void copyTo(SFile dst) throws IOException {
+		copy(javaIOFile(),dst.javaIOFile());
+	}
+	public void copyTo(File dst) throws IOException {
+		copy(javaIOFile(),dst);
+	}
+	public void backup() throws IOException {
+		SFile backupFile = backupFile();
+		copyTo(backupFile);
+	}
+	public boolean moveAsBackup() {
+		return moveTo(backupFile());
+	}
+	public SFile backupFile() {
+		String d=new TDate().toString("yyyy_MMdd_hh_mm_ss_");
+		SFile backupFile = parent().rel(d+name());
+		return backupFile;
+	}
+	public SFile parent() {
+		return new SFile(f.getParentFile());
+	}
+	public boolean moveTo(SFile dest) {
+		dest.mkdirs();
+		return moveTo(dest.javaIOFile());
+	}
+	public boolean moveTo(File dest) {
+		return f.renameTo(dest);
+	}
+	public static void copy(File src,	File dest) throws IOException {
+
+		FileChannel srcChannel = new
+				FileInputStream(src).getChannel();
+		FileChannel destChannel = new
+				FileOutputStream(dest).getChannel();
+		try {
+			srcChannel.transferTo(0, srcChannel.size(), destChannel);
+		} finally {
+			srcChannel.close();
+			destChannel.close();
+		}
+
 	}
 }

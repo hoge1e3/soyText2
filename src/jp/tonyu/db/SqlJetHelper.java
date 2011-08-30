@@ -16,9 +16,15 @@ import org.tmatesoft.sqljet.core.table.ISqlJetCursor;
 import org.tmatesoft.sqljet.core.table.SqlJetDb;
 import org.xbill.DNS.Lookup;
 
+/**
+ * The helper class provides some
+ * @author hoge1e3
+ *
+ */
 public class SqlJetHelper {
-	protected final SqlJetDb db;
-	public SqlJetHelper(File file, final int version) throws SqlJetException {
+	protected SqlJetDb db;
+	public SqlJetHelper(){}
+	public void open(File file, final int version) throws SqlJetException {
 		if (version<=0) {
 			throw new RuntimeException("Version must be >0");
 		}

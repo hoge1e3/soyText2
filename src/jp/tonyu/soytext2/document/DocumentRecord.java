@@ -28,7 +28,7 @@ public class DocumentRecord extends SqlJetRecord /*implements Wrappable*/ {
 			    ")\n"+
 			    "");*/
 	@Override
-	public String[] fieldOrder() {
+	public String[] columnOrder() {
 		return new String[]{"id","lastUpdate","createDate","lastAccessed","language",
 				"summary","preContent","content","owner","group","permission"
 		};

@@ -35,31 +35,31 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	public static final String UID_IMPORT = "77a729a1-5c5d-4d09-9141-72108ee9b634";
 	public static final String UID_EXISTENT_FILE = "86e08ee0-0bd5-4d1f-a7f5-66c2251e60ad";
 	
-	String uid;
+	String dbid;
 	public SDB(File file , String uid) throws SqlJetException {
-		super(file, version);
-		this.uid=uid;
+		open(file, version);
+		this.dbid=uid;
 		logManager=new LogManager(this);
 		setupUID();
-		Log.d(this, "UID = "+getUID());
+		Log.d(this, "DBID = "+getDBID());
 	}
 	private void setupUID() throws SqlJetException {
-		String gu = getUID();
+		String gu = getDBID();
 		if (gu==null) {
-			if (uid.equals(UID_EXISTENT_FILE)) {
+			if (dbid.equals(UID_EXISTENT_FILE)) {
 				throw new RuntimeException("Although UID_EXISTENT_FILE, Uid does not set  ");				
 			}
-			setUID(uid);
+			setDBID(dbid);
 			return;
 		}
-		if (gu.equals(uid)) return;
-		if (uid.equals(UID_EXISTENT_FILE) || uid.equals(UID_IMPORT)) {
-			uid=gu;
+		if (gu.equals(dbid)) return;
+		if (dbid.equals(UID_EXISTENT_FILE) || dbid.equals(UID_IMPORT)) {
+			dbid=gu;
 			return;
 		}
-		throw new RuntimeException(" Uid not match: indb="+gu+"  expect="+uid);
+		throw new RuntimeException(" Uid not match: indb="+gu+"  expect="+dbid);
 	}
-	public void setUID(final String uid) throws SqlJetException {
+	public void setDBID(final String dbid) throws SqlJetException {
 		writeTransaction(new DBAction() {
 			
 			@Override
@@ -70,12 +70,12 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 					cur.delete();
 				}
 				cur.close();
-				t.insert(uid);
+				t.insert(dbid);
 			}
 		},-1);
-		this.uid=uid;
+		this.dbid=dbid;
 	}
-	public String getUID() throws SqlJetException {
+	public String getDBID() throws SqlJetException {
 		final Ref<String> res=new Ref<String>();
 		readTransaction(new DBAction() {
 			@Override
@@ -93,10 +93,10 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	}
 	DocumentRecord documentRecord=new DocumentRecord();
 	LogRecord logRecord=new LogRecord();
-	UIDRecord uidRecord=new UIDRecord();
+	DBIDRecord dbidRecord=new DBIDRecord();
 	@Override
 	public SqlJetRecord[] tables(int version) {
-		return q(documentRecord,logRecord, uidRecord);
+		return q(documentRecord,logRecord, dbidRecord);
 	}
 	/*@Override
 	protected void onCreate(SqlJetDb db,int version) throws SqlJetException {
@@ -265,7 +265,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		return db.getTable(LOG_CUR);
 	}*/
 	public SqlJetTableHelper uidTable() throws SqlJetException {
-		return table(uidRecord);
+		return table(dbidRecord);
 	}
 	public SqlJetTableHelper docTable() throws SqlJetException {
 		return table(documentRecord);
@@ -277,7 +277,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	public DocumentRecord newDocument() {
 		LogRecord log = logManager.write("create","<sameAsThisId>");
 		DocumentRecord d=new DocumentRecord();
-		d.id=log.id+"@"+uid;
+		d.id=log.id+"@"+dbid;
 		d.lastUpdate=log.id;
 		d.lastAccessed=log.id;
 		cache.put(d.id, d);

@@ -52,6 +52,8 @@ import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 
 public class HttpContext implements Wrappable {
+	private static final String TEXT_PLAIN_CHARSET_UTF_8 = "text/plain; charset=utf-8";
+	private static final String TEXT_HTML_CHARSET_UTF_8 = "text/html; charset=utf-8";
 	private static final String SEL = "sel_";
 	public static final jp.tonyu.util.Context<HttpContext> cur=new jp.tonyu.util.Context<HttpContext>();
 	private static final String SESSION_NAME = "soyText_Session";
@@ -210,7 +212,7 @@ public class HttpContext implements Wrappable {
 					//ee.set(e);
 					try {
 						Log.d(this, "spawned Error - "+e.getMessage());
-						res.setContentType("text/plain; charset=utf-8");
+						res.setContentType(TEXT_PLAIN_CHARSET_UTF_8);
 						Httpd.respondByString(getRes(), "Error - "+e.getMessage());
 					} catch (IOException e1) {
 						e1.printStackTrace();
@@ -224,7 +226,7 @@ public class HttpContext implements Wrappable {
     private void proc2() throws IOException
     {
 		req.setCharacterEncoding("UTF-8");
-		res.setContentType("text/html; charset=utf-8");
+		res.setContentType(TEXT_HTML_CHARSET_UTF_8);
 		String[] s=args();
         Log.d(this,"pathinfo = "+req.getPathInfo());
         Log.d(this,"qstr = "+req.getQueryString());
@@ -302,36 +304,61 @@ public class HttpContext implements Wrappable {
 	}
 
 	private void download() throws IOException {
-		// viewpoint: all
-		// input param:
-		//    since:   displays documents.lastupdate>since 
-		// output:
-		// SEPARATOR
-		// document full(id/lastupdate included)
-		// SEPARATOR
-		// document full
-		String sep="--------vfdes0ivgergu934"+"jgt3409gjp9odfgkpdigpo"+Math.random()+"dig09-erfjigfer-04t040g0tgj";
-		long since=Long.parseLong( params().get("since") );
-		/*for (IDocumentRef r:mountAll()) {
-			if (r.lastUpdate()>since) {
-				print(sep+"\n");
-				DocumentProcessor p=documentProcessor(r.document());
-				p.feedMetaHeadBody();
-			} else break;
-		}*/
+		//input param:
+		//  dbid=(client's DBID)
+		//  credential=(client's user name or something)
+		//  since=(= client's lastsync) displays DocumentRecord.lastupdate>since 
+		//output:
+		//  [DocumentRecord]
+		//  [DocumentRecord]
+		//  :
+		//note: client's lastsync set to max(DocumentRecord.lastUpdate)
+		final StringBuffer buf = new StringBuffer();
+		String sinces=params().get("since");
+		final long since;
+		if (sinces!=null) {
+			since=Long.parseLong(sinces);
+		} else {
+			since=-1;
+		}
+    	res.setContentType (TEXT_PLAIN_CHARSET_UTF_8);
+        documentLoader.search("", null, new BuiltinFunc() {		
+			@Override
+			public Object call(Context cx, Scriptable scope, Scriptable thisObj,
+					Object[] args) {
+				DocumentScriptable s=(DocumentScriptable)args[0];
+				DocumentRecord document = s.getDocument();
+				if (document.lastUpdate>since) {
+					try {
+						document.export(res.getWriter());
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					return false;
+				} else return true;
+			}
+		});   	
+      
 	}
 	private void upload() throws IOException {
-		// viewpoint: all
-		// input:
-		// data=SEPARATOR
-		// document full
-		// SEPARATOR
-		// document full
-		// output:
-		// none
+		//input params:
+		//  dbid=(client's DBID)
+		//  credential=(client's user name or something)
+		//  data=
+		//    [DocumentRecord]
+		//    [DocumentRecord]
+		//    :
+		//output:
+		//  none
+		//note: This system's lastsync set to max(DocumentRecord.lastupdate)
 		if ("get".equalsIgnoreCase( req.getMethod())){
 			print(Html.p("<html><body>" +
-					"<form action=%a method=POST><textarea name=data><input type=submit></form>" +
+					"<form action=%a method=POST>"+
+					"dbid=<input name=dbid><BR>"+
+					"credential=<input name=credential><BR>"+
+					"data:<BR><textarea name=data rows=40 cols=80></textarea><BR>"+
+					"<input type=submit>"+
+					"</form>" +
 					"</body></html>",
 					rootPath()+"/upload"));
 		} else {
@@ -699,7 +726,7 @@ public class HttpContext implements Wrappable {
 				return c>100;
 			}
 		});   	
-    	res.setContentType ("text/html; charset=utf-8");
+    	res.setContentType (TEXT_HTML_CHARSET_UTF_8);
         Httpd.respondByString(res, buf.toString());
 	}
 	public String rootPath() {
@@ -733,7 +760,7 @@ public class HttpContext implements Wrappable {
 		String path=rootPath();
 		StringBuilder buf=new StringBuilder();
         buf.append(Html.p("<html><head><meta http-equiv=%a content=%a></head>"
-        		                ,"Content-type","text/html; charset=utf-8"));
+        		                ,"Content-type",TEXT_HTML_CHARSET_UTF_8));
         buf.append("<body>");
         buf.append("User: "+currentSession().userName()+" | ");
         buf.append(Html.p("<a href=%a>ログイン</a>  |" , path+"/auth"));
@@ -748,7 +775,7 @@ public class HttpContext implements Wrappable {
 	    return TimeFormat.toRFC2822(d.lastUpdate());//TimeFormat.toUtcTicks(d.lastUpdate(), TimeZone.getDefault())); 
 	}*/
 	public static String detectContentType(String fileName) {
-		String c = "text/plain; charset=utf-8";
+		String c = TEXT_PLAIN_CHARSET_UTF_8;
 	    if (fileName != null)
 	    {
 	    	fileName=fileName.toLowerCase();
@@ -762,7 +789,7 @@ public class HttpContext implements Wrappable {
 	        }
 	        if (fileName.endsWith(".html"))
 	        {
-	            c = "text/html; charset=utf-8";
+	            c = TEXT_HTML_CHARSET_UTF_8;
 	        }
 	        if (fileName.endsWith(".gif"))
 	        {

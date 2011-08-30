@@ -6,7 +6,7 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 
-public class Date {
+public class TDate {
 	long ticks;
 	String template;
 	TimeZone timeZone=TimeZone.getDefault();
@@ -15,18 +15,18 @@ public class Date {
 	public String getTemplate() {
 		return template;
 	}
-	public Date setTemplate(String template) {
+	public TDate setTemplate(String template) {
 		this.template = template;
 		return this;
 
 	}
-	public Date() {
+	public TDate() {
 		ticks=new java.util.Date().getTime();	
 	}
-	public Date(long ticks) {
+	public TDate(long ticks) {
 		this.ticks=ticks;	
 	}
-	public Date(String src, String template, Locale locale) throws ParseException {
+	public TDate(String src, String template, Locale locale) throws ParseException {
 		DateFormat fmt=new SimpleDateFormat(template, locale);
 		java.util.Date d=fmt.parse(src);
 		ticks=d.getTime();
@@ -35,14 +35,14 @@ public class Date {
 	public TimeZone getTimeZone() {
 		return timeZone;
 	}
-	public Date setTimeZone(TimeZone timeZone) {
+	public TDate setTimeZone(TimeZone timeZone) {
 		this.timeZone = timeZone;
 		return this;
 	}
 	public Locale getLocale() {
 		return locale;
 	}
-	public Date setLocale(Locale locale) {
+	public TDate setLocale(Locale locale) {
 		this.locale = locale;
 		return this;
 	}
@@ -63,14 +63,14 @@ public class Date {
 		DateFormat fmt=new SimpleDateFormat(template,locale);
 		return toString(fmt);
 	}
-	public long sub(Date other) {
+	public long sub(TDate other) {
 		return ticks-other.ticks;
 	}
-	public Date after(long duration) {
-		return new Date(ticks+duration).copyFrom(this);
+	public TDate after(long duration) {
+		return new TDate(ticks+duration).copyFrom(this);
 	}
 	
-	private Date copyFrom(Date date) {
+	private TDate copyFrom(TDate date) {
 		return setLocale(date.getLocale()).setTemplate(date.getTemplate()).setTimeZone(date.getTimeZone());
 	}
 	public String toRFC2822() {
@@ -78,8 +78,8 @@ public class Date {
 		setLocale(Locale.ENGLISH);
 		return toString(rfc2822tmpl);
 	}
-	public static Date fromRFC2822(String src) throws ParseException {
-		return new Date(src,rfc2822tmpl, Locale.ENGLISH);
+	public static TDate fromRFC2822(String src) throws ParseException {
+		return new TDate(src,rfc2822tmpl, Locale.ENGLISH);
 	}
 	public static final String rfc2822tmpl="EEE, dd MMM yyyy hh:mm:ss z";
 	public static final long oneSecond=1000;

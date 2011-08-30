@@ -26,7 +26,7 @@ public class LogRecord extends SqlJetRecord {
 	public String date;
 	public String action,target,option;
 	@Override
-	public String[] fieldOrder() {
+	public String[] columnOrder() {
 		return new String[]{"id","date","action","target","option"};
 	}
 	@Override

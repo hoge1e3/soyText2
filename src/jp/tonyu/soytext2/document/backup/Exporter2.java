@@ -3,6 +3,7 @@ package jp.tonyu.soytext2.document.backup;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintStream;
+import java.io.PrintWriter;
 
 import org.tmatesoft.sqljet.core.SqlJetException;
 import org.tmatesoft.sqljet.core.table.ISqlJetCursor;
@@ -17,12 +18,12 @@ import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.LogAction;
 import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.document.LogRecord;
-import jp.tonyu.soytext2.document.UIDRecord;
+import jp.tonyu.soytext2.document.DBIDRecord;
 import jp.tonyu.util.Literal;
 
 public class Exporter2 {
 	SDB db;File out;
-	PrintStream p;
+	PrintWriter p;
 	public Exporter2(SDB db, File out) {
 		this.db=db;
 		this.out=out;
@@ -51,7 +52,7 @@ public class Exporter2 {
 		cur.close();
 	}
 	public void export() throws Exception {
-		p=new PrintStream(out);
+		p=new PrintWriter(out,"utf-8");
 		p.println("version=1");
 		db.readTransaction(new DBAction() {
 			
@@ -60,7 +61,7 @@ public class Exporter2 {
 				try {
 					/*exportTable("Document_1",new DocumentRecord());
 					exportTable("Log_1",new LogRecord());*/
-					exportTable(new UIDRecord());
+					exportTable(new DBIDRecord());
 					exportTable(new DocumentRecord());
 					exportTable(new LogRecord());
 				} catch (Exception e) {

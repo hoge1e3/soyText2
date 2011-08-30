@@ -1,6 +1,7 @@
 package jp.tonyu.db;
 
 import java.io.PrintStream;
+import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -20,6 +21,16 @@ import org.tmatesoft.sqljet.core.internal.table.SqlJetCursor;
 import org.tmatesoft.sqljet.core.table.ISqlJetCursor;
 import org.tmatesoft.sqljet.core.table.ISqlJetTable;
 
+/**
+ * SqlJetRecord represents both "definition of a table" and "a record belonging the table".<BR>
+ * 
+ * To define fields, define public fields in subclass. 
+ * The subclasses should contain the public field having the name equals to {@link primaryKeyName()} 
+ * The field type should be int, long or String.<BR>
+ * To define indexes, override {@link indexNames()}.
+ * @author hoge1e3
+ *
+ */
 public abstract class SqlJetRecord {
 	/*private SqlJetHelper db;
 	public SqlJetRecord(SqlJetHelper db) {
@@ -32,7 +43,7 @@ public abstract class SqlJetRecord {
 		if (thiz!=this) Log.die("thiz must be equal to this");
 		try {
 			T res=(T)newInstance();
-			for (String fname:fieldOrder()) {
+			for (String fname:columnOrder()) {
 				Field f=getField(fname);
 				f.set(res, f.get(this));
 			}
@@ -78,8 +89,15 @@ public abstract class SqlJetRecord {
 	public abstract String tableName();/* {
 		return getClass().getName().replaceAll("\\.", "_");
 	}*/
+	/**
+	 * Creates table according to the table definition of this record object.
+	 * It will be called automatically by SqlJetHelper, users need not to call.
+	 * @param tbl 
+	 * @throws NoSuchFieldException
+	 * @throws SqlJetException
+	 */
 	public void createTable(SqlJetTableHelper tbl) throws NoSuchFieldException, SqlJetException {
-		for (String fname:fieldOrder()) {
+		for (String fname:columnOrder()) {
 			Field f=getField(fname);
 			String type="TEXT";
 			Class ftype=f.getType();
@@ -96,11 +114,26 @@ public abstract class SqlJetRecord {
 	public String primaryKeyName() {
 		return "id";
 	}
-
+	/**
+	 * Subclasses should override if indice are required.<BR>
+	 * Each string may have two or more field names separated by comma.<BR>
+	 * <BR>
+	 * example: <code>return q("name","age","name,age");</code><BR>
+	 * Note: These names are not the actual index names. They will be converted to
+	 * the name like "Tablename_name1_name2..."
+	 * @return array of index names
+	 */
 	public String[] indexNames() {
 		return q();
 	}
-	public String[] fieldOrder() {
+	/**
+	 * Indicates the column order of the table. By default, the primary key are the first column and
+	 * the rests are public fields sorted by names. 
+	 * Subclass can override if the order should be changed. If there are fields that are not listed
+	 * in this method, they will be not included to the column
+	 * @return
+	 */
+	public String[] columnOrder() {
 		SortedSet<String> ress=new TreeSet<String>();
 		for (Field f:getClass().getFields()) {
 			String n=f.getName();
@@ -118,7 +151,7 @@ public abstract class SqlJetRecord {
 	}
 	public Object[] toValues() throws SqlJetException {
 		try {
-			String[] fo = fieldOrder();
+			String[] fo = columnOrder();
 			Object[] values=new Object[fo.length];
 			int i=0;
 			for (String fn:fo) {
@@ -141,7 +174,7 @@ public abstract class SqlJetRecord {
 	}
 	public void fetch(ISqlJetCursor cur) throws SqlJetException {
 		int i=0;
-		for (String fname:fieldOrder()) {
+		for (String fname:columnOrder()) {
 			try {
 				Field f = getField(fname);
 				Class t=f.getType();
@@ -171,13 +204,13 @@ public abstract class SqlJetRecord {
 	public void update(ISqlJetCursor cur) throws SqlJetException {
 		cur.update(toValues());
 	}
-	public void export(PrintStream p) {
+	public void export(PrintWriter p) {
 		p.printf("[%s]\n", tableName());
-		for (String fname:fieldOrder()) {
+		for (String fname:columnOrder()) {
 			exportField(p, fname);
 		}
 	}
-	public void exportField(PrintStream p, String fname) {
+	public void exportField(PrintWriter p, String fname) {
 		p.printf("%s=",fname);
 		try {
 			Field f=getField(fname);
