@@ -32,7 +32,7 @@ public class EJS implements Wrappable {
 		Object[] argo=Scriptables.toArray(ScriptableObject.getProperty(d, HttpContext.ATTR_ARGUMENTORDER));
 		buf.append("res=function ($,params) { \n"); {
 			for (Object arg:argo) {
-				buf.append(SPrintf.sprintf("var %s=$.params.%s;\n"
+				buf.append(SPrintf.sprintf("var %s=params.%s;\n"
 						, arg, arg));
 			}
   	    	while (true) {

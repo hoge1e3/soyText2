@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.Vector;
 
 import jp.tonyu.debug.Log;
+import jp.tonyu.js.BlankFunction;
 import jp.tonyu.js.BlankScriptableObject;
 import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.js.ContextRunnable;
@@ -17,6 +18,7 @@ import jp.tonyu.util.Maps;
 import jp.tonyu.util.SPrintf;
 
 import org.mozilla.javascript.Context;
+import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.Undefined;
@@ -58,7 +60,7 @@ public class ContentChecker implements IDocumentLoader, Wrappable {
 		scope = new DocumentLoaderScriptable(jssession.root, this, null);
 	}
 	private Object dummyDocument(Object id) {
-		return Scriptables.extend(new BlankScriptableObject(), Maps.create("id", id));
+		return Scriptables.extend(new BlankFunction(), Maps.create("id", id));
 	}
 	@Override
 	public void extend(DocumentScriptable dst, Scriptable src) {
@@ -311,6 +313,11 @@ public class ContentChecker implements IDocumentLoader, Wrappable {
 		c.evaluateString(scope2, "var t=3;"	, "test", 1, null);
 		c.evaluateString(scope3, "var t=3;"	, "test", 1, null);
 		
+	}
+	@Override
+	public Scriptable inherit(Function superClass, Scriptable overrideMethods) {
+		//overrideMethods.setPrototype((Scriptable)ScriptableObject.getProperty(superClass, DocumentScriptable.PROTOTYPE));
+		return overrideMethods;
 	}
 
 }

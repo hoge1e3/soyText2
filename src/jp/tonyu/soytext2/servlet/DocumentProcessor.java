@@ -318,12 +318,13 @@ public class DocumentProcessor {
 			res.setContentType("text/html; charset=utf8");
 			String docBase=rootPath();
 			Httpd.respondByString(res, Html.p(HttpContext.ajaxTag("id:"+id())+"\n Edit "+id()+" End <br/>\n"+
-					"<a href=%a>Top</a>  "+
+					ctx.linkBar(d)+"<a href=%a>Top</a>  ",docBase+"/all"
+					/*"<a href=%a>Top</a>  "+
 					"<a href=%a>View</a>  "+
 					"<a href=%a>Edit</a> \n"+
 					"<a href=%a>EditBody</a> \n"+
 					"<a href=%a>Exec</a> <br/>\n", docBase+"/all" , docBase+"/byId/"+id(),
-					docBase+"/edit/"+id(), docBase+"/editbody/"+id(), docBase+"/exec/"+id() ));
+					docBase+"/edit/"+id(), docBase+"/editbody/"+id(), docBase+"/exec/"+id()*/ ));
 
 		}
 	}

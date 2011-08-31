@@ -21,8 +21,9 @@ import org.mozilla.javascript.UniqueTag;
 import org.omg.CosNaming.NamingContextPackage.NotFound;
 
 public class DocumentScriptable implements Function {
-	private static final String PROTOTYPE = "prototype";
+	public static final String PROTOTYPE = "prototype";
 	private static final String CONSTRUCTOR = "constructor";
+	public static final String CALLSUPER="callSuper";
 	private static final Object GETTERKEY = "[[110414_051952@"+Origin.uid+"]]";
 	//Scriptable __proto__;
 	Map<Object, Object>binds=new HashMap<Object, Object>();
@@ -80,7 +81,7 @@ public class DocumentScriptable implements Function {
 		@Override
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 				Object[] args) {
-			Scriptable p = DocumentScriptable.this.getPrototype();
+			Scriptable p = DocumentScriptable.this.getPrototype().getPrototype();
 			if (p!=null && args.length>0) {
 				Object fo = p.get(args[0]+"", p);
 				if (fo instanceof Function) {
@@ -101,9 +102,9 @@ public class DocumentScriptable implements Function {
 		if ("id".equals(key)) return d.id;
 		if ("lastUpdate".equals(key)) return d.lastUpdate;
 		if ("save".equals(key)) return saveFunc;
-		if ("compile".equals(key)) return compileFunc;
+		//if ("compile".equals(key)) return compileFunc;
 		if ("hasOwnProperty".equals(key)) return hasOwnPropFunc;
-		if ("callSuper".equals(key)) return callSuperFunc;
+		if (CALLSUPER.equals(key)) return callSuperFunc;
 		/*if (key instanceof DocumentScriptable) {
 			DocumentScriptable keyDoc = (DocumentScriptable) key;
 			key=JSSession.idref(keyDoc, d.documentSet);
@@ -341,9 +342,16 @@ public class DocumentScriptable implements Function {
 		/*Scriptable p=getPrototype();
 		if (p!=null) {*/
 			Object init=ScriptableObject.getProperty(d,"initialize");
+			Log.d(this, " initialize = "+init);
 			if (init instanceof Function) {
+				Log.d(this, " initialize called!");
 				Function f = (Function) init;
 				f.call(cx, scope, d, args);
+			} else {
+				Log.d(this, " initialize did not called");
+				if (init!=null) {
+					Log.d(this, "init="+init.getClass().getSuperclass());
+				}
 			}
 		//}
 		return d;

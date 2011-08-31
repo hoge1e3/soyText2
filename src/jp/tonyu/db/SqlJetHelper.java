@@ -17,13 +17,20 @@ import org.tmatesoft.sqljet.core.table.SqlJetDb;
 import org.xbill.DNS.Lookup;
 
 /**
- * The helper class provides some
+ * The helper class which provides some useful routine (transaction, versioning etc.)
+ * and simple O-R mapper.
  * @author hoge1e3
  *
  */
 public class SqlJetHelper {
 	protected SqlJetDb db;
 	public SqlJetHelper(){}
+	/**
+	 * Open the SqlJet Database
+	 * @param file
+	 * @param version
+	 * @throws SqlJetException
+	 */
 	public void open(File file, final int version) throws SqlJetException {
 		if (version<=0) {
 			throw new RuntimeException("Version must be >0");

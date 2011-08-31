@@ -26,6 +26,7 @@ import jp.tonyu.util.Maps;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.ScriptableObject;
 
 
 public class DocumentLoader implements Wrappable, IDocumentLoader {
@@ -272,5 +273,11 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 	}
 	public DocumentSet getDocumentSet() {
 		return documentSet;
+	}
+	@Override
+	public Scriptable inherit(Function superclass, Scriptable overrideMethods) {
+		SuperclassPrototype res = new SuperclassPrototype(superclass);
+		Scriptables.extend(res, overrideMethods);
+		return res;
 	}
 }

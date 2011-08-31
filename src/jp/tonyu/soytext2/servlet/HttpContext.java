@@ -52,6 +52,7 @@ import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 
 public class HttpContext implements Wrappable {
+	private static final String DO_EDIT = "doEdit";
 	private static final String TEXT_PLAIN_CHARSET_UTF_8 = "text/plain; charset=utf-8";
 	private static final String TEXT_HTML_CHARSET_UTF_8 = "text/html; charset=utf-8";
 	private static final String SEL = "sel_";
@@ -230,50 +231,57 @@ public class HttpContext implements Wrappable {
 		String[] s=args();
         Log.d(this,"pathinfo = "+req.getPathInfo());
         Log.d(this,"qstr = "+req.getQueryString());
-        if (s.length>=2 && s[1].toLowerCase().equals("byid") ) {
-            byId();
+        if (s.length>=2 && (s[1].equalsIgnoreCase("byid") || s[1].equalsIgnoreCase("view")) ) {
+            view();
         }
-        else if (s.length >= 3 && s[1].toLowerCase().equals("exec")) {
+        else if (s.length >= 3 && s[1].equalsIgnoreCase("exec")) {
         	exec();
         }
-        else if (s.length == 2 && s[1].toLowerCase().equals("auth")) {
+        else if (s.length == 2 && s[1].equalsIgnoreCase("auth")) {
         	auth();
         } 
-        else if (s.length == 2 && s[1].toLowerCase().equals("new")) {
+        else if (s.length == 2 && s[1].equalsIgnoreCase("new")) {
         	newDocument();        	
         }
-        else if (s.length >= 3 && s[1].toLowerCase().equals("edit")) {
+        else if (s.length >= 3 && s[1].equalsIgnoreCase("edit")) {
         	edit();
         }
-        else if (s.length >= 3 && s[1].toLowerCase().equals("editbody")) {
+        else if (s.length >= 3 && s[1].equalsIgnoreCase("customedit")) {
+        	customEdit();
+        }
+        else if (s.length >= 3 && s[1].equalsIgnoreCase("editbody")) {
         	editBody();
         }
-        else if (s.length==2 && s[1].equals("all")) {
+        else if (s.length==2 && s[1].equalsIgnoreCase("all")) {
         	all();
         }
-        else if (s.length>=2 && s[1].equals("upload")) {
+        else if (s.length>=2 && s[1].equalsIgnoreCase("upload")) {
         	upload();
         }
-        else if (s.length>=2 && s[1].equals("fileupload")) {
+        else if (s.length>=2 && s[1].equalsIgnoreCase("fileupload")) {
         	fileUpload();
         }
-        else if (s.length>=2 && s[1].equals("fileuploaddone")) {
+        else if (s.length>=2 && s[1].equalsIgnoreCase("fileuploaddone")) {
         	fileUploadDone();
         }
-        else if (s.length>=2 && s[1].equals("download")) {
+        else if (s.length>=2 && s[1].equalsIgnoreCase("download")) {
         	download();
         }
-        else if (s.length>=2 && s[1].equals("search")) {
+        else if (s.length>=2 && s[1].equalsIgnoreCase("search")) {
         	search();
         }
-        else if (s.length>=2 && s[1].equals("browserjs")) {
+        else if (s.length>=2 && s[1].equalsIgnoreCase("browserjs")) {
         	browserjs();
         }
         else if (s.length>=2 && s[1].equals("import1")) {
         	importFromVer1();
         }
         else if (req.getPathInfo().equals("/")) {
-        	topPage();
+        	if (fullURL().endsWith("/")) {
+        		topPage();
+        	} else {
+        		redirect(fullURL()+"/");
+        	}
         }
         else {
         	byName();
@@ -378,7 +386,7 @@ public class HttpContext implements Wrappable {
 		if (d==null) all();*/
 		all();
 	}
-	private void byId() throws IOException {
+	private void view() throws IOException {
         String[] s=args();
 		String id = s[2];
 		DocumentScriptable d = (DocumentScriptable)documentLoader.byId(id);
@@ -529,28 +537,61 @@ public class HttpContext implements Wrappable {
 		return  Html.p("<script src=%a></script><script>attachIndentAdaptor('edit')</script>"
 				,browserjsPath(IndentAdaptor.class));
 	}
+	DocumentScriptable target;
+	public Scriptable targetDocument() {
+		return target;
+	}
+	private boolean customEdit() throws IOException {
+		String[] s=args();
+		//   $soyText/customedit/00000
+		String id=s[2];
+		String msg="";
+		target = documentLoader.byId(id);
+		if (target==null) {
+		    notfound(id);
+		    return false;
+		}	
+		boolean execed=false;
+		Object doEdit=ScriptableObject.getProperty(target, DO_EDIT);
+		if (doEdit instanceof Function ) {
+			final Function f=(Function) doEdit;
+			JSSession.withContext(new ContextRunnable() {
+				
+				@Override
+				public Object run(Context cx) {
+					f.call(cx, jssession().root, target, 
+							new Object[]{getReq(),getRes(),HttpContext.this});
+					return null;
+				}
+			});
+			execed=true;
+		} else {
+			editBody();
+		}
+		return execed;
+	}
 	private void edit() throws IOException {
 		String[] s=args();
 		//   $soyText/edit/00000
 		String id=s[2];
 		String msg="";
-		DocumentScriptable d = documentLoader.byId(id);
-		if (d==null) {
+		target = documentLoader.byId(id);
+		if (target==null) {
 		    notfound(id);
 		    return;
 		}
-		String content = d.getDocument().content;	
+		String content = target.getDocument().content;	
 		if (req.getMethod().equals("POST")) {
 			content=params().get(ATTR_CONTENT);
 			ContentChecker c=new ContentChecker(content,addedVars());
 			if (c.check()) {
-				documentProcessor(d).proc();
+				documentProcessor(target).proc();
 				return;
 			}
 			content=c.getChangedContent();
 			msg=contentStatus(c);
 		}
-		String preContent = d.getDocument().preContent;
+		String preContent = target.getDocument().preContent;
 		Httpd.respondByString(res, menuBar()+Html.p(
 				"<form action=%a method=POST>%s"+
 				"<!--preContent: <br/>\n"+
@@ -642,6 +683,9 @@ public class HttpContext implements Wrappable {
     public String encodeURI(String str) throws UnsupportedEncodingException {
     	return URLEncoder.encode(str, "utf-8");
     }
+    public String encodeHTML(String str) {
+    	return HTMLDecoder.encode(str);
+    }
     public void redirect(String url) {
     	try {
     		res.sendRedirect(url);
@@ -652,7 +696,7 @@ public class HttpContext implements Wrappable {
 	private void all() throws IOException {
 		search("",null);
 	}
-	private String linkBar(DocumentScriptable ds) {
+	public String linkBar(DocumentScriptable ds) {
 		return linkBar(ds,null);
 	}
 	/**
@@ -661,7 +705,7 @@ public class HttpContext implements Wrappable {
 	 * @param sel
 	 * @return
 	 */
-	private String linkBar(DocumentScriptable ds,String sel) {
+	public String linkBar(DocumentScriptable ds,String sel) {
 		DocumentRecord d=ds.getDocument();
 		String id=d.id; 
 		
@@ -683,14 +727,16 @@ public class HttpContext implements Wrappable {
 				"%s <a href=%a>View</a>  "+
 				"<a href=%a>Edit</a> "+
 				"<a href=%a>EditBody</a> "+
+				"<a href=%a>CustomEdit</a> "+
 				"<a href=%a>Exec</a> "+
 				"<a href=%a>NewObj</a> "+
 				"%t<br/>\n"
 				, AJAXTAG+id
 				, selt
-				, rootPath()+"/byId/"+id 
+				, rootPath()+"/view/"+id 
 				, rootPath()+"/edit/"+id 
 				, rootPath()+"/editbody/"+id 
+				, rootPath()+"/customedit/"+id 
 				, rootPath()+"/exec/"+id 
 				, rootPath()+"/new?constructor="+id 
 				, d.summary);
