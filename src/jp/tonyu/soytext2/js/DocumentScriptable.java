@@ -242,7 +242,19 @@ public class DocumentScriptable implements Function {
 
 	@Override
 	public boolean hasInstance(Scriptable instance) {
-		// TODO Auto-generated method stub
+		for (int i=0 ;i<100 ;i++) {
+			Object c=ScriptableObject.getProperty(instance, CONSTRUCTOR);
+			if (equals(this)) return true;
+			if (c instanceof Scriptable) {
+				Scriptable cs = (Scriptable) c;
+				Object p=ScriptableObject.getProperty(cs, PROTOTYPE);
+				if (p instanceof Scriptable) {
+					instance = (Scriptable) p;
+					continue;
+				}
+			}
+			return false;
+		}
 		return false;
 	}
 
