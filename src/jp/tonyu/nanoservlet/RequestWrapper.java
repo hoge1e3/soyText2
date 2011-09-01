@@ -127,8 +127,7 @@ public class RequestWrapper implements HttpServletRequest,Wrappable {
 
 	@Override
 	public StringBuffer getRequestURL() {
-		notimpl();
-		return null;
+		return new StringBuffer(uri);
 	}
 
 	@Override
