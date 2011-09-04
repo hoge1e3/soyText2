@@ -18,8 +18,19 @@ public class DBSearcher implements Wrappable {
 	public DBSearcher(DBHelper dbscr) {
 		super();
 		this.dbscr = dbscr;
+		qb=QueryBuilder.create(null);
 	}	
-	private QueryBuilder qb=QueryBuilder.create(null);
+	public DBSearcher(DBHelper dbHelper, Object value) {
+		this(dbHelper);
+		if (value instanceof String) {
+			String qstr = (String) value;
+			qb=QueryBuilder.create(qstr);			
+		} else {
+			qb=QueryBuilder.create(null).tmpl(DocumentScriptable.CONSTRUCTOR, value, AttrOperator.exact);
+		}
+		
+	}
+	private QueryBuilder qb;
 	public void each(Function iter) {
 		dbscr.loader.searchByQuery(qb.toQuery(), iter);
 	}
@@ -34,12 +45,15 @@ public class DBSearcher implements Wrappable {
 
 	public Object find1() {
 		final Ref<Object> res=new Ref<Object>();
-		dbscr.loader.searchByQuery(qb.toQuery(), new BuiltinFunc() {
+		Query query = qb.toQuery();
+		Log.d(this, "Find1 : "+query);
+		dbscr.loader.searchByQuery(query, new BuiltinFunc() {
 			
 			@Override
 			public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 					Object[] args) {
 				res.set(args[0]);
+				Log.d(this,"Find 1: found "+args[0]);
 				return true;
 			}
 		});

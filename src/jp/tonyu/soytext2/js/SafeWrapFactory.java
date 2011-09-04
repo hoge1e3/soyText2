@@ -11,10 +11,13 @@ import org.mozilla.javascript.WrapFactory;
 
 
 public class SafeWrapFactory extends WrapFactory {
+	public SafeWrapFactory() {
+		setJavaPrimitiveWrap(false);
+	}
 	@Override
 	public Scriptable wrapAsJavaObject(Context cx, Scriptable scope,
 			Object javaObject, Class<?> staticType) {
-		if (javaObject instanceof String ||
+		/*if (javaObject instanceof String ||
 				javaObject instanceof Number ||
 				javaObject instanceof Boolean ||
 				javaObject instanceof org.mozilla.javascript.EvaluatorException ||
@@ -23,11 +26,12 @@ public class SafeWrapFactory extends WrapFactory {
 				//javaObject instanceof org.mozilla.javascript.JavaException ||
 					javaObject instanceof Wrappable ) {
 			return super.wrapAsJavaObject(cx, scope, javaObject, staticType);
-		}
+		}*/
 		if (javaObject instanceof Map) {
 			return new MapScriptable((Map)javaObject);
 		}
-		Log.die(javaObject.getClass()+": Only Wrappable can be wrapped.");
-		return null;
+		return super.wrapAsJavaObject(cx, scope, javaObject, staticType);
+		//Log.die(javaObject.getClass()+": Only Wrappable can be wrapped.");
+		//return null;
 	}
 }

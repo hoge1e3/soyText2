@@ -1,6 +1,8 @@
 package jp.tonyu.soytext2.js;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -46,19 +48,27 @@ public class ContentChecker implements IDocumentLoader, Wrappable {
 		return errorMsg;
 	}
 	public Set<String> getUndefinedSymbols() {
-		return scope.getUndefinedSymbols();
+		Set<String> undefinedSymbols = new HashSet<String>();
+		undefinedSymbols.addAll(scope.getUndefinedSymbols());
+		for (String r: reqs) {
+			undefinedSymbols.add(r);
+		}
+		return undefinedSymbols;
 	}
+	public String[] reqs;
 	private boolean objectInitialized=false, errorOcurred=false,scopeFieldChanged=false;
 	//Scriptable initializedObject;
 	final private Map<String, String> newVars;
 	final private DocumentLoaderScriptable scope;
-	public ContentChecker(String content, Map<String, String> newVars) {
+	public ContentChecker(String content, Map<String, String> newVars,String[]reqs) {
 		super();
 		final JSSession jssession = JSSession.cur.get();
 		this.content = content;
 		this.newVars=newVars;
+		this.reqs=reqs;
 		scope = new DocumentLoaderScriptable(jssession.root, this, null);
 	}
+
 	private Object dummyDocument(Object id) {
 		return Scriptables.extend(new BlankFunction(), Maps.create("id", id));
 	}

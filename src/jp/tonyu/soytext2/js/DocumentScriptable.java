@@ -22,7 +22,7 @@ import org.omg.CosNaming.NamingContextPackage.NotFound;
 
 public class DocumentScriptable implements Function {
 	public static final String PROTOTYPE = "prototype";
-	private static final String CONSTRUCTOR = "constructor";
+	public static final String CONSTRUCTOR = "constructor";
 	public static final String CALLSUPER="callSuper";
 	private static final Object GETTERKEY = "[[110414_051952@"+Origin.uid+"]]";
 	//Scriptable __proto__;
@@ -172,9 +172,7 @@ public class DocumentScriptable implements Function {
 
 	@Override
 	public Object getDefaultValue(Class<?> hint) {
-		if (hint.equals(String.class)) return toString();
-		// TODO Auto-generated method stub
-		return null;
+		return toString();
 	}
 
 	@Override
@@ -188,10 +186,10 @@ public class DocumentScriptable implements Function {
 				
 				res[i] = JSSession.idref(s, d.documentSet);
 				Log.d(this, "Put res["+i+"]="+res[i]);
-			} else*/
+			} else
 			if ("contentEquals".equals(key)) {
 				Log.die("Why are you have it? "+this+" "+this.getParentScope()+" "+this.getPrototype());
-			}
+			}*/
 			if (key instanceof String || key instanceof Number) {
 				res[i]=key;
 			} else {

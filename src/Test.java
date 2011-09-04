@@ -1,5 +1,8 @@
 import java.io.File;
 
+import org.mozilla.javascript.ClassShutter;
+import org.mozilla.javascript.Context;
+import org.mozilla.javascript.ScriptableObject;
 import org.tmatesoft.sqljet.core.SqlJetException;
 
 import jp.tonyu.soytext.Origin;
@@ -9,7 +12,29 @@ import jp.tonyu.soytext2.document.SDB;
 
 
 public class Test {
-	public static void main(String[] args) throws SqlJetException {
+	public static void main(String[] args) {
+		Context c;
+		c=Context.enter();
+		ScriptableObject root = c.initStandardObjects();
+		Context.exit();
+		
+		c=Context.enter();
+		c.setClassShutter(new ClassShutter() {
+			
+			@Override
+			public boolean visibleToScripts(String fullClassName) {
+				//if (fullClassName.indexOf("File")>=0) return false;
+				//return true;
+				return false;
+			}
+		});
+		ScriptableObject.putProperty(root, "f", new File("tes.txt"));
+		ScriptableObject.putProperty(root, "s", "ai,u");
+		Object r = c.evaluateString(root, "s.split(/,/)[0]; f.getName();", "f", 1, null);
+		System.out.println(r);
+		Context.exit();
+	}
+	public static void main2(String[] args) throws SqlJetException {
 		final SDB s=new SDB(new File("test.db"), Origin.uid);
 		/*Document d=s.newDocument();
 		d.content="test"+d.id;

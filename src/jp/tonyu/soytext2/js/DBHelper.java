@@ -7,7 +7,10 @@ import org.mozilla.javascript.Scriptable;
 
 public class DBHelper implements Wrappable{
 	public final DocumentLoader loader;
-	
+
+	public DBSearcher q(Object value) {
+		return new DBSearcher(this,value);
+	}
 	public DBSearcher q(String name, Object value) {
 		return new DBSearcher(this).q(name, value);
 	}

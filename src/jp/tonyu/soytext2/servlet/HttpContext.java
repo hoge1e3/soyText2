@@ -10,10 +10,12 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.regex.Matcher;
 
 import javax.servlet.http.Cookie;
@@ -212,9 +214,9 @@ public class HttpContext implements Wrappable {
 				}catch (Exception e) {
 					//ee.set(e);
 					try {
-						Log.d(this, "spawned Error - "+e.getMessage());
+						Log.d(this, "spawned Error - "+e);
 						res.setContentType(TEXT_PLAIN_CHARSET_UTF_8);
-						Httpd.respondByString(getRes(), "Error - "+e.getMessage());
+						Httpd.respondByString(getRes(), "Error - "+e);
 					} catch (IOException e1) {
 						e1.printStackTrace();
 					}
@@ -486,6 +488,8 @@ public class HttpContext implements Wrappable {
 	}
 	private String contentStatus(ContentChecker c) {
 		StringBuilder msg=new StringBuilder(c.getMsg()+"<br/>\n");
+		
+		
 		for (String name:c.getUndefinedSymbols()) {
 			String sel = SEL+name;
 			String searchAddr = Html.p(rootPath()+"/search?sel=%u&q=%u",sel, "name:"+name);
@@ -513,7 +517,8 @@ public class HttpContext implements Wrappable {
 		String msg="";
 		if (req.getMethod().equals("POST")) {
 			content=params().get(ATTR_CONTENT);
-			ContentChecker c=new ContentChecker(content,addedVars());
+			String[] reqs = getRequires();
+			ContentChecker c=new ContentChecker(content,addedVars(),reqs);
 			if (c.check()) {
 				DocumentScriptable d = documentLoader.newDocument(null);
 				documentProcessor(d).proc();
@@ -526,12 +531,19 @@ public class HttpContext implements Wrappable {
 				"<body><form action=%a method=POST>%s"+
 				"<!--preContent: <br/>\n"+
 				"<input name=%a /><br/-->\n"+
+				"Requires: <input name=requires><BR>"+
 				"Content: <br/>\n"+
 				"<textarea id=edit name=%a rows=25 cols=60>%t</textarea>"+
 				"<input type=submit>"+
 				"</form>"+indentAdap()+"</body></html>",
 				 "./new", msg, ATTR_PRECONTENT, ATTR_CONTENT , content)
 		);
+	}
+	private String[] getRequires() {
+		String[] reqs=new String[0];
+		String reqss=params().get("requires");
+		if (reqss!=null && reqss.trim().length()>0) reqs=reqss.split("\\W+");
+		return reqs;
 	}
 	private String indentAdap() {
 		return  Html.p("<script src=%a></script><script>attachIndentAdaptor('edit')</script>"
@@ -566,7 +578,7 @@ public class HttpContext implements Wrappable {
 			});
 			execed=true;
 		} else {
-			editBody();
+			edit();
 		}
 		return execed;
 	}
@@ -583,7 +595,8 @@ public class HttpContext implements Wrappable {
 		String content = target.getDocument().content;	
 		if (req.getMethod().equals("POST")) {
 			content=params().get(ATTR_CONTENT);
-			ContentChecker c=new ContentChecker(content,addedVars());
+			String[] reqs = getRequires();
+			ContentChecker c=new ContentChecker(content,addedVars(),reqs);
 			if (c.check()) {
 				documentProcessor(target).proc();
 				return;
@@ -596,6 +609,7 @@ public class HttpContext implements Wrappable {
 				"<form action=%a method=POST>%s"+
 				"<!--preContent: <br/>\n"+
 				"<input name=%a value=%a /><br/-->"+
+				"Requires: <input name=requires><BR>"+
 				"Content: <br/>\n"+
 				"<textarea id=edit name=%a rows=20 cols=80>%t</textarea>"+
 				"<input type=submit>"+

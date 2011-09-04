@@ -13,6 +13,7 @@ import jp.tonyu.soytext2.document.DocumentSet;
 import jp.tonyu.util.MapAction;
 import jp.tonyu.util.Maps;
 
+import org.mozilla.javascript.ClassShutter;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.EvaluatorException;
 import org.mozilla.javascript.Function;
@@ -25,6 +26,7 @@ public class JSSession {
 	public final Scriptable root;
 	private Scriptable initObject(Context cx) {
 		ScriptableObject o=cx.initStandardObjects();
+		/*
 		String[] builtinsa=new String[] {"String","Boolean","Number","Function","Object","Array","RegExp","undefined","null","true","false"
 				,"NaN","Infinity","Date","Math","parseInt","TypeError","InternalError","JavaException"};
 		Set<String> builtins=new HashSet<String>();
@@ -41,7 +43,7 @@ public class JSSession {
 					Log.w("Runscript","Native java Object:"+j);
 				}
 			}
-		}
+		}*/
 		cx.evaluateString(o, PrototypeJS.value, "<prototype>", 1, null);
 		return o;
 	}
@@ -127,6 +129,28 @@ public class JSSession {
 		cx=Context.enter();
 		try {
 			//cx.setOptimizationLevel(-1);
+			cx.setClassShutter(new ClassShutter() {
+				Map<String,Boolean> cache=new HashMap<String, Boolean>();
+				@Override
+				public boolean visibleToScripts(String fullClassName) {
+					if (cache.containsKey(fullClassName)) {
+						return cache.get(fullClassName);
+					}
+					try {
+						boolean res=false;
+						Class<?> c=Class.forName(fullClassName);
+						res=(Object.class.equals(c)) || 
+							(Wrappable.class.isAssignableFrom(c)) ||
+						    (Exception.class.isAssignableFrom(c));
+						Log.d("ClassShutter", fullClassName+" - "+res);
+						cache.put(fullClassName, res);
+						return res;
+					} catch (ClassNotFoundException e) {
+						e.printStackTrace();
+					}
+					return false;
+				}
+			});
 			cx.setWrapFactory(new SafeWrapFactory());
 			return action.run(cx);
 		} finally {
