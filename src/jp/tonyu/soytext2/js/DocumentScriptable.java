@@ -29,7 +29,7 @@ public class DocumentScriptable implements Function {
 	Map<Object, Object>binds=new HashMap<Object, Object>();
 	final DocumentRecord d;
 	public final DocumentLoader loader;
-	public static final String ONAPPLY="onApply";
+	public static final String ONAPPLY="onApply",APPLY="apply",CALL="call";
 	public DocumentRecord getDocument() {
 		return d;
 	}
@@ -340,6 +340,23 @@ public class DocumentScriptable implements Function {
 			Function f = (Function) r;
 			Object[] args2=new Object[] { thisObj ,args };
 			return f.call(cx, scope, this, args2);
+		}
+		r=ScriptableObject.getProperty(this,APPLY);
+		if (r instanceof Function) {
+			Function f = (Function) r;
+			Object[] args2=new Object[] { thisObj ,args };
+			return f.call(cx, scope, this, args2);
+		}
+
+		r=ScriptableObject.getProperty(this,CALL);
+		if (r instanceof Function) {
+			Function f = (Function) r;
+			Object[] args2=new Object[args.length+1];
+			args2[0]=thisObj;
+			for (int i=1 ; i<args2.length ;i++){ 
+				args2[i]=args[i-1];
+			}
+			return f.call(cx, scope, this , args2);
 		}
 		Log.die(this+" is not function-callable.");
 		return null;

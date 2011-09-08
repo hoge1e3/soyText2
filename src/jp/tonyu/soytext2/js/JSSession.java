@@ -7,11 +7,13 @@ import java.util.Set;
 
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.ContextRunnable;
-import jp.tonyu.js.PrototypeJS;
+import jp.tonyu.js.Prototype;
+
 import jp.tonyu.js.Wrappable;
 import jp.tonyu.soytext2.document.DocumentSet;
 import jp.tonyu.util.MapAction;
 import jp.tonyu.util.Maps;
+import jp.tonyu.util.Resource;
 
 import org.mozilla.javascript.ClassShutter;
 import org.mozilla.javascript.Context;
@@ -44,7 +46,7 @@ public class JSSession {
 				}
 			}
 		}*/
-		cx.evaluateString(o, PrototypeJS.value, "<prototype>", 1, null);
+		cx.evaluateString(o, Resource.text(Prototype.class,	 ".js"), "<prototype>", 1, null);
 		return o;
 	}
 	public JSSession() {

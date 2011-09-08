@@ -7,6 +7,7 @@ import java.util.Set;
 
 import jp.tonyu.debug.Log;
 import jp.tonyu.soytext2.js.SafeWrapFactory;
+import jp.tonyu.util.Resource;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.EvaluatorException;
@@ -38,7 +39,7 @@ class RunScript {
 				}
 			 }
 		 }
-		 cx.evaluateString(o, PrototypeJS.value, "<prototype>", 1, null);
+		 cx.evaluateString(o, Resource.text(Prototype.class, ".js"), "<prototype>", 1, null);
 		 initObjCache=o;
 		 return o;
 	 }

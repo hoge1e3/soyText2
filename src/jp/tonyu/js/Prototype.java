@@ -1,7 +1,15 @@
 // generated from [[110221_034347]] by [[110222_102732]]
 package jp.tonyu.js;
-public class PrototypeJS{
-  public static final String value=
+
+import java.io.FileNotFoundException;
+
+import jp.tonyu.util.SFile;
+
+public class Prototype{
+	public static void main(String[] args) throws FileNotFoundException {
+		new SFile("Prototype.js").text(value);
+	}
+  private static final String value=
     "/*  Prototype JavaScript framework, version 1.6.1\n"+
     " *  (c) 2005-2009 Sam Stephenson\n"+
     " *\n"+
@@ -669,7 +677,10 @@ public class PrototypeJS{
     "        iterator.call(context, value, index++);\n"+
     "      });\n"+
     "    } catch (e) {\n"+
-    "      if (e != $break) throw e;\n"+
+    "      if (e != $break) {" +
+    "          if (e.rhinoException) throw e.rhinoException;" +
+    "          else throw e;\n" +
+    "      }"+
     "    }\n"+
     "    return this;\n"+
     "  }\n"+

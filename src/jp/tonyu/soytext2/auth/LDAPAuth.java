@@ -12,7 +12,7 @@ import org.ietf.ldap.LDAPSearchResults;
 
 
 public class LDAPAuth implements Authentificator {		
-	private static final String ADMINPASS = "meisei";
+	private static final String ADMINPASS = "admin";
 	private static final String GUESTIDPASS = "guest";
 	int ldapVersion=3;
 	String host, binddn, bindpw,  base;
