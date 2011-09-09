@@ -11,7 +11,7 @@ import org.ietf.ldap.LDAPSearchResults;
 
 
 
-public class LDAPAuth implements Authentificator {		
+public class LDAPAuth implements Authenticator {		
 	private static final String ADMINPASS = "admin";
 	private static final String GUESTIDPASS = "guest";
 	int ldapVersion=3;

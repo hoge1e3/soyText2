@@ -26,7 +26,8 @@ import jp.tonyu.debug.Log;
 import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.js.ContextRunnable;
 import jp.tonyu.js.Wrappable;
-import jp.tonyu.soytext2.auth.AuthentificatorList;
+import jp.tonyu.soytext2.auth.Authenticator;
+import jp.tonyu.soytext2.auth.AuthenticatorList;
 import jp.tonyu.soytext2.auth.Session;
 import jp.tonyu.soytext2.auth.SessionSet;
 import jp.tonyu.soytext2.browserjs.IndentAdaptor;
@@ -667,7 +668,8 @@ public class HttpContext implements Wrappable {
 				user="";
 				s=Session.NOBODY;
 			}  else {
-				if (AuthentificatorList.alist.check(user, pass)) {
+				Authenticator a=documentLoader.authenticator();
+				if (a/*AuthentificatorList.alist*/.check(user, pass)) {
 					s=SessionSet.create(user);
 		    		res.addCookie(new Cookie(SESSION_NAME, s.id()));
 		    		String after=params().get("after");

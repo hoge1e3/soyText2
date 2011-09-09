@@ -11,6 +11,8 @@ import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.js.Scriptables;
 import jp.tonyu.js.StringPropAction;
 import jp.tonyu.js.Wrappable;
+import jp.tonyu.soytext2.auth.Authenticator;
+import jp.tonyu.soytext2.auth.AuthenticatorList;
 import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentAction;
 import jp.tonyu.soytext2.document.DocumentSet;
@@ -279,5 +281,22 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 		SuperclassPrototype res = new SuperclassPrototype(superclass);
 		Scriptables.extend(res, overrideMethods);
 		return res;
+	}
+	Authenticator auth;
+	public Authenticator authenticator() {
+		if (auth!=null) return auth;
+		auth=new AuthenticatorList();
+		QueryBuilder qb=QueryBuilder.create("authenticatorList:=true");
+		searchByQuery(qb.toQuery(), new BuiltinFunc() {
+			
+			@Override
+			public Object call(Context cx, Scriptable scope, Scriptable thisObj,
+					Object[] args) {
+				Function f=(Function) args[0];
+				f.call(cx, scope, f, new Object[]{auth});
+				return true;
+			}
+		});
+		return auth;
 	}
 }
