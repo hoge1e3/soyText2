@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.io.StringReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -53,6 +54,7 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
+import org.tmatesoft.sqljet.core.SqlJetException;
 
 public class HttpContext implements Wrappable {
 	private static final String DO_EDIT = "doEdit";
@@ -313,17 +315,26 @@ public class HttpContext implements Wrappable {
     private void fileUploadDone() {
     	//new FileUpload().uploadDone(this);		
 	}
-
+    private void sync() {
+    	String url=params().get("url");
+    	String uploadUrl=url+"/upload";
+    	// uploadUrl ?  dbid=this dbid  &  data =  documents - since localLastsync
+    	
+    	String downloadUrl=url+"/download";
+    	// downloadUrl ? dbid=this dbid  & since = remoteLastsync  
+    }
 	private void download() throws IOException {
 		//input param:
 		//  dbid=(client's DBID)
 		//  credential=(client's user name or something)
-		//  since=(= client's lastsync) displays DocumentRecord.lastupdate>since 
+		//  since=(= client's remoteLastsync) displays DocumentRecord.lastupdate>since 
 		//output:
 		//  [DocumentRecord]
 		//  [DocumentRecord]
 		//  :
-		//note: client's lastsync set to max(DocumentRecord.lastUpdate)
+		//note: client's localLastsync set to client's new log id
+		//note: client's remoteLastsync set to max(DocumentRecord.lastUpdate)
+
 		final StringBuffer buf = new StringBuffer();
 		String sinces=params().get("since");
 		final long since;
@@ -359,9 +370,12 @@ public class HttpContext implements Wrappable {
 		//    [DocumentRecord]
 		//    [DocumentRecord]
 		//    :
+		//    (contain since client's localLastSynced)
 		//output:
 		//  none
-		//note: This system's lastsync set to max(DocumentRecord.lastupdate)
+		//note: This system's remoteLastsync set to max(DocumentRecord.lastupdate)
+		//note: This system's localLastsync set to client's new log id
+		
 		if ("get".equalsIgnoreCase( req.getMethod())){
 			print(Html.p("<html><body>" +
 					"<form action=%a method=POST>"+
@@ -374,7 +388,20 @@ public class HttpContext implements Wrappable {
 					rootPath()+"/upload"));
 		} else {
 			String data=params().get("data");
-			
+			StringReader rd=new StringReader(data);
+			Scanner sc=new Scanner(rd);
+			try {
+				while (true) {
+					DocumentRecord d = new DocumentRecord();
+					String nextCl=d.importRecord(sc);
+					if (d.content!=null) {
+						documentLoader.importDocument(d);
+					}
+					if (nextCl==null) break;
+				}
+			} catch (SqlJetException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 	private void topPage() throws IOException {
@@ -669,7 +696,7 @@ public class HttpContext implements Wrappable {
 				s=Session.NOBODY;
 			}  else {
 				Authenticator a=documentLoader.authenticator();
-				if (a/*AuthentificatorList.alist*/.check(user, pass)) {
+				if (a!=null && a/*AuthentificatorList.alist*/.check(user, pass)) {
 					s=SessionSet.create(user);
 		    		res.addCookie(new Cookie(SESSION_NAME, s.id()));
 		    		String after=params().get("after");

@@ -39,6 +39,20 @@ public abstract class SqlJetRecord {
 	public SqlJetRecord newInstance() {
 		return newInstance(getClass());
 	}
+	public <T extends SqlJetRecord> void copyTo(T dst) throws SqlJetException {
+		try {
+			for (String fname:columnOrder()) {
+				Field f=getField(fname);
+				f.set(dst, f.get(this));
+			}
+		} catch (NoSuchFieldException e) {
+			throw new SqlJetException(e);
+		} catch (IllegalArgumentException e) {
+			throw new SqlJetException(e);
+		} catch (IllegalAccessException e) {
+			throw new SqlJetException(e);
+		}
+	}
 	public <T extends SqlJetRecord> T dup(T thiz) throws SqlJetException {
 		if (thiz!=this) Log.die("thiz must be equal to this");
 		try {

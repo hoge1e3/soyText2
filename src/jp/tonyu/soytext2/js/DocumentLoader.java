@@ -29,6 +29,7 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
+import org.tmatesoft.sqljet.core.SqlJetException;
 
 
 public class DocumentLoader implements Wrappable, IDocumentLoader {
@@ -286,17 +287,42 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 	public Authenticator authenticator() {
 		if (auth!=null) return auth;
 		auth=new AuthenticatorList();
-		QueryBuilder qb=QueryBuilder.create("authenticatorList:=true");
+		QueryBuilder qb=QueryBuilder.create("authenticatorList:true");
 		searchByQuery(qb.toQuery(), new BuiltinFunc() {
 			
 			@Override
 			public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 					Object[] args) {
 				Function f=(Function) args[0];
+				Log.d(this, "Using - "+f+" as authlist");
 				f.call(cx, scope, f, new Object[]{auth});
 				return true;
 			}
 		});
 		return auth;
+	}
+	private void copyDocumentExceptDates(DocumentRecord src, DocumentRecord dst) throws SqlJetException {
+		long lu=dst.lastUpdate;
+		src.copyTo(dst);
+		dst.lastUpdate=lu;
+	}
+	public void importDocument(DocumentRecord dr) throws SqlJetException {
+		DocumentScriptable ds = byId(dr.id);
+		if (ds!=null) {
+			copyDocumentExceptDates(dr , ds.getDocument());
+			Log.d("Import", dr.content);
+			ds.setContentAndSave(dr.content);
+			/*loadFromContent(dr.content, ds);
+			ds.refreshSummary();*/
+		} else {
+			DocumentRecord ndr=getDocumentSet().newDocument(dr.id);
+			copyDocumentExceptDates(dr, ndr);
+			final DocumentScriptable res=defaultDocumentScriptable(ndr);
+			Log.d("Import", ndr.content);
+			res.setContentAndSave(ndr.content);
+			//loadFromContent(ndr.content, res);
+			objs.put(dr.id, res);
+		}
+		
 	}
 }

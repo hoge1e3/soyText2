@@ -48,7 +48,11 @@ public class RemoteRecord extends SqlJetRecord {
 	/**
 	 * An id of LogRecord(of remote system) indicating when synced last. 
 	 */
-	public long lastSynced;
+	public long remoteLastSynced;
+	/**
+	 * An id of LogRecord(of this system) indicating when synced last. 
+	 */
+	public long localLastSynced;
 	@Override
 	public String tableName() {
 		return "RemoteRecord";

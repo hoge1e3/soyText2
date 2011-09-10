@@ -2,6 +2,7 @@ package jp.tonyu.soytext2.auth;
 
 import java.util.Vector;
 
+import jp.tonyu.debug.Log;
 import jp.tonyu.js.Wrappable;
 
 public class AuthenticatorList implements Authenticator, Wrappable {
@@ -15,6 +16,7 @@ public class AuthenticatorList implements Authenticator, Wrappable {
 		return false;
 	}
 	public void install(Authenticator a) {
+		Log.d(this, "Installed - "+a);
 		auths.add(a);
 	}
 	
