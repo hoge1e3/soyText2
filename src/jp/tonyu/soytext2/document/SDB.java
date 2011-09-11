@@ -94,6 +94,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	DocumentRecord documentRecord=new DocumentRecord();
 	LogRecord logRecord=new LogRecord();
 	DBIDRecord dbidRecord=new DBIDRecord();
+	
 	@Override
 	public SqlJetRecord[] tables(int version) {
 		return q(documentRecord,logRecord, dbidRecord);

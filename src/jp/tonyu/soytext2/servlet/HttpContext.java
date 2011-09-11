@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.io.StringReader;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -61,7 +62,7 @@ import org.tmatesoft.sqljet.core.SqlJetException;
 
 public class HttpContext implements Wrappable {
 	private static final String DATA = "data";
-	private static final String SYNCID = "syncid";
+	//private static final String SYNCID = "syncid";
 	private static final String DOWNLOADSINCE = "downloadsince";
 	private static final String DO_EDIT = "doEdit";
 	private static final String TEXT_PLAIN_CHARSET_UTF_8 = "text/plain; charset=utf-8";
@@ -327,15 +328,25 @@ public class HttpContext implements Wrappable {
     private void fileUploadDone() {
     	//new FileUpload().uploadDone(this);		
 	}
-	private DocumentScriptable getSyncProf() {
-		String syncProfId=params().get(SYNCID);
+	private DocumentScriptable getSyncProf(String name) {
+		String syncProfId=params().get(name);
     	DocumentScriptable syncProf=documentLoader.byId(syncProfId);
 		return syncProf;
 	}
 	static final String LOCAL_LAST_SYNCED= "localLastSynced";
 	static final String REMOTE_LAST_SYNCED= "remoteLastSynced";
+	private static final String LOCAL_SYNCID = "localsyncid";
+	private static final String REMOTE_SYNCID = "remotesyncid";
+	private long getLongProp(Scriptable s, String name) {
+		Object o=ScriptableObject.getProperty(s,name);
+		if (o instanceof Number) {
+			Number l = (Number) o;
+			return l.longValue();
+		}
+		return -1;
+	}
     /* input param:
-     *   syncid=(this system's sync profile id)
+     *   localsyncid=(this system's sync profile id)
      *   credential=
      *   data= [DocumentRecord] ...  
      *   downloadsince= (optional)
@@ -345,11 +356,11 @@ public class HttpContext implements Wrappable {
      *   this.syncProf.localLastSynced    -> generated log id
      *   this.syncProf.remoteLastSynced   -> max (input DocumentRecord.lastUpdate)
     */
-    private void recvSync() {
-    	DocumentScriptable syncProf = getSyncProf();
+    private void recvSync() throws IOException {
+    	DocumentScriptable localSyncProf = getSyncProf(LOCAL_SYNCID);
     	
     	// download
-    	Object sinceo=ScriptableObject.getProperty(syncProf, LOCAL_LAST_SYNCED);
+    	Object sinceo=ScriptableObject.getProperty(localSyncProf, LOCAL_LAST_SYNCED);
 		String sinces=params().get(DOWNLOADSINCE);
 		final long since;
 		if (sinces!=null) {
@@ -361,55 +372,29 @@ public class HttpContext implements Wrappable {
 			since=-1;
 		}
     	res.setContentType (TEXT_PLAIN_CHARSET_UTF_8);
-        documentLoader.search("", null, new BuiltinFunc() {		
-			@Override
-			public Object call(Context cx, Scriptable scope, Scriptable thisObj,
-					Object[] args) {
-				DocumentScriptable s=(DocumentScriptable)args[0];
-				DocumentRecord document = s.getDocument();
-				if (document.lastUpdate>since) {
-					try {
-						document.export(res.getWriter());
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-					return false;
-				} else return true;
-			}
-		});   	
+    	final PrintWriter writer=res.getWriter();
+    	exportDocuments(since, writer);   	 	
         
     	// upload
         String data=params().get(DATA);
 		StringReader rd=new StringReader(data);
 		Scanner sc=new Scanner(rd);
-		long newRemoteLastSynced=0;
-		try {
-			Set<DocumentRecord> loaded=new HashSet<DocumentRecord>();
-			while (true) {
-				DocumentRecord d = new DocumentRecord();
-				String nextCl=d.importRecord(sc);
-				if (d.content!=null) {
-					if (d.lastUpdate>newRemoteLastSynced) newRemoteLastSynced=d.lastUpdate;
-					loaded.add(d);
-				}
-				if (nextCl==null) break;
-			}
-			documentLoader.importDocuments(loaded);
-		} catch (SqlJetException e) {
-			e.printStackTrace();
-		}
+		long newRemoteLastSynced=importDocuments(sc);
+		
 		// update local last synced
-		long newLocalLastSynced=documentLoader.getDocumentSet().log(new Date()+"", "sync", params().get(SYNCID), "");
-		ScriptableObject.putProperty(syncProf,LOCAL_LAST_SYNCED,newLocalLastSynced);
-		ScriptableObject.putProperty(syncProf,REMOTE_LAST_SYNCED,newRemoteLastSynced);
-		syncProf.save();
+		long newLocalLastSynced=documentLoader.getDocumentSet().log(
+				new Date()+"", "sync", params().get(LOCAL_SYNCID), "");
+		ScriptableObject.putProperty(localSyncProf,LOCAL_LAST_SYNCED,newLocalLastSynced);
+		ScriptableObject.putProperty(localSyncProf,REMOTE_LAST_SYNCED,newRemoteLastSynced);
+		localSyncProf.save();
 		
     }
     /* input param:
-     *   syncid=(remote's sync profile id)
+     *   remotesyncid=(remote's sync profile id)
+     *   localsyncid=(this system's sync profile id)
      * Connect to this.syncProf.url with:
      *   data= [DocumentRecord] ...  (since this.syncProf.localLastSynced)
-     *   syncid=syncid
+     *   localsync=remotesyncid
      *   downloadsince = (this.syncProf.remoteLastSynced)
      * Receives
      *   [DocumentRecord]...
@@ -418,12 +403,26 @@ public class HttpContext implements Wrappable {
      *   this.syncProf.remoteLastSynced -> max (received DocumentRecord.lastUpdate)
      */
     private void sendSync() throws IOException {
-    	DocumentScriptable syncProf = getSyncProf();
-    	String urls=""+ScriptableObject.getProperty(syncProf, "url");
-    	StringBuilder data=new StringBuilder();
-    	String syncid=params().get(SYNCID);
-    	String downloadsince=""+ScriptableObject.getProperty(syncProf, DOWNLOADSINCE);
-    	HttpPost.send(urls, Maps.create(DATA, data+"").p(SYNCID,syncid).p(DOWNLOADSINCE,downloadsince));
+    	DocumentScriptable localSyncProf = getSyncProf(LOCAL_SYNCID);
+    	String urls=""+ScriptableObject.getProperty(localSyncProf, "url");
+    	StringWriter data=new StringWriter();
+    	PrintWriter pdata=new PrintWriter(data);
+    	long since=getLongProp(localSyncProf, LOCAL_LAST_SYNCED);
+    	exportDocuments(since, pdata);
+    	String remoteSyncid=params().get(REMOTE_SYNCID);
+    	long downloadsince=getLongProp(localSyncProf, REMOTE_LAST_SYNCED);
+    	
+    	String recv=HttpPost.send(urls, Maps.create(DATA, data.getBuffer()+"")
+    			.p(LOCAL_SYNCID,remoteSyncid).p(DOWNLOADSINCE,""+downloadsince));
+    	Scanner sc=new Scanner(new StringReader(recv));
+    	long newRemoteLastSynced=importDocuments(sc);
+		
+		// update local last synced
+		long newLocalLastSynced=documentLoader.getDocumentSet().log
+				(new Date()+"", "sync", params().get(LOCAL_SYNCID), "");
+		ScriptableObject.putProperty(localSyncProf,LOCAL_LAST_SYNCED,newLocalLastSynced);
+		ScriptableObject.putProperty(localSyncProf,REMOTE_LAST_SYNCED,newRemoteLastSynced);
+		localSyncProf.save();
     }
 	private void download() throws IOException {
 		//input param:
@@ -446,23 +445,23 @@ public class HttpContext implements Wrappable {
 			since=-1;
 		}
     	res.setContentType (TEXT_PLAIN_CHARSET_UTF_8);
-        documentLoader.search("", null, new BuiltinFunc() {		
+    	final PrintWriter writer=res.getWriter();
+        exportDocuments(since, writer);   	
+      
+	}
+	private void exportDocuments(final long since, final PrintWriter writer) {
+		documentLoader.search("", null, new BuiltinFunc() {		
 			@Override
 			public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 					Object[] args) {
 				DocumentScriptable s=(DocumentScriptable)args[0];
 				DocumentRecord document = s.getDocument();
 				if (document.lastUpdate>since) {
-					try {
-						document.export(res.getWriter());
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
+					document.export(writer);
 					return false;
 				} else return true;
 			}
-		});   	
-      
+		});
 	}
 	private void upload() throws IOException {
 		//input params:
@@ -492,21 +491,27 @@ public class HttpContext implements Wrappable {
 			String data=params().get(DATA);
 			StringReader rd=new StringReader(data);
 			Scanner sc=new Scanner(rd);
-			try {
-				Set<DocumentRecord> loaded=new HashSet<DocumentRecord>();
-				while (true) {
-					DocumentRecord d = new DocumentRecord();
-					String nextCl=d.importRecord(sc);
-					if (d.content!=null) {
-						loaded.add(d);
-					}
-					if (nextCl==null) break;
-				}
-				documentLoader.importDocuments(loaded);
-			} catch (SqlJetException e) {
-				e.printStackTrace();
-			}
+			importDocuments(sc);
 		}
+	}
+	private long importDocuments(Scanner sc) {
+		long newRemoteLastSynced=0;
+		try {
+			Set<DocumentRecord> loaded=new HashSet<DocumentRecord>();
+			while (true) {
+				DocumentRecord d = new DocumentRecord();
+				String nextCl=d.importRecord(sc);
+				if (d.content!=null) {
+					if (d.lastUpdate>newRemoteLastSynced) newRemoteLastSynced=d.lastUpdate;
+					loaded.add(d);
+				}
+				if (nextCl==null) break;
+			}
+			documentLoader.importDocuments(loaded);
+		} catch (SqlJetException e) {
+			e.printStackTrace();
+		}
+		return newRemoteLastSynced;
 	}
 	private void topPage() throws IOException {
 		/*Cursor s=query(Query.create("topPage:=true"));
