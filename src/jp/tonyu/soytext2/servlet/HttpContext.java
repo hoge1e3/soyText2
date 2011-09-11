@@ -60,6 +60,7 @@ import org.mozilla.javascript.ScriptableObject;
 import org.tmatesoft.sqljet.core.SqlJetException;
 
 public class HttpContext implements Wrappable {
+	private static final String DATA = "data";
 	private static final String SYNCID = "syncid";
 	private static final String DOWNLOADSINCE = "downloadsince";
 	private static final String DO_EDIT = "doEdit";
@@ -378,7 +379,7 @@ public class HttpContext implements Wrappable {
 		});   	
         
     	// upload
-        String data=params().get("data");
+        String data=params().get(DATA);
 		StringReader rd=new StringReader(data);
 		Scanner sc=new Scanner(rd);
 		long newRemoteLastSynced=0;
@@ -416,10 +417,13 @@ public class HttpContext implements Wrappable {
      *   this.syncProf.localLastSynced  -> generated log id
      *   this.syncProf.remoteLastSynced -> max (received DocumentRecord.lastUpdate)
      */
-    private void sendSync() {
+    private void sendSync() throws IOException {
     	DocumentScriptable syncProf = getSyncProf();
     	String urls=""+ScriptableObject.getProperty(syncProf, "url");
-    	HttpPost.send(urls, Maps.create("data", data).p("syncid",syncid).p("downloadsince",downloadsince));
+    	StringBuilder data=new StringBuilder();
+    	String syncid=params().get(SYNCID);
+    	String downloadsince=""+ScriptableObject.getProperty(syncProf, DOWNLOADSINCE);
+    	HttpPost.send(urls, Maps.create(DATA, data+"").p(SYNCID,syncid).p(DOWNLOADSINCE,downloadsince));
     }
 	private void download() throws IOException {
 		//input param:
@@ -485,7 +489,7 @@ public class HttpContext implements Wrappable {
 					"</body></html>",
 					rootPath()+"/upload"));
 		} else {
-			String data=params().get("data");
+			String data=params().get(DATA);
 			StringReader rd=new StringReader(data);
 			Scanner sc=new Scanner(rd);
 			try {
