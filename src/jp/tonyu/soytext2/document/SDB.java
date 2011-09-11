@@ -303,5 +303,9 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	public void all(LogAction action) {
 		logManager.all(action);
 	}
-
+	@Override
+	public int log(String date, String action, String target, String option) {
+		LogRecord l=logManager.write(action, target);
+		return l.id;
+	}
 }

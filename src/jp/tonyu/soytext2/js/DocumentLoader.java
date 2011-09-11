@@ -1,7 +1,9 @@
 package jp.tonyu.soytext2.js;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -306,23 +308,38 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 		src.copyTo(dst);
 		dst.lastUpdate=lu;
 	}
-	public void importDocument(DocumentRecord dr) throws SqlJetException {
-		DocumentScriptable ds = byId(dr.id);
-		if (ds!=null) {
-			copyDocumentExceptDates(dr , ds.getDocument());
-			Log.d("Import", dr.content);
-			ds.setContentAndSave(dr.content);
-			/*loadFromContent(dr.content, ds);
+	/**
+	 * 
+	 * @param dr DocumentRecord to be imported
+	 * @return true if DocumentScriptable having id equals to dr.id in objs(cache)
+	 * @throws SqlJetException
+	 */
+	public void importDocuments(Set<DocumentRecord> drs) throws SqlJetException {
+		Set<DocumentScriptable> willReload=new HashSet<DocumentScriptable>();
+		for (DocumentRecord dr:drs) {
+			DocumentRecord existentDr=documentSet.byId(dr.id);
+			if (existentDr!=null) {
+				copyDocumentExceptDates(dr , existentDr);
+				documentSet.save(existentDr);
+				//Log.d("Import", dr.content);
+				//ds.setContentAndSave(dr.content);
+				/*loadFromContent(dr.content, ds);
 			ds.refreshSummary();*/
-		} else {
-			DocumentRecord ndr=getDocumentSet().newDocument(dr.id);
-			copyDocumentExceptDates(dr, ndr);
-			final DocumentScriptable res=defaultDocumentScriptable(ndr);
-			Log.d("Import", ndr.content);
-			res.setContentAndSave(ndr.content);
-			//loadFromContent(ndr.content, res);
+			} else {
+				DocumentRecord newDr=getDocumentSet().newDocument(dr.id);
+				copyDocumentExceptDates(dr, newDr);
+				documentSet.save(newDr);
+				/*final DocumentScriptable res=defaultDocumentScriptable(ndr);
 			objs.put(dr.id, res);
+			Log.d("Import", ndr.content);
+			res.setContentAndSave(ndr.content);*/
+				//loadFromContent(ndr.content, res);
+			}
+			if (objs.containsKey(dr.id)) willReload.add(objs.get(dr.id));
 		}
-		
+		for (DocumentScriptable ds:willReload) {
+			ds.reloadFromContent();
+			//loadFromContent(ds.getDocument().content, ds);
+		}
 	}
 }

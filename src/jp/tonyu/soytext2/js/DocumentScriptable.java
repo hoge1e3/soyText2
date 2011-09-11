@@ -310,6 +310,10 @@ public class DocumentScriptable implements Function {
 		refreshSummary();
 		loader.getDocumentSet().save(d);//d.save();
 	}
+	public void reloadFromContent() {
+		loader.loadFromContent(d.content, this);		
+		refreshSummary();
+	}
 	@Override
 	public String toString() {
 		return "(Docscr "+d.id+")";

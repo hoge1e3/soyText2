@@ -12,7 +12,9 @@ import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Map;
 import java.util.Scanner;
@@ -42,6 +44,7 @@ import jp.tonyu.soytext2.js.JSSession;
 import jp.tonyu.soytext2.search.Query;
 import jp.tonyu.soytext2.search.QueryBuilder;
 import jp.tonyu.soytext2.search.expr.AttrOperator;
+import jp.tonyu.util.HttpPost;
 import jp.tonyu.util.Literal;
 import jp.tonyu.util.MapAction;
 import jp.tonyu.util.Maps;
@@ -57,6 +60,8 @@ import org.mozilla.javascript.ScriptableObject;
 import org.tmatesoft.sqljet.core.SqlJetException;
 
 public class HttpContext implements Wrappable {
+	private static final String SYNCID = "syncid";
+	private static final String DOWNLOADSINCE = "downloadsince";
 	private static final String DO_EDIT = "doEdit";
 	private static final String TEXT_PLAIN_CHARSET_UTF_8 = "text/plain; charset=utf-8";
 	private static final String TEXT_HTML_CHARSET_UTF_8 = "text/html; charset=utf-8";
@@ -275,6 +280,12 @@ public class HttpContext implements Wrappable {
         else if (s.length>=2 && s[1].equalsIgnoreCase("search")) {
         	search();
         }
+        else if (s.length>=2 && s[1].equalsIgnoreCase("sendsync")) {
+        	sendSync();
+        }
+        else if (s.length>=2 && s[1].equalsIgnoreCase("recvsync")) {
+        	recvSync();
+        }
         else if (s.length>=2 && s[1].equalsIgnoreCase("browserjs")) {
         	browserjs();
         }
@@ -315,13 +326,100 @@ public class HttpContext implements Wrappable {
     private void fileUploadDone() {
     	//new FileUpload().uploadDone(this);		
 	}
-    private void sync() {
-    	String url=params().get("url");
-    	String uploadUrl=url+"/upload";
-    	// uploadUrl ?  dbid=this dbid  &  data =  documents - since localLastsync
+	private DocumentScriptable getSyncProf() {
+		String syncProfId=params().get(SYNCID);
+    	DocumentScriptable syncProf=documentLoader.byId(syncProfId);
+		return syncProf;
+	}
+	static final String LOCAL_LAST_SYNCED= "localLastSynced";
+	static final String REMOTE_LAST_SYNCED= "remoteLastSynced";
+    /* input param:
+     *   syncid=(this system's sync profile id)
+     *   credential=
+     *   data= [DocumentRecord] ...  
+     *   downloadsince= (optional)
+     * output:
+     *   [DocumentRecord]...   (since this.syncProf.localLastSynced)
+     * changes:
+     *   this.syncProf.localLastSynced    -> generated log id
+     *   this.syncProf.remoteLastSynced   -> max (input DocumentRecord.lastUpdate)
+    */
+    private void recvSync() {
+    	DocumentScriptable syncProf = getSyncProf();
     	
-    	String downloadUrl=url+"/download";
-    	// downloadUrl ? dbid=this dbid  & since = remoteLastsync  
+    	// download
+    	Object sinceo=ScriptableObject.getProperty(syncProf, LOCAL_LAST_SYNCED);
+		String sinces=params().get(DOWNLOADSINCE);
+		final long since;
+		if (sinces!=null) {
+			since=Long.parseLong(sinces);
+		} else if (sinceo instanceof Number) {
+			Number n = (Number) sinceo;
+			since=n.longValue();
+		} else {
+			since=-1;
+		}
+    	res.setContentType (TEXT_PLAIN_CHARSET_UTF_8);
+        documentLoader.search("", null, new BuiltinFunc() {		
+			@Override
+			public Object call(Context cx, Scriptable scope, Scriptable thisObj,
+					Object[] args) {
+				DocumentScriptable s=(DocumentScriptable)args[0];
+				DocumentRecord document = s.getDocument();
+				if (document.lastUpdate>since) {
+					try {
+						document.export(res.getWriter());
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					return false;
+				} else return true;
+			}
+		});   	
+        
+    	// upload
+        String data=params().get("data");
+		StringReader rd=new StringReader(data);
+		Scanner sc=new Scanner(rd);
+		long newRemoteLastSynced=0;
+		try {
+			Set<DocumentRecord> loaded=new HashSet<DocumentRecord>();
+			while (true) {
+				DocumentRecord d = new DocumentRecord();
+				String nextCl=d.importRecord(sc);
+				if (d.content!=null) {
+					if (d.lastUpdate>newRemoteLastSynced) newRemoteLastSynced=d.lastUpdate;
+					loaded.add(d);
+				}
+				if (nextCl==null) break;
+			}
+			documentLoader.importDocuments(loaded);
+		} catch (SqlJetException e) {
+			e.printStackTrace();
+		}
+		// update local last synced
+		long newLocalLastSynced=documentLoader.getDocumentSet().log(new Date()+"", "sync", params().get(SYNCID), "");
+		ScriptableObject.putProperty(syncProf,LOCAL_LAST_SYNCED,newLocalLastSynced);
+		ScriptableObject.putProperty(syncProf,REMOTE_LAST_SYNCED,newRemoteLastSynced);
+		syncProf.save();
+		
+    }
+    /* input param:
+     *   syncid=(remote's sync profile id)
+     * Connect to this.syncProf.url with:
+     *   data= [DocumentRecord] ...  (since this.syncProf.localLastSynced)
+     *   syncid=syncid
+     *   downloadsince = (this.syncProf.remoteLastSynced)
+     * Receives
+     *   [DocumentRecord]...
+     * changes:
+     *   this.syncProf.localLastSynced  -> generated log id
+     *   this.syncProf.remoteLastSynced -> max (received DocumentRecord.lastUpdate)
+     */
+    private void sendSync() {
+    	DocumentScriptable syncProf = getSyncProf();
+    	String urls=""+ScriptableObject.getProperty(syncProf, "url");
+    	HttpPost.send(urls, Maps.create("data", data).p("syncid",syncid).p("downloadsince",downloadsince));
     }
 	private void download() throws IOException {
 		//input param:
@@ -364,7 +462,7 @@ public class HttpContext implements Wrappable {
 	}
 	private void upload() throws IOException {
 		//input params:
-		//  dbid=(client's DBID)
+		//  syncid=(this server's syncProfile id)
 		//  credential=(client's user name or something)
 		//  data=
 		//    [DocumentRecord]
@@ -379,7 +477,7 @@ public class HttpContext implements Wrappable {
 		if ("get".equalsIgnoreCase( req.getMethod())){
 			print(Html.p("<html><body>" +
 					"<form action=%a method=POST>"+
-					"dbid=<input name=dbid><BR>"+
+					"syncid=<input name=syncid><BR>"+
 					"credential=<input name=credential><BR>"+
 					"data:<BR><textarea name=data rows=40 cols=80></textarea><BR>"+
 					"<input type=submit>"+
@@ -391,14 +489,16 @@ public class HttpContext implements Wrappable {
 			StringReader rd=new StringReader(data);
 			Scanner sc=new Scanner(rd);
 			try {
+				Set<DocumentRecord> loaded=new HashSet<DocumentRecord>();
 				while (true) {
 					DocumentRecord d = new DocumentRecord();
 					String nextCl=d.importRecord(sc);
 					if (d.content!=null) {
-						documentLoader.importDocument(d);
+						loaded.add(d);
 					}
 					if (nextCl==null) break;
 				}
+				documentLoader.importDocuments(loaded);
 			} catch (SqlJetException e) {
 				e.printStackTrace();
 			}
