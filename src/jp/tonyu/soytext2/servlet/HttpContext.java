@@ -568,7 +568,20 @@ public class HttpContext implements Wrappable {
 		}
 		s.close();
 		if (d==null) all();*/
-		all();
+		final Ref<Boolean> execed = Ref.create(false);
+		documentLoader.searchByQuery(Query.create("topPage:true"),new BuiltinFunc( ) {
+			
+			@Override
+			public Object call(Context cx, Scriptable scope, Scriptable thisObj,
+					Object[] args) {
+				exec((DocumentScriptable)args[0]);
+				execed.set(true);
+				return true;
+			}
+		});
+		if (!execed.get()){
+			all();
+		}
 	}
 	private void view() throws IOException {
         String[] s=args();
