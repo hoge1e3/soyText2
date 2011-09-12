@@ -14,11 +14,9 @@ public class HttpPost {
 		final StringBuilder data=new StringBuilder();
 		StringBuilder res=new StringBuilder();
 		Maps.entries(params).each(new MapAction<String, String>() {
-			String sep="";
 			@Override
 			public void run(String key, String value) {
-				data.append(Html.p("%s%u=%u", sep, key,value));
-				sep="&";
+				data.append(Html.p("%u=%u&", key,value));
 			}
 		});
 		URL url = new URL(urls);

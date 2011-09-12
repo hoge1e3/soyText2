@@ -212,13 +212,13 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	}*/
 	@Override
 	public void save(final DocumentRecord d) {
+	    LogRecord log=logManager.write("save",d.id);
+	    d.lastUpdate=log.id;
 		reserveWriteTransaction(new DBAction() {
 			@Override
 			public void run(SqlJetDb db) throws SqlJetException {
 			    SqlJetTableHelper t = docTable();
 			    ISqlJetCursor cur = t.lookup(null, d.id);
-			    LogRecord log=logManager.write("save",d.id);
-			    d.lastUpdate=log.id;
 			    Log.d("SAVE", d);
 			    //Log.d("SAVE", "Before - "+docCount());
 			    if (!cur.eof()) {
