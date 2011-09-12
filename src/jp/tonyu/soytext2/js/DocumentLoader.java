@@ -1,5 +1,6 @@
 package jp.tonyu.soytext2.js;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -314,7 +315,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 	 * @return true if DocumentScriptable having id equals to dr.id in objs(cache)
 	 * @throws SqlJetException
 	 */
-	public void importDocuments(Set<DocumentRecord> drs) throws SqlJetException {
+	public void importDocuments(Collection<DocumentRecord> drs) throws SqlJetException {
 		Set<DocumentScriptable> willReload=new HashSet<DocumentScriptable>();
 		for (DocumentRecord dr:drs) {
 			DocumentRecord existentDr=documentSet.byId(dr.id);

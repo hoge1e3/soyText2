@@ -17,9 +17,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.Vector;
 import java.util.regex.Matcher;
 
 import javax.servlet.http.Cookie;
@@ -497,13 +499,13 @@ public class HttpContext implements Wrappable {
 	private long importDocuments(Scanner sc) {
 		long newRemoteLastSynced=0;
 		try {
-			Set<DocumentRecord> loaded=new HashSet<DocumentRecord>();
+			List<DocumentRecord> loaded=new Vector<DocumentRecord>();
 			while (true) {
 				DocumentRecord d = new DocumentRecord();
 				String nextCl=d.importRecord(sc);
 				if (d.content!=null) {
 					if (d.lastUpdate>newRemoteLastSynced) newRemoteLastSynced=d.lastUpdate;
-					loaded.add(d);
+					loaded.add(0,d);
 				}
 				if (nextCl==null) break;
 			}

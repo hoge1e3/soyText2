@@ -8,7 +8,7 @@
 	<classpathentry kind="lib" path="lib/js.jar" sourcepath="/Rhino"/>
 	<classpathentry kind="lib" path="lib/activation.jar"/>
 	<classpathentry kind="lib" path="lib/mail.jar"/>
-	<classpathentry kind="lib" path="lib/bnd.jar"/>
+	<classpathentry kind="lib" path="lib/bnd.jar"/> 
 	<classpathentry kind="lib" path="lib/dnsjava-2.1.2.jar"/>
 	<classpathentry kind="lib" path="lib/ldap.jar"/>
 	<classpathentry kind="output" path="bin"/>
