@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentSet;
+import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.js.DocumentScriptable;
 import jp.tonyu.util.Literal;
 import jp.tonyu.util.SFile;
@@ -141,7 +142,11 @@ public class DocumentProcessor {
 			for (int i=0 ; i<args2.length ; i++) {
 				args2[i]=args[i+PATHSTART];
 			}
-			feedDir(dir+"",args2);
+			if (documentSet() instanceof SDB) {
+				SDB s=(SDB)documentSet();
+				SFile f = new SFile(s.getBlobDir()).rel(this.id());
+				feedDir(f,args2);
+			}
 		} else {
 	   // String lastup = HttpContext.lastModifiedField(d);
 	   // res.setHeader( "Last-Modified" ,  lastup);
@@ -164,8 +169,15 @@ public class DocumentProcessor {
 			Httpd.respondByString(res, body+"");
 	    }
 	}
-	private void feedDir(String string, String[] rels) throws IOException {
-		SFile f=new SFile(string);
+	private void feedDir(SFile f, String[] rels) throws IOException {
+		/*SFile f;
+		if (documentSet() instanceof SDB && string.equals("~")) {
+			//  ~/path/to/blob
+			SDB s=(SDB)documentSet();
+			f=new SFile(s.getBlobDir()).rel(rest);
+		} else {
+			f=new SFile(string);
+		}*/
 		SFile token = f.rel(".soyText."+d.getDocument().id);
 		if (token.exists()) {
 			for (String p:rels) {

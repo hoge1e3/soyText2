@@ -101,6 +101,7 @@ public class DocumentScriptable implements Function {
 	public Object get(Object key) {
 		if ("id".equals(key)) return d.id;
 		if ("lastUpdate".equals(key)) return d.lastUpdate;
+		if ("summary".equals(key)) return d.summary;
 		if ("save".equals(key)) return saveFunc;
 		//if ("compile".equals(key)) return compileFunc;
 		if ("hasOwnProperty".equals(key)) return hasOwnPropFunc;

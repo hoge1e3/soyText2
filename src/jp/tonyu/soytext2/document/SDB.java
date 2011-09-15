@@ -36,13 +36,16 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	public static final String UID_EXISTENT_FILE = "86e08ee0-0bd5-4d1f-a7f5-66c2251e60ad";
 	
 	String dbid;
+	File blobDir;
 	public SDB(File file , String uid) throws SqlJetException {
 		open(file, version);
+		blobDir=new File(file.getParentFile(),"blob");
 		this.dbid=uid;
 		logManager=new LogManager(this);
 		setupUID();
 		Log.d(this, "DBID = "+getDBID());
 	}
+	public File getBlobDir() {return blobDir;}
 	private void setupUID() throws SqlJetException {
 		String gu = getDBID();
 		if (gu==null) {
