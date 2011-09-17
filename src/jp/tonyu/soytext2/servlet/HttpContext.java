@@ -879,9 +879,13 @@ public class HttpContext implements Wrappable {
     	} 
 		if (s==null) {
     		if (user==null) user="";
+    		String aft="";
+    		String after=params().get("after");
+		    if (after!=null) aft=Html.p("<input type=hidden name=after value=%a/>",after);
 			Httpd.respondByString(res, msg+"<form action=\"./auth\" method=\"POST\">"+
     				"ユーザ名： <input name=\"user\" value=\""+user+"\"><br/>"+
     				"パスワード: <input type=\"password\" name=\"pass\">"+
+    				aft+
     				"<br><input type=submit>"+
     				"</form>"
     		);
@@ -889,6 +893,21 @@ public class HttpContext implements Wrappable {
 	}
     public String fullURL() {
     	return req.getRequestURL()+"";
+    }
+    public String absoluteRootPath() {
+    	String res=fullURL();
+    	int length=args().length;
+    	//  docBase()/byId/****
+   		// http://host/soytext2     args=[""]
+   		// http://host/soytext2/     args=["",""]
+   		// http://host/soytext2/aaa     args=["","aaa"]
+    	// http://host/soytext2/aaa/bbb   args=["","aaa","bbb"]
+    	// http://host/soytext2/aaa/bbb/   args=["","aaa","bbb",""]
+    	while (length>=2) {
+    		res=res.replaceAll("/[^/]*$", "");
+   			length--;
+   		}
+		return res;
     }
     public String encodeURI(String str) throws UnsupportedEncodingException {
     	return URLEncoder.encode(str, "utf-8");
@@ -1051,9 +1070,9 @@ public class HttpContext implements Wrappable {
 	        {
 	            c = "image/gif";
 	        }
-	        if (fileName.endsWith(".png"))
+	        if (fileName.endsWith(".ico"))
 	        {
-	            c = "image/png";
+	            c = "image/vnd.microsoft.icon";
 	        }
 	        if (fileName.endsWith(".jpg"))
 	        {

@@ -21,7 +21,7 @@ import org.xbill.DNS.Address;
 import org.xbill.DNS.TXTRecord;
 
 /**
- *
+ * from http://d.hatena.ne.jp/ttshrk/20110408/1302279815
  * @author tatsuhiro
  */
 public class DNSFinder {

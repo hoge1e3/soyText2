@@ -11,11 +11,12 @@ import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
 import jp.tonyu.debug.Log;
+import jp.tonyu.js.Wrappable;
 
 import org.xbill.DNS.MXRecord;
+// from http://www.tenj.jp/modules/smartsection/print.php?itemid=73
 
-
-public class Mail {
+public class Mail implements Wrappable {
 	String from; 
 	String to;
 	String subject;
