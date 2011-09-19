@@ -29,6 +29,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import jp.tonyu.debug.Log;
+import jp.tonyu.js.Args;
 import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.js.ContextRunnable;
 import jp.tonyu.js.Wrappable;
@@ -638,8 +639,13 @@ public class HttpContext implements Wrappable {
 				
 				@Override
 				public Object run(Context cx) {
-					f.call(cx, jssession().root, d, 
+					if (Args.getArgs(f).length>1) {
+						f.call(cx, jssession().root, d, 
 							new Object[]{getReq(),getRes(),HttpContext.this});
+					} else {
+						f.call(cx, jssession().root, d, 
+								new Object[]{HttpContext.this});
+					}
 					return null;
 				}
 			});
@@ -766,8 +772,17 @@ public class HttpContext implements Wrappable {
 				
 				@Override
 				public Object run(Context cx) {
+					if (Args.getArgs(f).length>1) {
+						f.call(cx, jssession().root, target, 
+							new Object[]{getReq(),getRes(),HttpContext.this});
+					} else {
+						f.call(cx, jssession().root, target, 
+								new Object[]{HttpContext.this});
+					}
+					/*	
 					f.call(cx, jssession().root, target, 
 							new Object[]{getReq(),getRes(),HttpContext.this});
+					*/
 					return null;
 				}
 			});
