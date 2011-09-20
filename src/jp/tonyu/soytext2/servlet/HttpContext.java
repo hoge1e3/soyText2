@@ -1016,6 +1016,7 @@ public class HttpContext implements Wrappable {
 				return c>100;
 			}
 		});   	
+        buf.append("<BR>insts= "+SMain.insts);
     	res.setContentType (TEXT_HTML_CHARSET_UTF_8);
         Httpd.respondByString(res, buf.toString());
 	}

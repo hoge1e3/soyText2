@@ -53,7 +53,7 @@ public class Mail implements Wrappable {
 		this.body = body;
 	}
 
-	public void send() {
+	public void send() throws UnknownHostException {
 		try {
 			String smtpServer=findMailServer(to);
 			Log.d("smtpserver", smtpServer);
@@ -82,9 +82,7 @@ public class Mail implements Wrappable {
 			e.printStackTrace();
 		} catch (MessagingException e) {
 			e.printStackTrace();
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-		} 
+		}
 	}
 
 	private static String findMailServer(String to) throws UnknownHostException {
@@ -93,6 +91,6 @@ public class Mail implements Wrappable {
 		for(MXRecord mr : d.findMXRecords(r[1])) {
 			return mr.getTarget().toString();
 		}
-		return null;
+		throw new UnknownHostException();
 	}
 }

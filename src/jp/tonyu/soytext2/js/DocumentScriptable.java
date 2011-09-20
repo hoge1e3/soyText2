@@ -103,6 +103,7 @@ public class DocumentScriptable implements Function {
 		if ("lastUpdate".equals(key)) return d.lastUpdate;
 		if ("summary".equals(key)) return d.summary;
 		if ("save".equals(key)) return saveFunc;
+		if ("identityHashCode".equals(key)) return System.identityHashCode(this);
 		//if ("compile".equals(key)) return compileFunc;
 		if ("hasOwnProperty".equals(key)) return hasOwnPropFunc;
 		if (CALLSUPER.equals(key)) return callSuperFunc;
@@ -306,7 +307,7 @@ public class DocumentScriptable implements Function {
 	}
 	public void setContentAndSave(String content) {
 		d.content=content;
-		Log.d(this, "setContentAndSave() content changed to "+d.content);
+		Log.d(System.identityHashCode(this), "setContentAndSave() content changed to "+d.content);
 		loader.loadFromContent(content, this);		
 		refreshSummary();
 		loader.getDocumentSet().save(d);//d.save();

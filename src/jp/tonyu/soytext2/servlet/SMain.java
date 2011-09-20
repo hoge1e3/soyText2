@@ -87,8 +87,9 @@ public class SMain extends HttpServlet {
 	}
 	boolean isServlet=false;
 	boolean servletInited=false;
+	public static int insts=0;
 	// As Servlet
-	public SMain() {isServlet=true;}
+	public SMain() {insts++; isServlet=true;}
 	public void initServlet() throws SqlJetException {
 		if (!isServlet || servletInited) return;
 		servletInited=true;
