@@ -112,5 +112,13 @@ public class Scriptables {
 		}
 		
 	}
+	public static Scriptable getAsScriptable(Scriptable obj,String name) {
+		Object r=ScriptableObject.getProperty(obj, name);
+		if (r instanceof Scriptable) {
+			Scriptable s = (Scriptable) r;
+			return s;
+		}
+		return null;
+	}
 
 }

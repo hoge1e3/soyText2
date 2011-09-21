@@ -64,6 +64,7 @@ import org.mozilla.javascript.ScriptableObject;
 import org.tmatesoft.sqljet.core.SqlJetException;
 
 public class HttpContext implements Wrappable {
+	public static final String CONTENT_TYPE = "Content-Type";
 	private static final String DATA = "data";
 	//private static final String SYNCID = "syncid";
 	private static final String DOWNLOADSINCE = "downloadsince";
@@ -230,7 +231,7 @@ public class HttpContext implements Wrappable {
 						Log.d(this, "spawned Error - "+e);
 						res.setContentType(TEXT_PLAIN_CHARSET_UTF_8);
 						Httpd.respondByString(getRes(), "Error - "+e);
-					} catch (IOException e1) {
+					} catch (Exception e1) {
 						e1.printStackTrace();
 					}
 					e.printStackTrace();
@@ -1051,7 +1052,7 @@ public class HttpContext implements Wrappable {
 		String path=rootPath();
 		StringBuilder buf=new StringBuilder();
         buf.append(Html.p("<html><head><meta http-equiv=%a content=%a></head>"
-        		                ,"Content-type",TEXT_HTML_CHARSET_UTF_8));
+        		                ,CONTENT_TYPE,TEXT_HTML_CHARSET_UTF_8));
         buf.append("<body>");
         buf.append("User: "+currentSession().userName()+" | ");
         buf.append(Html.p("<a href=%a>ログイン</a>  |" , path+"/auth"));
@@ -1100,7 +1101,7 @@ public class HttpContext implements Wrappable {
 	
 	public static String detectContentType(DocumentScriptable d)
 	{
-	    Object c = d.get("Content-Type");
+	    Object c = d.get(CONTENT_TYPE);
 	    if (c instanceof String) return c.toString();
 	    c = d.get("Content-type");
 	    if (c instanceof String) return c.toString();

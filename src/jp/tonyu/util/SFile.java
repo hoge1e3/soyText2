@@ -167,4 +167,13 @@ public class SFile implements Iterable<SFile>{
 		}
 
 	}
+	public void writeTo(OutputStream out) throws IOException {
+		InputStream i = inputStream();
+		byte[] b=new byte[1024];
+		while (true) {
+			int r=i.read(b);
+			if (r<=0) break;
+			out.write(b,0,r);
+		}
+	}
 }
