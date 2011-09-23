@@ -57,8 +57,9 @@ public class EJS implements Wrappable {
 		System.out.println("EvalBuf - "+buf);
 		BlankScriptableObject scope2 = new BlankScriptableObject(jssession.root);
 		Scriptables.extend(scope2, scope);
-		Object res=jssession.eval("HtmlComp"+d,   buf.toString(), scope2);
+		Object res=jssession.eval(d+"",   buf.toString(), scope2);
 		if (res instanceof Scriptable) {
+			//  Docscr 3564@4.2010.tonyu.jp)Comp
 			Scriptable s = (Scriptable) res;
 			//Log.d(this, " Compiled - "+d+" to "+s);
 			//Log.d(this, " Compiled - "+d+" to "+ScriptableObject.getProperty(s, "str"));

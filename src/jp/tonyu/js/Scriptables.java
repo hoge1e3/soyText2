@@ -121,4 +121,21 @@ public class Scriptables {
 		return null;
 	}
 
+	public static String getAsString(Scriptable obj, String name,Object defValue) {
+		Object r=ScriptableObject.getProperty(obj, name);
+		if (r instanceof String) {
+			String s = (String) r;
+			return s;
+		}
+		if (defValue instanceof String) {
+			String sd = (String) defValue;
+			return sd;
+		}
+		if (defValue!=null) {
+			if (r==null) return null;
+			return r+"";
+		}
+		return null;
+	}
+
 }

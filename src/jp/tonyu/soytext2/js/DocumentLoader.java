@@ -135,7 +135,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 		//scope.setPrototype(tools);
 		DocumentLoaderScriptable loaderScope = new DocumentLoaderScriptable(jsSession().root, this, dst);
 		try {
-			jsSession().eval("Load(id="+dst.getDocument().id+")", newContent, loaderScope);
+			jsSession().eval(dst.getDocument()+"", newContent, loaderScope);
 			dst.put(HttpContext.ATTR_SCOPE, loaderScope.scope());
 		} catch (Exception e) {
 			e.printStackTrace();

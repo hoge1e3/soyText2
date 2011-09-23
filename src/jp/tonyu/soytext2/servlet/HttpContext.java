@@ -69,7 +69,7 @@ public class HttpContext implements Wrappable {
 	//private static final String SYNCID = "syncid";
 	private static final String DOWNLOADSINCE = "downloadsince";
 	private static final String DO_EDIT = "doEdit";
-	private static final String TEXT_PLAIN_CHARSET_UTF_8 = "text/plain; charset=utf-8";
+	public static final String TEXT_PLAIN_CHARSET_UTF_8 = "text/plain; charset=utf-8";
 	private static final String TEXT_HTML_CHARSET_UTF_8 = "text/html; charset=utf-8";
 	private static final String SEL = "sel_";
 	public static final jp.tonyu.util.Context<HttpContext> cur=new jp.tonyu.util.Context<HttpContext>();

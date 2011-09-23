@@ -84,12 +84,20 @@ public class FileSyncer implements Wrappable {
 				ScriptableObject.putProperty(files, fileElem.name(), scrElem);
 			}
 		} else {
-			ByteArrayOutputStream out=new ByteArrayOutputStream();
-			BASE64EncoderStream enc=new BASE64EncoderStream(out);
-			file.writeTo(enc);
-			enc.close();
-			String str=new String(out.toByteArray(), "utf-8");
-			ScriptableObject.putProperty(fileScr, BASE64BODY, str );
+			if (cType.startsWith("text")) {
+				ScriptableObject.deleteProperty(fileScr, BASE64BODY);
+				ScriptableObject.putProperty(fileScr, HttpContext.ATTR_BODY, file.text());
+			} else {
+				/*ByteArrayOutputStream out=new ByteArrayOutputStream();
+				BASE64EncoderStream enc=new BASE64EncoderStream(out);
+				file.writeTo(enc);
+				enc.close();*/
+				byte[] b=file.bytes();
+				byte[] b64=BASE64EncoderStream.encode(b);
+				String str=new String(b64, "utf-8");
+				ScriptableObject.putProperty(fileScr, BASE64BODY, str );
+				ScriptableObject.deleteProperty(fileScr, HttpContext.ATTR_BODY);
+			}
 		}
 		if (fileScr instanceof DocumentScriptable) {
 			DocumentScriptable d = (DocumentScriptable) fileScr;
@@ -123,7 +131,14 @@ public class FileSyncer implements Wrappable {
 			writeBase64(w, sp);
 		}
 	}
-	public static void writeBase64(HttpContext ctx, Scriptable file) throws IOException {
-		writeBase64(ctx.getRes().getOutputStream(),file);
+	public static void writeFile(HttpContext ctx, Scriptable file) throws IOException {
+		String cType=Scriptables.getAsString(file, HttpContext.CONTENT_TYPE, HttpContext.TEXT_PLAIN_CHARSET_UTF_8);
+		ctx.getRes().setContentType(cType);
+		if (cType.startsWith("text")) {
+			ctx.getRes().getWriter().print(Scriptables.getAsString(file, HttpContext.ATTR_BODY,""));
+		} else {
+			writeBase64(ctx.getRes().getOutputStream(),file);
+		}
+		
 	}
 }
