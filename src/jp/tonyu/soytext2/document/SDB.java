@@ -164,15 +164,17 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 					else cur = order(documentRecord,"lastUpdate");
 					while (!cur.eof()) {
 						String id=cur.getString("id");
-						DocumentRecord d=null;
-						synchronized (cache) {
-							d=cache.get(id);
-							if (d==null) {
-								d=cur.fetch();
-								cache.put(id,d);
+						if (id!=null) {
+							DocumentRecord d=null;
+							synchronized (cache) {
+								d=cache.get(id);
+								if (d==null) {
+									d=cur.fetch();
+									cache.put(id,d);
+								}
 							}
+							if (action.run(d)) break;
 						}
-						if (action.run(d)) break;
 						cur.next();
 					}
 					cur.close();
@@ -289,7 +291,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	}
 	@Override
 	public DocumentRecord newDocument(String id) {
-		if (byId(id)!=null) return null;
+		if (byId(id)!=null) Log.die(id +" already exists.");
 		LogRecord log = logManager.write("create",id);
 		DocumentRecord d=new DocumentRecord();
 		d.id=id;

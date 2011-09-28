@@ -1067,36 +1067,38 @@ public class HttpContext implements Wrappable {
 	    return TimeFormat.toRFC2822(d.lastUpdate());//TimeFormat.toUtcTicks(d.lastUpdate(), TimeZone.getDefault())); 
 	}*/
 	public static String detectContentType(String fileName) {
-		String c = TEXT_PLAIN_CHARSET_UTF_8;
+		return detectContentType(fileName, TEXT_PLAIN_CHARSET_UTF_8);
+	}
+	public static String detectContentType(String fileName,String def) {
 	    if (fileName != null)
 	    {
 	    	fileName=fileName.toLowerCase();
 	        if (fileName.endsWith(".js"))
 	        {
-	            c = "text/javascript; charset=utf-8";
+	            def = "text/javascript; charset=utf-8";
 	        }
 	        if (fileName.endsWith(".css"))
 	        {
-	            c = "text/css; charset=utf-8";
+	            def = "text/css; charset=utf-8";
 	        }
 	        if (fileName.endsWith(".html"))
 	        {
-	            c = TEXT_HTML_CHARSET_UTF_8;
+	            def = TEXT_HTML_CHARSET_UTF_8;
 	        }
 	        if (fileName.endsWith(".gif"))
 	        {
-	            c = "image/gif";
+	            def = "image/gif";
 	        }
 	        if (fileName.endsWith(".ico"))
 	        {
-	            c = "image/vnd.microsoft.icon";
+	            def = "image/vnd.microsoft.icon";
 	        }
 	        if (fileName.endsWith(".jpg"))
 	        {
-	            c = "image/jpeg";
+	            def = "image/jpeg";
 	        }
 	    }
-	    return c;		
+	    return def;		
 	}
 	
 	public static String detectContentType(DocumentScriptable d)

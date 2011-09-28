@@ -33,9 +33,12 @@ public class DocumentScriptable implements Function {
 	public DocumentRecord getDocument() {
 		return d;
 	}
+	static Map<String, DocumentScriptable> debugH=new HashMap<String, DocumentScriptable>();
 	public DocumentScriptable(final DocumentLoader loader,final DocumentRecord d) {
 		this.loader=loader;
 		this.d=d;
+		if (debugH.containsKey(d.id)) Log.die("Already have "+d);
+		debugH.put(d.id, this);
 		/*put("id",this , d.id );
 		put("lastUpdate",this, d.lastUpdate);
 		put("save",this, );*/
@@ -307,7 +310,9 @@ public class DocumentScriptable implements Function {
 	}
 	public void setContentAndSave(String content) {
 		d.content=content;
-		Log.d(System.identityHashCode(this), "setContentAndSave() content changed to "+d.content);
+		String c=d.content;
+		if (c.length()>10000) c=c.substring(0,10000); 
+		Log.d(System.identityHashCode(this), "setContentAndSave() content changed to "+c);
 		loader.loadFromContent(content, this);		
 		refreshSummary();
 		loader.getDocumentSet().save(d);//d.save();
@@ -369,7 +374,7 @@ public class DocumentScriptable implements Function {
 	}
 	@Override
 	 public Scriptable construct(Context cx, Scriptable scope, Object[] args) {
-		DocumentScriptable d=loader.newDocument(null);
+		DocumentScriptable d=loader.newDocument(null); //  null means "generate id"
 		//Scriptable cons = getConstructor();
 		d.put(CONSTRUCTOR, this); //cons);
 		/*Scriptable p=getPrototype();

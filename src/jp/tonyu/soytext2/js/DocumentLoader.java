@@ -41,7 +41,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 	private static final String ERROR_CONTENT = "err_content";
 	//Map<String, Scriptable>objs=new HashMap<String, Scriptable>();
 	private final DocumentSet documentSet;
-	Map<String, DocumentScriptable> objs=new HashMap<String, DocumentScriptable>();
+	private Map<String, DocumentScriptable> objs=new HashMap<String, DocumentScriptable>();
 	public DocumentLoader(DocumentSet documentSet) {
 		super();
 		this.documentSet = documentSet;
@@ -112,7 +112,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 				o=defaultDocumentScriptable(src);
 			}
 		}*/
-		objs.put(id, o);
+		//objs.put(id, o); moved to defDocscr
 		loadFromContent(src.content, o);
 		return o;
 
@@ -124,7 +124,9 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 		return res;
 	}
 	private DocumentScriptable defaultDocumentScriptable(final DocumentRecord src) {
-		return new DocumentScriptable(this, src);
+		DocumentScriptable res = new DocumentScriptable(this, src);
+		objs.put(src.id, res);
+		return res;
 	}
 	public void loadFromContent(String newContent, DocumentScriptable dst) {
 		//BlankScriptableObject tools=new BlankScriptableObject(jsSession().root);

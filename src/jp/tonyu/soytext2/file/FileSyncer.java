@@ -47,6 +47,10 @@ public class FileSyncer implements Wrappable {
 		if (dirDoc==null) {
 			dirDoc=newDir(fileFactory);
 			Object id=ScriptableObject.getProperty(dirDoc, "id");
+			if (dirDoc instanceof DocumentScriptable) {
+				DocumentScriptable ds = (DocumentScriptable) dirDoc;
+				ds.save();
+			}
 			if (id instanceof String) {
 				String sid = (String) id;
 				stDesc.text(sid);
@@ -60,8 +64,8 @@ public class FileSyncer implements Wrappable {
 		if (!(sName instanceof String)) {
 			ScriptableObject.putProperty(fileScr, "name", file.name());
 		}
-		String cType=HttpContext.detectContentType(file.name());
-		ScriptableObject.putProperty( fileScr,  HttpContext.CONTENT_TYPE, cType);
+		String cType=HttpContext.detectContentType(file.name(), "Application/Octet-Stream");
+		if(cType!=null)ScriptableObject.putProperty( fileScr,  HttpContext.CONTENT_TYPE, cType);
 		if (file.isDir()) {
 			Scriptable files=Scriptables.getAsScriptable(fileScr, FILES);
 			if (files==null) {
