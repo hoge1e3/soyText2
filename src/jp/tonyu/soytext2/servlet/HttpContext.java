@@ -1097,6 +1097,10 @@ public class HttpContext implements Wrappable {
 	        {
 	            def = "image/jpeg";
 	        }
+	        /*if (fileName.endsWith(".jar"))
+	        {
+	            def = "application/x-java-applet";
+	        }*/
 	    }
 	    return def;		
 	}
