@@ -7,8 +7,8 @@ import java.util.regex.Pattern;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 
-public class Args {
-	static Pattern func=Pattern.compile("function\\s*\\w*\\(([^\\)]*)\\)");
+public class Args implements Wrappable {
+	static Pattern func=Pattern.compile("function\\s*[\\$\\w\\d]*\\(([^\\)]*)\\)");
 	public static String[] getArgs(Function f) {
 		boolean ent=(Context.getCurrentContext()==null);
 		if (ent) Context.enter();
@@ -18,7 +18,7 @@ public class Args {
 		if (m.find()) {
 			String[] res=m.group(1).split(",");
 			for (int i=0 ; i<res.length; i++) {
-				res[i]=res[i].replaceAll("\\W", "");
+				res[i]=res[i].replaceAll("[^\\$\\w\\d]", "");
 			}
 			return res;
 		}
