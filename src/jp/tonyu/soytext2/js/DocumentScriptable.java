@@ -1,5 +1,7 @@
 package jp.tonyu.soytext2.js;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -10,6 +12,7 @@ import jp.tonyu.js.Scriptables;
 import jp.tonyu.js.StringPropAction;
 import jp.tonyu.soytext.Origin;
 import jp.tonyu.soytext2.document.DocumentRecord;
+import jp.tonyu.soytext2.file.FileSyncer;
 import jp.tonyu.soytext2.servlet.HttpContext;
 import jp.tonyu.util.SPrintf;
 
@@ -79,6 +82,23 @@ public class DocumentScriptable implements Function {
 			return binds.containsKey(args[0]);
 		}
 	};
+	BuiltinFunc setBlobFunc= new BuiltinFunc() {
+		
+		@Override
+		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
+				Object[] args) {
+			if (args.length==0) return false;
+			if (args[0] instanceof InputStream) {		
+				InputStream str = (InputStream) args[0];
+				try {
+					FileSyncer.setBlob(DocumentScriptable.this, str);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			return null;
+		}
+	};
 	BuiltinFunc callSuperFunc =new BuiltinFunc() {
 		
 		@Override
@@ -109,6 +129,7 @@ public class DocumentScriptable implements Function {
 		if ("identityHashCode".equals(key)) return System.identityHashCode(this);
 		//if ("compile".equals(key)) return compileFunc;
 		if ("hasOwnProperty".equals(key)) return hasOwnPropFunc;
+		if ("setBlob".equals(key)) return setBlobFunc;
 		if (CALLSUPER.equals(key)) return callSuperFunc;
 		/*if (key instanceof DocumentScriptable) {
 			DocumentScriptable keyDoc = (DocumentScriptable) key;

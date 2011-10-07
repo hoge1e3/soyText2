@@ -3,6 +3,7 @@ package jp.tonyu.soytext2.file;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -13,6 +14,8 @@ import jp.tonyu.js.BlankScriptableObject;
 import jp.tonyu.js.ContextRunnable;
 import jp.tonyu.js.Scriptables;
 import jp.tonyu.js.Wrappable;
+import jp.tonyu.soytext2.document.DocumentSet;
+import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.js.DBHelper;
 import jp.tonyu.soytext2.js.DocumentScriptable;
 import jp.tonyu.soytext2.js.JSSession;
@@ -21,6 +24,7 @@ import jp.tonyu.util.SFile;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
+import org.mozilla.javascript.Script;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.UniqueTag;
@@ -29,6 +33,7 @@ import com.sun.mail.util.BASE64DecoderStream;
 import com.sun.mail.util.BASE64EncoderStream;
 
 public class FileSyncer implements Wrappable {
+	private static final String USE_BLOB_DIR = "useBlobDir";
 	private static final String BASE64BODY = "base64body";
 	private static final String SOY_TEXT_ID = "__soyText.id";
 	private static final String FILES = "files";
@@ -135,14 +140,44 @@ public class FileSyncer implements Wrappable {
 			writeBase64(w, sp);
 		}
 	}
-	public static void writeFile(HttpContext ctx, Scriptable file) throws IOException {
-		String cType=Scriptables.getAsString(file, HttpContext.CONTENT_TYPE, HttpContext.TEXT_PLAIN_CHARSET_UTF_8);
-		ctx.getRes().setContentType(cType);
-		if (cType.startsWith("text")) {
-			ctx.getRes().getWriter().print(Scriptables.getAsString(file, HttpContext.ATTR_BODY,""));
-		} else {
-			writeBase64(ctx.getRes().getOutputStream(),file);
+	public static SFile getBlobFile(DocumentSet ds,Scriptable file) {
+		// finds from  workspace/blob/id.ext
+		String blobExt=Scriptables.getAsString(file, "blobExt", "");
+		String fileId=Scriptables.getAsString(file, "id", null);
+		if (ds instanceof SDB && fileId!=null) {
+			SDB s=(SDB)ds;
+			SFile f = new SFile(s.getBlobDir()).rel(fileId+blobExt);
+			return f;
 		}
-		
+		return null;
+	}
+	public static void setBlob(DocumentScriptable file , InputStream str) throws IOException {
+		DocumentSet ds = file.loader.getDocumentSet();
+		SFile f=getBlobFile(ds,file);
+		if (f!=null) {
+			f.readFrom(str);
+			return;
+		}
+	}
+	public static void writeFile(HttpContext ctx, Scriptable file) throws IOException {
+		String cType=Scriptables.getAsString(file, HttpContext.CONTENT_TYPE, null);
+		//HttpContext.TEXT_PLAIN_CHARSET_UTF_8
+		if (cType==null) {
+			String name=Scriptables.getAsString(file, "name", "");
+			cType=HttpContext.detectContentType(name);
+		}
+		ctx.getRes().setContentType(cType);
+		/*Object useBlobDir = ScriptableObject.getProperty(file, USE_BLOB_DIR);
+		if ("true".equals(useBlobDir)) {*/
+		DocumentSet ds=ctx.documentSet();
+		SFile f=getBlobFile(ds,file);
+		if (f!=null && f.exists()) {
+			f.writeTo(ctx.getRes().getOutputStream());
+		} else 	if (file.has(BASE64BODY, file)){
+			writeBase64(ctx.getRes().getOutputStream(),file);
+		} else {
+			ctx.getRes().getWriter().print(Scriptables.getAsString(file, HttpContext.ATTR_BODY,""));
+		}
+
 	}
 }

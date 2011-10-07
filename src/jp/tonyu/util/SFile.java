@@ -189,4 +189,14 @@ public class SFile implements Iterable<SFile>{
 		}
 		i.close();
 	}
+	public void readFrom(InputStream str) throws IOException {
+		OutputStream out = outputStream();
+		byte[] b=new byte[1024];
+		while (true) {
+			int r=str.read(b);
+			if (r<=0) break;
+			out.write(b,0,r);
+		}
+		out.close();
+	}
 }
