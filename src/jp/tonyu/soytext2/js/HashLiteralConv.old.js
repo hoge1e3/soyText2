@@ -1,19 +1,4 @@
-res=function (d) {
-	var buf="";
-	var ctx={d2sym:{}};
-	for (var k in d.scope) {
-		buf+="var "+k+"="+exp(d[k],ctx)+"\n";
-		var id=isDocument(d);
-		if (id) ctx.d2sym[id]=k;
-	}
-	buf+="$.extend(_,"+
-	return buf
-	
-}
-function isDocument(d) {
-	return d && d.id;
-}
-function literal(hash) {
+res=function (hash) {
  return _self(hash);
  function _self(hash) {
    var res="{";

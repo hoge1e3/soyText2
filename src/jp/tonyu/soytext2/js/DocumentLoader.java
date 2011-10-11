@@ -288,8 +288,8 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 		Scriptables.extend(res, overrideMethods);
 		return res;
 	}
-	Authenticator auth;
-	public Authenticator authenticator() {
+	AuthenticatorList auth;
+	public AuthenticatorList authenticator() {
 		if (auth!=null) return auth;
 		auth=new AuthenticatorList();
 		QueryBuilder qb=QueryBuilder.create("authenticatorList:true");

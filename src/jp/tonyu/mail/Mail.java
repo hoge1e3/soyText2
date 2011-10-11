@@ -1,5 +1,6 @@
 package jp.tonyu.mail;
 import java.io.UnsupportedEncodingException;
+import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Properties;
 
@@ -91,6 +92,8 @@ public class Mail implements Wrappable {
 		for(MXRecord mr : d.findMXRecords(r[1])) {
 			return mr.getTarget().toString();
 		}
+		InetAddress ip=d.findByName(r[1]);
+		if (ip!=null) return r[1];
 		throw new UnknownHostException();
 	}
 }

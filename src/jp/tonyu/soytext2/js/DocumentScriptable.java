@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 
 import jp.tonyu.debug.Log;
+import jp.tonyu.js.BlankScriptableObject;
 import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.js.Scriptables;
 import jp.tonyu.js.StringPropAction;
@@ -312,9 +313,9 @@ public class DocumentScriptable implements Function {
 		
 	}
 	private void refreshContent() {
-		Object s=get(HttpContext.ATTR_SCOPE);
+		//Object s=get(HttpContext.ATTR_SCOPE);
 		final StringBuilder b=new StringBuilder();
-		if (s instanceof Scriptable) {
+		/*if (s instanceof Scriptable) {
 			Scriptables.each((Scriptable)s, new StringPropAction() {
 				
 				@Override
@@ -325,8 +326,9 @@ public class DocumentScriptable implements Function {
 					}
 				}
 			});
-		}
-		b.append(SPrintf.sprintf("$.extend(_,%s);",HashLiteralConv.toHashLiteral(this)));
+		}*/
+		//b.append(SPrintf.sprintf("$.extend(_,%s);",HashLiteralConv.toHashLiteral(this)));
+		b.append(HashLiteralConv.toHashLiteral(this));
 		d.content=b+"";
 	}
 	public void setContentAndSave(String content) {
@@ -398,6 +400,12 @@ public class DocumentScriptable implements Function {
 		DocumentScriptable d=loader.newDocument(null); //  null means "generate id"
 		//Scriptable cons = getConstructor();
 		d.put(CONSTRUCTOR, this); //cons);
+		String name=Scriptables.getAsString(this, "name", null);
+		if (name!=null) {
+			Scriptable scope2=new BlankScriptableObject();
+			ScriptableObject.putProperty(scope2, name, this);
+			ScriptableObject.putProperty(d, HttpContext.ATTR_SCOPE, scope2);
+		}
 		/*Scriptable p=getPrototype();
 		if (p!=null) {*/
 			Object init=ScriptableObject.getProperty(d,"initialize");

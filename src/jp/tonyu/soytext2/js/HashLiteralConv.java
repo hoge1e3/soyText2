@@ -5,6 +5,7 @@ import java.util.Scanner;
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.js.Scriptables;
+import jp.tonyu.js.Wrappable;
 import jp.tonyu.util.Maps;
 import jp.tonyu.util.Resource;
 
@@ -20,13 +21,15 @@ public class HashLiteralConv {
 		if (compiled!=null) return compiled;
 		compiled=(Function)JSSession.cur.get().eval("toHashLiteral",
 				Resource.text(HashLiteralConv.class, ".js"),
-				Maps. create("debug", (Object)debug));
+				Maps.create("debug", (Object)debug)
+				    .p("isJavaNative", isJavaNative));
 		return compiled;
 	}
-	static BuiltinFunc isJavaNative=new BuiltinFunc() {
+	private static BuiltinFunc isJavaNative=new BuiltinFunc() {
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
-			if (args.length==0) return false;
-			return !(args[0] instanceof Scriptable)  ;
+			if (args.length==0) return null;
+			if  (args[0] instanceof Wrappable) return args[0].getClass().getCanonicalName() ;
+			return null;
 		}
 	};
 	static BuiltinFunc debug=new BuiltinFunc() {

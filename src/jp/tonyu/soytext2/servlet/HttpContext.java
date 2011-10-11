@@ -78,6 +78,20 @@ public class HttpContext implements Wrappable {
 	public SessionManager sessionManager() {
 		return appCtx.sessionManager;
 	}*/
+	public boolean isRoot() {
+		String addr=req.getRemoteAddr();
+		if ("localhost".equals(addr) || "127.0.0.1".equals(addr) || "0:0:0:0:0:0:0:1".equals(addr)) {
+			return true;
+		}
+		String user=currentSession().userName();
+		if (documentLoader.authenticator().isRootUser(user)) return true;
+		return false;
+	}
+	public boolean assertRoot() {
+		if (isRoot()) return false;
+		redirect(rootPath()+"/auth");
+		return true;
+	}
 	Session currentSession=null;
 	public Session currentSession() {
 		if (currentSession!=null) return currentSession;
@@ -1005,6 +1019,7 @@ public class HttpContext implements Wrappable {
     	}
     }
     private void search(String cstr, final String sel) throws IOException {
+    	if (assertRoot()) return;
     	final StringBuffer buf = new StringBuffer(isAjaxRequest() ? "" : menuBar());
         documentLoader.search(cstr, null, new BuiltinFunc() {		
         	int c=0;
