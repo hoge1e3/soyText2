@@ -1073,7 +1073,9 @@ public class HttpContext implements Wrappable {
         buf.append(Html.p("<a href=%a>ログイン</a>  |" , path+"/auth"));
         buf.append(Html.p("<a href=%a>ホーム</a>  |" , path+"/all"));
         buf.append(Html.p("<a href=%a>新規作成</a> | ", path+"/new"));
-        buf.append(Html.p("<a href=%a>検索</a><hr/>\n" , path+"/search"));
+        buf.append(Html.p("<a href=%a>検索</a> |\n" , path+"/search"));
+        buf.append("DB: "+documentSet());
+        buf.append("<HR>");
         return buf.toString();
 	}
 	

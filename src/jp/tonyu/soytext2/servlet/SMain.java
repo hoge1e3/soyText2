@@ -96,7 +96,7 @@ public class SMain extends HttpServlet {
 		setupApplicationContext();
 		File newest = getNewest();
 		System.out.println("Using "+newest+" as db.");
-		sdb=new SDB(newest, SDB.UID_EXISTENT_FILE);
+		sdb=new SDB(newest);//, SDB.UID_EXISTENT_FILE);
 		loader=new DocumentLoader(sdb);
 	}
 	// As Application
@@ -104,7 +104,7 @@ public class SMain extends HttpServlet {
 		workspaceDir=new SFile(new File("."));
 		File newest = getNewest();
 		System.out.println("Using "+newest+" as db.");
-		sdb=new SDB(newest, uid);
+		sdb=new SDB(newest);//, uid);
 		loader=new DocumentLoader(sdb);
 		int port = 3002;
 		AutoRestart auto = new AutoRestart(port, workspaceDir.rel("stop.lock").javaIOFile());

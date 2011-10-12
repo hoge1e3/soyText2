@@ -3,6 +3,8 @@ package jp.tonyu.soytext2.document;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 import jp.tonyu.db.DBAction;
@@ -12,6 +14,7 @@ import jp.tonyu.db.SqlJetRecordCursor;
 import jp.tonyu.db.SqlJetTableHelper;
 import jp.tonyu.debug.Log;
 import jp.tonyu.util.Ref;
+import jp.tonyu.util.SFile;
 
 import org.tmatesoft.sqljet.core.SqlJetException;
 import org.tmatesoft.sqljet.core.table.ISqlJetCursor;
@@ -37,16 +40,40 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	
 	String dbid;
 	File blobDir;
-	public SDB(File file , String uid) throws SqlJetException {
+	public SDB(File file /*, String uid*/) throws SqlJetException {
 		open(file, version);
 		blobDir=new File(file.getParentFile(),"blob");
-		this.dbid=uid;
+		//this.dbid=uid;
 		logManager=new LogManager(this);
-		setupUID();
-		Log.d(this, "DBID = "+getDBID());
+		//setupDBID();
+		//Log.d(this, "DBID = "+getDBID());
+		dbid/*FromFile*/=getDBIDFromFile(new SFile(file.getAbsoluteFile()));
+		//Log.d(this, compareDBID());
+	}
+	/*String dbidFromFile;
+	public String compareDBID() {
+		return "COMPAREDBID "+dbid+" - "+dbidFromFile;
+	}*/
+	Pattern dbidPat=Pattern.compile("\\w*\\.\\w+\\.");
+	private String getDBIDFromFile(SFile file) {
+		try {
+			SFile parent=file.parent();
+			SFile primaryDBID=parent.rel("primaryDbid.txt");
+			if (primaryDBID.exists()) {
+				return primaryDBID.text();
+			}
+			Matcher m=dbidPat.matcher(parent.name());
+			if (m.lookingAt()) return parent.name();
+			parent=parent.parent();
+			m=dbidPat.matcher(parent.name());
+			if (m.lookingAt()) return parent.name();
+		}catch(Exception e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 	public File getBlobDir() {return blobDir;}
-	private void setupUID() throws SqlJetException {
+	/*private void setupDBID() throws SqlJetException {
 		String gu = getDBID();
 		if (gu==null) {
 			if (dbid.equals(UID_EXISTENT_FILE)) {
@@ -93,7 +120,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		}, -1);
 		if (res.isSet()) return res.get();
 		return null;
-	}
+	}*/
 	DocumentRecord documentRecord=new DocumentRecord();
 	LogRecord logRecord=new LogRecord();
 	DBIDRecord dbidRecord=new DBIDRecord();
@@ -101,6 +128,9 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	@Override
 	public SqlJetRecord[] tables(int version) {
 		return q(documentRecord,logRecord, dbidRecord);
+	}
+	public String toString() {
+		return "(SDB dbid="+dbid+")";
 	}
 	/*@Override
 	protected void onCreate(SqlJetDb db,int version) throws SqlJetException {

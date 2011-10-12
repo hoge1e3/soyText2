@@ -40,7 +40,7 @@ public class ImportFromVer1 {
 		File newFile = new File("db/main"+ dfm.format(new Date())+".db");
 		//File newFile = SMain.getNewest();
 		String uid= Origin.uid;
-		SDB s=new SDB(newFile,uid);
+		SDB s=new SDB(newFile);//,uid);
 		Importer i=new Importer(s);
 		i.importDocuments(file);
 		s.close();

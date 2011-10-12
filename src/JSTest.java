@@ -17,7 +17,7 @@ public class JSTest {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		SDB s=new SDB(new File("test.db"), Origin.uid);
+		SDB s=new SDB(new File("test.db"));//, Origin.uid);
 		DocumentLoader l=new DocumentLoader(s);
 		l.search("", null, new BuiltinFunc() {
 			

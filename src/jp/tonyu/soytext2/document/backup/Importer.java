@@ -37,7 +37,7 @@ public class Importer {
 			if (curTable==null) {
 				tryChangeTable(line);
 			} else if ("UID".equals(curTable)) {
-				sdb.setDBID(line);
+				//sdb.setDBID(line);
 				tryChangeTable(line);
 			} else if ("Document".equals(curTable)) {
 				Matcher m=field.matcher(line);

@@ -35,7 +35,7 @@ public class Test {
 		Context.exit();
 	}
 	public static void main2(String[] args) throws SqlJetException {
-		final SDB s=new SDB(new File("test.db"), Origin.uid);
+		final SDB s=new SDB(new File("test.db"));//, Origin.uid);
 		/*Document d=s.newDocument();
 		d.content="test"+d.id;
 		s.save(d);*/

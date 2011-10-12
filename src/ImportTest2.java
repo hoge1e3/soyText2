@@ -34,7 +34,7 @@ public class ImportTest2 {
 		System.out.println("Import from "+src);
 		
 		
-		SDB s=new SDB(dbFile.javaIOFile(), SDB.UID_IMPORT);
+		SDB s=new SDB(dbFile.javaIOFile());//, SDB.UID_IMPORT);
 		new Importer2(s,src.javaIOFile()).importRecords();
 		s.close();
 		
