@@ -53,15 +53,18 @@ res=function (d) {
 	     }  
 	}
 	function func(f,ctx) {
-   	     f=f+"";
-	     f=f.replace(/\r/g,"").replace(/^\n/,"").replace(/\n$/,"");
-	     var fa= f.split(/\n/);
+   	     f=decompile(f,ctx.indentC*4);
+   	     //f=f+"";
+	     f=f.replace(/\r/g,"").replace(/^\n/,"").replace(/^\s*/,"").replace(/\n$/,"");
+	     return f;
+	     
+	     /*var fa= f.split(/\n/);
 	     var res=fa.map(function (line, no) {
 	    	 if (true) return line;
 	    	 return ctx.curIndent()+line;
 	     });
 	     res=res.join("\n");
-	     return res;
+	     return res;*/
 	     /*f=f.replace(/\}$/,ctx.curIndent()+"}");
 	     if (f.substring(f.length-1, f.length)=="\n") {
 	    	 f=f.substring(0, f.length-1);

@@ -22,9 +22,21 @@ public class HashLiteralConv {
 		compiled=(Function)JSSession.cur.get().eval("toHashLiteral",
 				Resource.text(HashLiteralConv.class, ".js"),
 				Maps.create("debug", (Object)debug)
+				    .p("decompile", decompile)
 				    .p("isJavaNative", isJavaNative));
 		return compiled;
 	}
+	public static BuiltinFunc decompile=new BuiltinFunc() {
+		
+		@Override
+		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
+				Object[] args) {
+			Function fun=(Function)args[0];
+			int indent=((Number)args[1]).intValue();
+			Log.d("hashlit", " decomp with ind="+indent);
+			return cx.decompileFunction(fun, indent);
+		}
+	};
 	private static BuiltinFunc isJavaNative=new BuiltinFunc() {
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
 			if (args.length==0) return null;
