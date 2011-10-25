@@ -7,12 +7,14 @@ import java.util.Map;
 import java.util.Set;
 
 import jp.tonyu.debug.Log;
+import jp.tonyu.js.AllPropAction;
 import jp.tonyu.js.BlankScriptableObject;
 import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.js.Scriptables;
 import jp.tonyu.js.StringPropAction;
 import jp.tonyu.soytext.Origin;
 import jp.tonyu.soytext2.document.DocumentRecord;
+import jp.tonyu.soytext2.document.IndexRecord;
 import jp.tonyu.soytext2.file.FileSyncer;
 import jp.tonyu.soytext2.servlet.HttpContext;
 import jp.tonyu.util.SPrintf;
@@ -100,13 +102,41 @@ public class DocumentScriptable implements Function {
 			return null;
 		}
 	};
+	int callsuperlim=0;
 	BuiltinFunc callSuperFunc =new BuiltinFunc() {
 		
 		@Override
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 				Object[] args) {
-			Scriptable p = DocumentScriptable.this.getPrototype().getPrototype();
+			if (args.length>0) {
+				int c=0;
+				String name=args[0]+"";
+				for (Scriptable p=DocumentScriptable.this;p!=null ; p=p.getPrototype()) {
+					Object fo=p.get(name, p);
+					if (fo instanceof Function) {
+						c++;
+						if (c==2) {
+							Function f = (Function) fo;
+							
+							Object[] argShift=new Object[args.length-1];
+							for (int i=0 ; i<argShift.length ; i++) {
+								argShift[i]=args[i+1];
+							}
+							Log.d(this, "Calling superclass function "+cx.decompileFunction(f,0));
+							return f.call(cx, scope, thisObj, argShift);							
+						}
+					}
+				}
+			}/*
+			Scriptable proto = DocumentScriptable.this.getPrototype();
+			Log.d(this, "proto = "+proto);
+			callsuperlim++;if (callsuperlim>10) {
+				callsuperlim=0;Log.die("stackover?");
+			}
+			Scriptable p = proto.getPrototype();
+			Log.d(this, "proto.p = "+p);
 			if (p!=null && args.length>0) {
+				
 				Object fo = p.get(args[0]+"", p);
 				if (fo instanceof Function) {
 					Function f = (Function) fo;
@@ -115,9 +145,10 @@ public class DocumentScriptable implements Function {
 					for (int i=0 ; i<argShift.length ; i++) {
 						argShift[i]=args[i+1];
 					}
+					Log.d(this, "Calling superclass function "+cx.decompileFunction(f,0));
 					return f.call(cx, scope, thisObj, argShift);
 				}
-			}
+			}*/
 			return null;
 		}
 	};
@@ -309,8 +340,33 @@ public class DocumentScriptable implements Function {
 		refreshSummary();
 		refreshContent();
 		Log.d(this, "save() content changed to "+d.content);
-		loader.getDocumentSet().save(d);// d.save();
-		
+		Map<String, String> updatingIndex = indexUpdateMap();
+		loader.getDocumentSet().save(d,updatingIndex);// d.save();
+	}
+	private Map<String, String> indexUpdateMap() {
+		Map<String,String> updatingIndex=new HashMap<String, String>();
+		updateIndex(updatingIndex);
+		Log.d(this, "save() - index set to "+updatingIndex);
+		return updatingIndex;
+	}
+	private void updateIndex(Map<String, String> idx) {
+		String name = Scriptables.getAsString(this, "name", null);
+		if (name!=null) idx.put("name", name);
+		updateIndex(this , idx);
+	}
+	private static void updateIndex(Scriptable s, final Map<String, String> idx) {
+		Scriptables.each(s, new AllPropAction() {
+			@Override
+			public void run(Object key, Object value) {
+				if (value instanceof DocumentScriptable) {
+					DocumentScriptable d = (DocumentScriptable) value;
+					idx.put(IndexRecord.INDEX_BACKREF, d.getDocument().id);
+				} else 	if (value instanceof Scriptable) {
+					Scriptable scr = (Scriptable) value;
+					updateIndex(scr,idx);
+				}
+			}
+		});
 	}
 	private void refreshContent() {
 		//Object s=get(HttpContext.ATTR_SCOPE);
@@ -338,7 +394,8 @@ public class DocumentScriptable implements Function {
 		Log.d(System.identityHashCode(this), "setContentAndSave() content changed to "+c);
 		loader.loadFromContent(content, this);		
 		refreshSummary();
-		loader.getDocumentSet().save(d);//d.save();
+		Map<String, String> idx = indexUpdateMap();
+		loader.getDocumentSet().save(d, idx);//d.save();
 	}
 	public void reloadFromContent() {
 		loader.loadFromContent(d.content, this);		
@@ -422,5 +479,9 @@ public class DocumentScriptable implements Function {
 			}
 		//}
 		return d;
+	}
+	public void refreshIndex() {
+		Map<String, String> h = indexUpdateMap();
+		loader.getDocumentSet().updateIndex(getDocument(), h);
 	}
 }

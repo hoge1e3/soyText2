@@ -32,6 +32,9 @@ public class QueryBuilder {
 		Log.d(this, "Cur Conds -"+cond+" tmpls - "+tmpls);
 		return this;
 	}
+	public void addCond(String c) {
+		cond+=c+" ";
+	}
 	public Query toQuery() {
 		return new Query(cond, tmpls);
 	}

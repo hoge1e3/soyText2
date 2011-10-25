@@ -17,4 +17,8 @@ public class SuperclassPrototype extends BlankScriptableObject {
 		super();
 		this.superclass = superclass;
 	}
+	@Override
+	public String toString() {
+		return "(Superprot for "+superclass+")";
+	}
 }

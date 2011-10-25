@@ -19,6 +19,7 @@ import jp.tonyu.soytext2.auth.AuthenticatorList;
 import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentAction;
 import jp.tonyu.soytext2.document.DocumentSet;
+import jp.tonyu.soytext2.document.IndexRecord;
 import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.search.Query;
 import jp.tonyu.soytext2.search.QueryBuilder;
@@ -319,30 +320,39 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 	 */
 	public void importDocuments(Collection<DocumentRecord> drs) throws SqlJetException {
 		Set<DocumentScriptable> willReload=new HashSet<DocumentScriptable>();
+		Set<String> willUpdateIndex=new HashSet<String>();
 		for (DocumentRecord dr:drs) {
 			DocumentRecord existentDr=documentSet.byId(dr.id);
 			if (existentDr!=null) {
 				copyDocumentExceptDates(dr , existentDr);
-				documentSet.save(existentDr);
-				//Log.d("Import", dr.content);
-				//ds.setContentAndSave(dr.content);
-				/*loadFromContent(dr.content, ds);
-			ds.refreshSummary();*/
+				documentSet.save(existentDr, new HashMap<String, String>());
 			} else {
 				DocumentRecord newDr=getDocumentSet().newDocument(dr.id);
 				copyDocumentExceptDates(dr, newDr);
-				documentSet.save(newDr);
-				/*final DocumentScriptable res=defaultDocumentScriptable(ndr);
-			objs.put(dr.id, res);
-			Log.d("Import", ndr.content);
-			res.setContentAndSave(ndr.content);*/
-				//loadFromContent(ndr.content, res);
+				documentSet.save(newDr, new HashMap<String, String>());
 			}
+			willUpdateIndex.add(dr.id);
 			if (objs.containsKey(dr.id)) willReload.add(objs.get(dr.id));
 		}
 		for (DocumentScriptable ds:willReload) {
 			ds.reloadFromContent();
-			//loadFromContent(ds.getDocument().content, ds);
 		}
+		if (IndexRecord.useIndex) {
+			for (String id: willUpdateIndex) {
+				DocumentScriptable s=byId(id);
+				s.refreshIndex();
+			}			
+		}
+	}
+	public void rebuildIndex() {
+		documentSet.all(new DocumentAction() {
+			
+			@Override
+			public boolean run(DocumentRecord d) {
+				DocumentScriptable s=byId(d.id);
+				s.refreshIndex();
+				return false;
+			}
+		});
 	}
 }

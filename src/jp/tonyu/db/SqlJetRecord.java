@@ -5,6 +5,9 @@ import java.io.PrintWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -24,7 +27,7 @@ import org.tmatesoft.sqljet.core.table.ISqlJetTable;
 /**
  * SqlJetRecord represents both "definition of a table" and "a record belonging the table".<BR>
  * 
- * To define fields, define public fields in subclass. 
+ * To define columns, define public fields in subclass. 
  * The subclasses should contain the public field having the name equals to {@link primaryKeyName()} 
  * The field type should be int, long or String.<BR>
  * To define indexes, override {@link indexNames()}.
@@ -152,6 +155,7 @@ public abstract class SqlJetRecord {
 		for (Field f:getClass().getFields()) {
 			String n=f.getName();
 			if (primaryKeyName().equals(n)) continue;
+			if (Modifier.isStatic(f.getModifiers())) continue;
 			ress.add(n);
 		}
 		String[] res=new String[ress.size()+1];
@@ -183,6 +187,11 @@ public abstract class SqlJetRecord {
 			throw new SqlJetException(e);
 		}
 	}
+	/**
+	 * inserts this record into t
+	 * @param t  A table to which be inserted. get with DBHelper::table(this)
+	 * @throws SqlJetException
+	 */
 	public void insertTo(ISqlJetTable t) throws SqlJetException {
 		t.insert(toValues());
 	}
@@ -297,5 +306,14 @@ public abstract class SqlJetRecord {
 	}
 	public void insertTo(SqlJetTableHelper curTbl) throws SqlJetException {
 		insertTo(curTbl.table());
+	}
+	public Map<String,Object> toMap() throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
+		HashMap<String, Object> res = new HashMap<String, Object>();
+		for (String fn:columnOrder()) {
+			Field f=getField(fn);
+			Object value=f.get(this);
+			res.put(fn, value);
+		}
+		return res;
 	}
 }

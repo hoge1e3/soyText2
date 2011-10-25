@@ -58,6 +58,10 @@ public class DBSearcher implements Wrappable {
 		qb=qb.tmpl(name,value,AttrOperator.ge);		
 		return this;
 	}
+	public DBSearcher q(String name) {
+		qb.addCond(name);
+		return this;
+	}
 	public DBSearcher qe(String name, Object value) {
 		qb=qb.tmpl(name,value,AttrOperator.exact);
 		return this;

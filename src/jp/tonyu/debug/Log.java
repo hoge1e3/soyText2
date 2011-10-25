@@ -4,7 +4,9 @@ package jp.tonyu.debug;
 
 public class Log {
 	public static void d(Object tag,Object content) {
-		System.out.println("["+tag+"]"+content);
+		//if ((tag+"").equals("Query")) {
+			System.out.println("["+tag+"]"+content);
+		//}
 	}
 
 	public static Object die(String string) {

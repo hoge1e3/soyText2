@@ -54,7 +54,7 @@ public class EJS implements Wrappable {
 //		buf.append("a=(function (a,b) {return a+b;})+\"\"; \n");
 //		buf.append("res.str=res+\"\"; \n");
 //		buf.append("res;\n");
-		System.out.println("EvalBuf - "+buf);
+		Log.d("EvalBuf",buf);
 		BlankScriptableObject scope2 = new BlankScriptableObject(jssession.root);
 		Scriptables.extend(scope2, scope);
 		Object res=jssession.eval(d+"",   buf.toString(), scope2);

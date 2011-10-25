@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -116,7 +117,7 @@ public class Importer {
 			curlog=null;
 		}
 		if (curdoc!=null) {
-			sdb.save(curdoc);// curdoc.save();
+			sdb.save(curdoc, new HashMap<String, String>());// curdoc.save();
 			if (documentLoader!=null) {
 				documentLoader.reload(curdoc.id);
 			}

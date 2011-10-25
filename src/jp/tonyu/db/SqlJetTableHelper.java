@@ -75,6 +75,12 @@ public class SqlJetTableHelper {
 		}
 		return table().lookup(indexName(attrNames), objects);
 	}
+	public ISqlJetCursor scope(String attrNames, Object[] from, Object[] to) throws SqlJetException {
+		return table().scope(indexName(attrNames), from, to);
+	}
+	public ISqlJetCursor scope(String attrNames, Object from, Object to) throws SqlJetException {
+		return table().scope(indexName(attrNames), SqlJetRecord.q(from), SqlJetRecord.q(to));
+	}
 	public void insert(Object... object) throws SqlJetException {
 		table().insert(object);
 	}
