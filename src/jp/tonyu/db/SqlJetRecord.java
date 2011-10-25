@@ -17,6 +17,8 @@ import java.util.regex.Pattern;
 import jp.tonyu.debug.Log;
 import jp.tonyu.soytext2.document.backup.Importer;
 import jp.tonyu.util.Literal;
+import jp.tonyu.util.MapAction;
+import jp.tonyu.util.Maps;
 import jp.tonyu.util.Util;
 
 import org.tmatesoft.sqljet.core.SqlJetException;
@@ -315,5 +317,23 @@ public abstract class SqlJetRecord {
 			res.put(fn, value);
 		}
 		return res;
+	}
+	public void copyFrom(Map<String, Object> m) {
+		Maps.entries(m).each(new MapAction<String, Object>() {
+			
+			@Override
+			public void run(String key, Object value) {
+				try {
+					Field f=getField(key);
+					f.set(SqlJetRecord.this, value);
+				} catch (NoSuchFieldException e) {
+				} catch (IllegalArgumentException e) {
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					e.printStackTrace();
+				}
+			}
+		});
+		
 	}
 }

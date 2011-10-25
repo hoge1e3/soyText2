@@ -1,6 +1,7 @@
 package jp.tonyu.db;
 
 import java.io.File;
+import java.io.Writer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +26,7 @@ import org.xbill.DNS.Lookup;
 public class SqlJetHelper {
 	protected SqlJetDb db;
 	public SqlJetHelper(){}
+	int version;
 	/**
 	 * Open the SqlJet Database
 	 * @param file
@@ -44,7 +46,8 @@ public class SqlJetHelper {
 					create(db,version);
 				} else if (dbVer!=version) {
 					upgrade(dbVer,version);
-				}				
+				}
+				SqlJetHelper.this.version=version;
 			}
 		},0);			
 
@@ -230,5 +233,43 @@ public class SqlJetHelper {
 		ISqlJetCursor cur = t.order(attrNames);
 		return new SqlJetRecordCursor<T>(record, cur.reverse());
 	}
-
+	public Map<String, List<Map<String,Object>>> backup() throws SqlJetException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
+		 Map<String, List<Map<String,Object>>> res=new HashMap<String, List<Map<String,Object>>>();
+		for (SqlJetRecord r:tables(version)) {
+			SqlJetRecordCursor<SqlJetRecord> cur = order(r,null);
+			List<Map<String,Object>> list=new Vector<Map<String,Object>>();
+			res.put(r.tableName(), list);
+			while (!cur.eof()) {
+				SqlJetRecord re = cur.fetch();
+				list.add(re.toMap());
+			}
+		}
+		return res;
+	}
+	public Map<String, SqlJetRecord> tablesAsMap(int version) {
+		Map<String, SqlJetRecord> res=new HashMap<String, SqlJetRecord>();
+		for (SqlJetRecord r:tables(version)) {
+			res.put(r.tableName(), r);
+		}
+		return res;
+	}
+	public void restore(Map<String, List<Map<String,Object>>> data) {
+		final Map<String, SqlJetRecord> tables=tablesAsMap(version);
+		Maps.entries(data).each(new MapAction<String, List<Map<String,Object>>>() {
+			@Override
+			public void run(String key, List<Map<String,Object>> value) {
+				SqlJetRecord r = tables.get(key);
+				if (r==null) return;
+				SqlJetTableHelper t = table(r.tableName());
+				for (Map<String,Object> m:value) {
+					r.copyFrom(m);
+					try {
+						r.insertTo(t);
+					} catch (SqlJetException e) {
+						Log.die(e);
+					}
+				}
+			}
+		});
+	}
 }
