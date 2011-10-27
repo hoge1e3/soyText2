@@ -144,7 +144,7 @@ public class DocumentProcessor {
 			}
 			if (documentSet() instanceof SDB) {
 				SDB s=(SDB)documentSet();
-				SFile f = new SFile(s.getBlobDir()).rel(this.id());
+				SFile f = s.getBlobDir().rel(this.id());
 				feedDir(f,args2);
 			}
 		} else {

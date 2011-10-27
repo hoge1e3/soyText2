@@ -1,6 +1,10 @@
 package jp.tonyu.soytext2.document;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -19,6 +23,9 @@ import jp.tonyu.util.MapAction;
 import jp.tonyu.util.Maps;
 import jp.tonyu.util.Ref;
 import jp.tonyu.util.SFile;
+import jp.tonyu.util.TDate;
+
+import net.arnx.jsonic.JSON;
 
 import org.tmatesoft.sqljet.core.SqlJetException;
 import org.tmatesoft.sqljet.core.table.ISqlJetCursor;
@@ -31,10 +38,14 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	//public static final String UID_EXISTENT_FILE = "86e08ee0-0bd5-4d1f-a7f5-66c2251e60ad";
 	
 	String dbid;
-	File blobDir;
+	SFile blobDir;
+	SFile backupDir;
+	SFile homeDir;
 	public SDB(File file /*, String uid*/) throws SqlJetException {
 		open(file, version);
-		blobDir=new File(file.getParentFile(),"blob");
+		homeDir=new SFile(file).parent();
+		blobDir=homeDir.rel("blob");
+		backupDir=homeDir.rel("backup");
 		//this.dbid=uid;
 		logManager=new LogManager(this);
 		//setupDBID();
@@ -64,16 +75,16 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		}
 		return null;
 	}
-	public File getBlobDir() {return blobDir;}
+	public SFile getBlobDir() {return blobDir;}
 	
 	DocumentRecord documentRecord=new DocumentRecord();
 	LogRecord logRecord=new LogRecord();
-	DBIDRecord dbidRecord=new DBIDRecord();
+	//DBIDRecord dbidRecord=new DBIDRecord();
 	IndexRecord indexRecord=new IndexRecord();
 	
 	@Override
 	public SqlJetRecord[] tables(int version) {
-		return q(documentRecord,logRecord, dbidRecord/*,indexRecord*/);
+		return q(documentRecord,logRecord);//, dbidRecord/*,indexRecord*/);
 	}
 	public String toString() {
 		return "(SDB dbid="+dbid+")";
@@ -169,9 +180,9 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	    cur2.close();
 	    return res;
 	}
-	public SqlJetTableHelper uidTable() throws SqlJetException {
+	/*public SqlJetTableHelper uidTable() throws SqlJetException {
 		return table(dbidRecord);
-	}
+	}*/
 	public SqlJetTableHelper docTable() throws SqlJetException {
 		return table(documentRecord);
 	}
@@ -345,4 +356,33 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		}, -1);
 		return indexNames;
 	}*/
+	public SFile newestBackupFile() {
+		SFile src=null;
+		for (SFile txt:backupDir) {
+			if (!txt.name().endsWith(".json")) continue;
+			if (src==null || txt.lastModified()>src.lastModified()) {
+				src=txt;
+			}
+		}
+		return src;
+	}
+	public SFile newBackupFile() {
+		String d=new TDate().toString("yyyy_MMdd_hh_mm_ss");
+		return backupDir.rel("main.db."+d+".json");
+	}
+	public void backupToFile() throws SqlJetException, IOException {
+		Object b=backup();
+		JSON json = new JSON();
+		json.setPrettyPrint(true);
+		OutputStream out = newBackupFile().outputStream();
+		json.format(b, out);
+		out.close();
+	}
+	public void restoreFromNewestFile() throws IOException, SqlJetException {
+		SFile src=newestBackupFile();
+		InputStream in = src.inputStream();
+		Map b=(Map)JSON.decode(in);
+		in.close();
+		restore(b);
+	}
 }

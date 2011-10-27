@@ -146,7 +146,7 @@ public class FileSyncer implements Wrappable {
 		String fileId=Scriptables.getAsString(file, "id", null);
 		if (ds instanceof SDB && fileId!=null) {
 			SDB s=(SDB)ds;
-			SFile f = new SFile(s.getBlobDir()).rel(fileId+blobExt);
+			SFile f = s.getBlobDir().rel(fileId+blobExt);
 			return f;
 		}
 		return null;

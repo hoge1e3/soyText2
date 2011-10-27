@@ -131,16 +131,19 @@ public class SFile implements Iterable<SFile>{
 	public void copyTo(File dst) throws IOException {
 		copy(javaIOFile(),dst);
 	}
-	public void backup() throws IOException {
-		SFile backupFile = backupFile();
+	public void backup(String dir) throws IOException {
+		SFile backupFile = backupFile(dir);
 		copyTo(backupFile);
 	}
-	public boolean moveAsBackup() {
-		return moveTo(backupFile());
+	public boolean moveAsBackup(String dir) {
+		return moveTo(backupFile(dir));
 	}
-	public SFile backupFile() {
+	public SFile backupFile(String dir) {
 		String d=new TDate().toString("yyyy_MMdd_hh_mm_ss_");
-		SFile backupFile = parent().rel(d+name());
+		SFile bdir=parent();
+		if (dir!=null) bdir=bdir.rel(dir);
+		SFile backupFile = bdir.rel(d+name());
+		System.out.println("Backup is "+backupFile.javaIOFile().getAbsolutePath());
 		return backupFile;
 	}
 	public SFile parent() {

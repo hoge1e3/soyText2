@@ -6,6 +6,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -325,6 +326,25 @@ public abstract class SqlJetRecord {
 			public void run(String key, Object value) {
 				try {
 					Field f=getField(key);
+					if (value!=null) {
+						Class<? extends Object> vclass = value.getClass();
+						Class<?> fclass = f.getType();
+						if (!fclass.isAssignableFrom(vclass)) {
+							if (value instanceof BigDecimal) {
+								BigDecimal d = (BigDecimal) value;
+								//Log.d("cast",fclass);
+								if (fclass.isAssignableFrom(Integer.TYPE)) {
+									value=d.intValue();
+								}
+								if (fclass.isAssignableFrom(Long.TYPE)) {
+									value=d.longValue();
+								}
+								if (fclass.isAssignableFrom(Double.TYPE)) {
+									value=d.doubleValue();
+								}
+							}
+						}
+					}
 					f.set(SqlJetRecord.this, value);
 				} catch (NoSuchFieldException e) {
 				} catch (IllegalArgumentException e) {

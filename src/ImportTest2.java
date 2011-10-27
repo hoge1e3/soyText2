@@ -21,7 +21,7 @@ public class ImportTest2 {
 		
 		SFile dbDir=new SFile("db");
 		SFile dbFile = dbDir.rel("main.db");
-		if (dbFile.exists()) dbFile.moveAsBackup();
+		if (dbFile.exists()) dbFile.moveAsBackup("backup");
 		
 		
 		SFile src=null;

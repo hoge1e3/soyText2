@@ -36,6 +36,7 @@ public class DocumentScriptable implements Function {
 	final DocumentRecord d;
 	public final DocumentLoader loader;
 	public static final String ONAPPLY="onApply",APPLY="apply",CALL="call";
+	private static final Object SETCONTENTANDSAVE = "setContentAndSave";
 	public DocumentRecord getDocument() {
 		return d;
 	}
@@ -55,6 +56,14 @@ public class DocumentScriptable implements Function {
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 				Object[] args) {
 			save();
+			return DocumentScriptable.this;
+		}
+	};
+	BuiltinFunc setContentAndSaveFunc = new BuiltinFunc() {
+		@Override
+		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
+				Object[] args) {
+			setContentAndSave(args[0]+"");
 			return DocumentScriptable.this;
 		}
 	};
@@ -162,6 +171,7 @@ public class DocumentScriptable implements Function {
 		//if ("compile".equals(key)) return compileFunc;
 		if ("hasOwnProperty".equals(key)) return hasOwnPropFunc;
 		if ("setBlob".equals(key)) return setBlobFunc;
+		if (SETCONTENTANDSAVE.equals(key)) return setContentAndSaveFunc;
 		if (CALLSUPER.equals(key)) return callSuperFunc;
 		/*if (key instanceof DocumentScriptable) {
 			DocumentScriptable keyDoc = (DocumentScriptable) key;

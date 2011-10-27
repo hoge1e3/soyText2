@@ -233,17 +233,31 @@ public class SqlJetHelper {
 		ISqlJetCursor cur = t.order(attrNames);
 		return new SqlJetRecordCursor<T>(record, cur.reverse());
 	}
-	public Map<String, List<Map<String,Object>>> backup() throws SqlJetException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
-		 Map<String, List<Map<String,Object>>> res=new HashMap<String, List<Map<String,Object>>>();
-		for (SqlJetRecord r:tables(version)) {
-			SqlJetRecordCursor<SqlJetRecord> cur = order(r,null);
-			List<Map<String,Object>> list=new Vector<Map<String,Object>>();
-			res.put(r.tableName(), list);
-			while (!cur.eof()) {
-				SqlJetRecord re = cur.fetch();
-				list.add(re.toMap());
+	public Map<String, List<Map<String,Object>>> backup() throws SqlJetException {
+		final Map<String, List<Map<String,Object>>> res=new HashMap<String, List<Map<String,Object>>>();
+		readTransaction(new DBAction() {
+			
+			@Override
+			public void run(SqlJetDb db) throws SqlJetException {
+				for (SqlJetRecord r:tables(version)) {
+					SqlJetRecordCursor<SqlJetRecord> cur = order(r,null);
+					List<Map<String,Object>> list=new Vector<Map<String,Object>>();
+					res.put(r.tableName(), list);
+					while (!cur.eof()) {
+						SqlJetRecord re = cur.fetch();
+						try {
+							Log.d("Export", re);
+							list.add(re.toMap());
+						} catch (Exception e) {
+							e.printStackTrace();
+							throw new SqlJetException(e);
+						}
+						cur.next();
+					}
+					cur.close();
+				}
 			}
-		}
+		}, -1);
 		return res;
 	}
 	public Map<String, SqlJetRecord> tablesAsMap(int version) {
@@ -253,23 +267,30 @@ public class SqlJetHelper {
 		}
 		return res;
 	}
-	public void restore(Map<String, List<Map<String,Object>>> data) {
+	public void restore(final Map<String, List<Map<String,Object>>> data) throws SqlJetException {
 		final Map<String, SqlJetRecord> tables=tablesAsMap(version);
-		Maps.entries(data).each(new MapAction<String, List<Map<String,Object>>>() {
+		writeTransaction(new DBAction() {
+			
 			@Override
-			public void run(String key, List<Map<String,Object>> value) {
-				SqlJetRecord r = tables.get(key);
-				if (r==null) return;
-				SqlJetTableHelper t = table(r.tableName());
-				for (Map<String,Object> m:value) {
-					r.copyFrom(m);
-					try {
+			public void run(SqlJetDb db) throws SqlJetException {
+				for (Map.Entry<String, List<Map<String,Object>>> e:data.entrySet()) {
+					String key=e.getKey();
+					List<Map<String,Object>> value=e.getValue();
+					SqlJetRecord r = tables.get(key);
+					if (r==null) return;
+					SqlJetTableHelper t = table(r.tableName());
+					ISqlJetCursor cur = t.order();
+					while (!cur.eof()) {
+						cur.delete();
+						cur.next();
+					}
+					cur.close();
+					for (Map<String,Object> m:value) {
+						r.copyFrom(m);
 						r.insertTo(t);
-					} catch (SqlJetException e) {
-						Log.die(e);
 					}
 				}
 			}
-		});
+		}, -1);
 	}
 }
