@@ -1,7 +1,8 @@
-var res={
-	node: <></>;
+var res;
+res={
+	node: <></>,
 	add: function (f) {
-		node+=f;
+		res.node+=f;
 	}
 }
 res;

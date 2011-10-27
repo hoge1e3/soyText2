@@ -39,7 +39,7 @@ public class DBSearcher implements Wrappable {
 	}
 	public Object template(final Function tmpl) {
 		Scriptable r=(Scriptable)JSSession.cur.get().eval("dbtmp", 
-				Resource.text(DBTemplate.class,"js"));
+				Resource.text(DBTemplate.class,".js"));
 		final Function add=(Function)ScriptableObject.getProperty(r, "add");
 		dbscr.loader.searchByQuery(qb.toQuery(), new BuiltinFunc() {
 			
