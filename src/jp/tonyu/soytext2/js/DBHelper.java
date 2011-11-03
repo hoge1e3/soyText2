@@ -34,4 +34,10 @@ public class DBHelper implements Wrappable{
 	public Object byId(String id) {
 		return loader.byId(id);
 	}
+	public String getContent(DocumentScriptable d) {
+		return d.getDocument().content;
+	}
+	public void setContentAndSave(DocumentScriptable d,String newContent) {
+		d.setContentAndSave(newContent);
+	}
 }

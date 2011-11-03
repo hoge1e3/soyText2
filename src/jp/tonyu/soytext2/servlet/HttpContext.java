@@ -646,6 +646,9 @@ public class HttpContext implements Wrappable {
 		}
 	}
 	private boolean exec(final DocumentScriptable d) {
+		return exec(d,d);
+	}
+	private boolean exec(final DocumentScriptable d, final Scriptable thiz) {
 		boolean execed=false;
 		Object doGet = ScriptableObject.getProperty(d, DOGET);
 		if (doGet instanceof Function ) {
@@ -655,10 +658,10 @@ public class HttpContext implements Wrappable {
 				@Override
 				public Object run(Context cx) {
 					if (Args.getArgs(f).length>1) {
-						f.call(cx, jssession().root, d, 
+						f.call(cx, jssession().root, thiz, 
 							new Object[]{getReq(),getRes(),HttpContext.this});
 					} else {
-						f.call(cx, jssession().root, d, 
+						f.call(cx, jssession().root, thiz, 
 								new Object[]{HttpContext.this});
 					}
 					return null;
@@ -771,7 +774,8 @@ public class HttpContext implements Wrappable {
 	}
 	private boolean customEdit() throws IOException {
 		String[] s=args();
-		//   $soyText/customedit/00000
+		//   $soyText/customedit/00000 
+		//   $soyText/customedit/00000?defaultEditor=id
 		String id=s[2];
 		String msg="";
 		target = documentLoader.byId(id);
@@ -779,6 +783,7 @@ public class HttpContext implements Wrappable {
 		    notfound(id);
 		    return false;
 		}	
+		String defEdit= params().get("defaultEditor");
 		boolean execed=false;
 		Object doEdit=ScriptableObject.getProperty(target, DO_EDIT);
 		if (doEdit instanceof Function ) {
@@ -802,6 +807,9 @@ public class HttpContext implements Wrappable {
 				}
 			});
 			execed=true;
+		} else if (defEdit!=null){
+			//DocumentScriptable defEditDoc = documentLoader.byId(defEdit);
+			redirect(rootPath()+"/exec/"+defEdit+"?this="+target);
 		} else {
 			edit();
 		}
