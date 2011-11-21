@@ -39,6 +39,9 @@ public class SearchContext {
 	}
 	public QueryResult matches() {
 		//Debug.notNull(query);
+		//if (toBeSearched.getDocument().id.indexOf("306")>=0) {
+		//	Log.d("TEST!", toBeSearched.get("id"));
+		//}
 		QueryResult res=queryTmpl.cond.matches(toBeSearched, this);
 		
 		if (res.templateMatched && !templateFilled()) {

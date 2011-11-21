@@ -53,7 +53,27 @@ public class JSSession {
 		Context c=Context.enter();
 		
 		root=initObject(c);
+		objFactory=(Function)ScriptableObject.getProperty(root, "Object");
+		aryFactory=(Function)ScriptableObject.getProperty(root, "Array");
 		Context.exit();
+	}
+	Function objFactory,aryFactory;
+
+	public Scriptable newObject() {
+		return (Scriptable)withContext(new ContextRunnable() {
+			@Override
+			public Object run(Context cx) {
+				return objFactory.construct(cx, root, new Object[0]);
+			}
+		});
+	}
+	public Scriptable newArray() {
+		return (Scriptable)withContext(new ContextRunnable() {
+			@Override
+			public Object run(Context cx) {
+				return aryFactory.construct(cx, root, new Object[0]);
+			}
+		});
 	}
 	public Object eval (String name, String s) {
 		return eval(name, s, new HashMap<String, Object>());

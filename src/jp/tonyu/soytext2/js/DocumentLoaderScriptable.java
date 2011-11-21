@@ -126,7 +126,7 @@ public class DocumentLoaderScriptable implements Scriptable, Wrappable {
 
 	@Override
 	public void put(String name, Scriptable start, Object value) {
-		Log.d(this, "Put - "+name+"="+value);
+		//Log.d(this, "Put - "+name+"="+value);
 		values.put(name, value);
 		if (value instanceof Undefined) {
 			undefinedSymbols.add(name);

@@ -203,6 +203,7 @@ public abstract class SqlJetRecord {
 		for (String fname:columnOrder()) {
 			try {
 				Field f = getField(fname);
+				//Log.d("fetch", fname);
 				Class t=f.getType();
 				if (t.equals(Long.TYPE)) {
 					long r=cur.getInteger(i);

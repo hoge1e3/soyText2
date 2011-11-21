@@ -90,7 +90,7 @@ public class Scriptables {
 			Object value=map.get(k);
 			if (k instanceof String) {
 				String kstr = (String) k;
-				Log.d("Scriptables", "Put "+k+"="+value);
+				//Log.d("Scriptables", "Put "+k+"="+value);
 				s.put(kstr, s, value);
 			}
 			if (k instanceof Number) {

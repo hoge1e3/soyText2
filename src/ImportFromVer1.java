@@ -45,7 +45,7 @@ public class ImportFromVer1 {
 		i.importDocuments(file);
 		s.close();
 		
-		new SMain(uid);
+		new SMain(3010);
 	}
 
 }

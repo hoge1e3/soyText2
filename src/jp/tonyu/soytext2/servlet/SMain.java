@@ -100,13 +100,13 @@ public class SMain extends HttpServlet {
 		loader=new DocumentLoader(sdb);
 	}
 	// As Application
-	public SMain(String uid) throws Exception{
+	public SMain(int port) throws Exception{
 		workspaceDir=new SFile(new File("."));
 		File newest = getNewest();
 		System.out.println("Using "+newest+" as db.");
 		sdb=new SDB(newest);//, uid);
 		loader=new DocumentLoader(sdb);
-		int port = 3002;
+		//int port = 3002;
 		AutoRestart auto = new AutoRestart(port, workspaceDir.rel("stop.lock").javaIOFile());
 		NanoServlet n=new NanoServlet(port, this, auto);
 		System.out.println( "Listening on port "+port+". Go to "+auto.stopURL()+" to stop.\n" );
@@ -119,11 +119,13 @@ public class SMain extends HttpServlet {
 		n.stop();
 	}
 	public static void main(String[] args) throws Exception {
-		if (args.length==0) {
-			System.err.println("Usage: java SMain uid");
-			System.err.println("uid must be world-unique id such as UUID, time.domain or some string that google returns 0 results.");
-			return;
+		int port=3010;
+		if (args.length>0) {
+			//System.err.println("Usage: java SMain port");
+			//System.err.println("uid must be world-unique id such as UUID, time.domain or some string that google returns 0 results.");
+			//return;
+			port=Integer.parseInt(args[0]);
 		}
-		new SMain(args[0]);
+		new SMain(port );
 	}
 }
