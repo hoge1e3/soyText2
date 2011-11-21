@@ -12,7 +12,7 @@
 	<classpathentry kind="lib" path="lib/rhino_patched.jar" sourcepath="/Rhino_debug"/>
 	<classpathentry kind="lib" path="lib/commons-fileupload-1.2.2.jar"/>
 	<classpathentry kind="lib" path="lib/jsonic-1.2.7.jar" sourcepath="C:/Users/shinya/Dropbox/Downloads/jsonic-1.2.7.zip"/>
-	<classpathentry kind="lib" path="lib/jruby.jar"/>
 	<classpathentry kind="lib" path="lib/jetty-xml-7.2.0.v20101020.jar"/>
+	<classpathentry kind="lib" path="lib/jruby.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
