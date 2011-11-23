@@ -40,6 +40,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 	//private static final Object LOADING = "LOADING";
 	public static final Pattern idpatWiki= DocumentProcessor.idpatWiki ;//Pattern.compile("\\[\\[([^\\]]+)\\]\\]");
 	private static final String ERROR_CONTENT = "err_content";
+	private static final String ERROR_MSG = "err_message";
 	//Map<String, Scriptable>objs=new HashMap<String, Scriptable>();
 	private final DocumentSet documentSet;
 	private Map<String, DocumentScriptable> objs=new HashMap<String, DocumentScriptable>();
@@ -142,7 +143,9 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 			dst.put(HttpContext.ATTR_SCOPE, loaderScope.scope());
 		} catch (Exception e) {
 			e.printStackTrace();
+			Log.e(e);
 			Log.d(this , dst.getDocument().id+" has invalid content "+newContent);
+			dst.put(ERROR_MSG, e.getMessage() );
 			dst.put(ERROR_CONTENT, newContent );
 		}
 	}

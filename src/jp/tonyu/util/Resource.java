@@ -16,4 +16,5 @@ public class Resource {
 		in.close();
 		return buf+"";
 	}
+	
 }

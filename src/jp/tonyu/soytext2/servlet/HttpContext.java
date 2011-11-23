@@ -312,6 +312,9 @@ public class HttpContext implements Wrappable {
         else if (s.length>=2 && s[1].equals("import1")) {
         	importFromVer1();
         }
+        else if (s.length>=2 && s[1].equals("errorlog")) {
+        	errorLog();
+        }
         else if (req.getPathInfo().equals("/")) {
         	if (fullURL().endsWith("/")) {
         		topPage();
@@ -323,7 +326,13 @@ public class HttpContext implements Wrappable {
         	byName();
         }
     }
-    public String browserjsPath(Class klass) {
+    private void errorLog() throws IOException {
+    	res.setContentType(TEXT_PLAIN_CHARSET_UTF_8);
+    	PrintWriter w=res.getWriter();
+    	w.println(Log.errorLog.getBuffer());
+    	w.close();
+	}
+	public String browserjsPath(Class klass) {
     	return rootPath()+"/browserjs/"+klass.getName();
     }
     private void browserjs() throws IOException {
@@ -1072,6 +1081,8 @@ public class HttpContext implements Wrappable {
     }
 
 	String menuBar() {
+		String q=params().get("q");
+		if (q==null) q="";
 		String path=rootPath();
 		StringBuilder buf=new StringBuilder();
         buf.append(Html.p("<html><head><meta http-equiv=%a content=%a></head>"
@@ -1081,8 +1092,12 @@ public class HttpContext implements Wrappable {
         buf.append(Html.p("<a href=%a>ログイン</a>  |" , path+"/auth"));
         buf.append(Html.p("<a href=%a>ホーム</a>  |" , path+"/all"));
         buf.append(Html.p("<a href=%a>新規作成</a> | ", path+"/new"));
-        buf.append(Html.p("<a href=%a>検索</a> |\n" , path+"/search"));
+        buf.append(Html.p("<form action=%s method=POST style=\"display: inline;\">" +
+        		"<input name=q value=%s></form>", path+"/search" ,q));
+        //buf.append(Html.p("<a href=%a>検索</a> |\n" , path+"/search"));
         buf.append("DB: "+documentSet());
+        buf.append(Html.p("Err: <a href=%a>%s</a>", 
+        		path+"/errorlog", ""+Log.errorLog.getBuffer().length()));
         buf.append("<HR>");
         return buf.toString();
 	}

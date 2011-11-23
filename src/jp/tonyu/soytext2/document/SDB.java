@@ -33,6 +33,8 @@ import org.tmatesoft.sqljet.core.table.ISqlJetTable;
 import org.tmatesoft.sqljet.core.table.SqlJetDb;
 
 public class SDB extends SqlJetHelper implements DocumentSet {
+	public static final String PRIMARY_DBID_TXT = "primaryDbid.txt";
+
 	static final int version=3;
 	//public static final String UID_IMPORT = "77a729a1-5c5d-4d09-9141-72108ee9b634";
 	//public static final String UID_EXISTENT_FILE = "86e08ee0-0bd5-4d1f-a7f5-66c2251e60ad";
@@ -61,7 +63,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	private String getDBIDFromFile(SFile file) {
 		try {
 			SFile parent=file.parent();
-			SFile primaryDBID=parent.rel("primaryDbid.txt");
+			SFile primaryDBID=parent.rel(PRIMARY_DBID_TXT);
 			if (primaryDBID.exists()) {
 				return primaryDBID.text();
 			}

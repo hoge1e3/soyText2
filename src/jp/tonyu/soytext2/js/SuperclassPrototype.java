@@ -11,7 +11,11 @@ public class SuperclassPrototype extends BlankScriptableObject {
 	Function superclass;
 	@Override
 	public Scriptable getPrototype() {
-		return (Scriptable)ScriptableObject.getProperty(superclass, DocumentScriptable.PROTOTYPE);
+		Object prot = ScriptableObject.getProperty(superclass, DocumentScriptable.PROTOTYPE);
+		if (prot instanceof Scriptable) {
+			return (Scriptable)prot;
+		}
+		return null;
 	}
 	public SuperclassPrototype(Function superclass) {
 		super();

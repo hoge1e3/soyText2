@@ -1,23 +1,35 @@
 package jp.tonyu.soytext2.servlet;
 
+import java.awt.Desktop;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URL;
+import java.util.Enumeration;
+import java.util.List;
+import java.util.Scanner;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import jp.tonyu.debug.Log;
 import jp.tonyu.nanoservlet.AutoRestart;
 import jp.tonyu.nanoservlet.NanoServlet;
 import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.js.DocumentLoader;
 import jp.tonyu.soytext2.js.JSSession;
+import jp.tonyu.util.Ref;
+import jp.tonyu.util.ResourceTraverser;
 import jp.tonyu.util.SFile;
 
+import java.io.InputStream;
 import org.tmatesoft.sqljet.core.SqlJetException;
 
 public class SMain extends HttpServlet {
+	private static final String DB_INIT_PATH = "jp/tonyu/soytext2/servlet/init/db";
 	JSSession j=new JSSession();
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse res)
@@ -54,7 +66,7 @@ public class SMain extends HttpServlet {
 	public  File getNewest() {
 		long max=0;
 		File res=null;
-		SFile dbDir =  workspaceDir.rel("db/");
+		SFile dbDir =  dbDir();
 		for (SFile d:dbDir) {
 			if (!d.name().endsWith(".db")) continue;
 			long l=d.lastModified();
@@ -63,10 +75,13 @@ public class SMain extends HttpServlet {
 				max=l;
 			}
 		}
-		if (res==null) {
+		/*if (res==null) {
 			return dbDir.rel("main.db").javaIOFile();
-		}
+		}*/
 		return res;
+	}
+	private SFile dbDir() {
+		return workspaceDir.rel("db/");
 	}
 	String detectWorkSpace(String path) {
 		String[] ws=path.split(";");
@@ -99,24 +114,77 @@ public class SMain extends HttpServlet {
 		sdb=new SDB(newest);//, SDB.UID_EXISTENT_FILE);
 		loader=new DocumentLoader(sdb);
 	}
+	File setupDB() throws IOException {
+		final SFile dbDir=dbDir();
+		ClassLoader cl=this.getClass().getClassLoader();
+		SFile dbIdFile=dbDir.rel(SDB.PRIMARY_DBID_TXT);
+		InputStream in=cl.getResourceAsStream(DB_INIT_PATH+"/"+SDB.PRIMARY_DBID_TXT);
+		dbIdFile.readFrom(in);
+		//String dbId=dbIdFile.text();		
+		SFile dbFile=dbDir.rel("main.db");
+		in=cl.getResourceAsStream(DB_INIT_PATH+"/"+"main.db");
+		dbFile.readFrom(in);
+		
+		/*ResourceTraverser r=new ResourceTraverser() {
+			
+			@Override
+			protected void visitFile(String name) throws IOException {
+				String rel=name.substring(DB_INIT_PATH.length()+1);
+				SFile f=dbDir.rel(rel);
+				System.out.println(name + "->" + f);
+				InputStream in = getInputStream(name);
+				f.readFrom(in);
+				in.close();
+			}
+			@Override
+			protected boolean visitDir(String name, List<String> files)
+					throws IOException {
+				System.out.println("dir:"+name);
+				return false;
+			}
+			@Override
+			protected boolean isDir(String name) {
+				if (name.startsWith(DB_INIT_PATH) &&
+						(name.endsWith(".txt") || name.endsWith(".db"))) return false;
+				return super.isDir(name);
+			}
+		};*/
+		//r.traverse(".");//DB_INIT_PATH);
+		//r.traverse("jp/tonyu/db/DBAction.class");//DB_INIT_PATH);
+		//Log.die("Die");
+		return getNewest();
+	}
 	// As Application
 	public SMain(int port) throws Exception{
 		workspaceDir=new SFile(new File("."));
 		File newest = getNewest();
+		if (newest==null) newest=setupDB();
 		System.out.println("Using "+newest+" as db.");
 		sdb=new SDB(newest);//, uid);
 		loader=new DocumentLoader(sdb);
 		//int port = 3002;
 		AutoRestart auto = new AutoRestart(port, workspaceDir.rel("stop.lock").javaIOFile());
 		NanoServlet n=new NanoServlet(port, this, auto);
-		System.out.println( "Listening on port "+port+". Go to "+auto.stopURL()+" to stop.\n" );
- 		while (true) {
+		System.out.println("Listening on port "+port+". Go to "+auto.stopURL()+" to stop.\n" );
+		final Ref<Boolean> stop=Ref.create(false);
+		Log.showLogWindow(new Runnable() {
+			public void run() {
+				stop.set(true);				
+			}
+		});
+		String openurl = "http://localhost:"+port+"/";
+		Log.d("OPEN", openurl);
+		Desktop desktop = Desktop.getDesktop();
+        desktop.browse(new URI(openurl));
+
+ 		while (stop.get()==false) {
  			Thread.sleep(1000);
  			if (n.hasToBeStopped()) break;
  		}
  		//try { System.in.read(); } catch( Throwable t ) {};		
 		sdb.close();
 		n.stop();
+		System.exit(1);
 	}
 	public static void main(String[] args) throws Exception {
 		int port=3010;

@@ -8,8 +8,10 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.URLEncoder;
 import java.util.Date;
 import java.util.Enumeration;
@@ -287,6 +289,8 @@ public class NanoHTTPD
 	}
 	public static final String ENTIRE_QUERY_STRING = "ENTIRE_QUERY_STRING";
 
+	public static final String REMOTE_ADDR = "__remote_addr";
+
 	/**
 	 * Handles one session, i.e. parses the HTTP request
 	 * and returns the response.
@@ -308,7 +312,7 @@ public class NanoHTTPD
 			{
 				InputStream is = mySocket.getInputStream();
 				if ( is == null) return;
-
+				//System.out.println("Connect from "+((InetSocketAddress)mySocket.getRemoteSocketAddress()).getHostName()   );
 				// Read the first 8192 bytes.
 				// The full header should fit in here.
 				// Apache's default header limit is 8KB.
@@ -325,6 +329,11 @@ public class NanoHTTPD
 				Properties header = new Properties();
 				Properties files = new Properties();
 
+				SocketAddress remoteAddr = mySocket.getRemoteSocketAddress();
+				if (remoteAddr instanceof InetSocketAddress) {
+					InetSocketAddress rems = (InetSocketAddress) remoteAddr;
+					header.put(REMOTE_ADDR,rems.getHostName()+"");
+				}
 				// Decode the header into parms and header java properties
 				decodeHeader(hin, pre, parms, header);
 				String method = pre.getProperty("method");
