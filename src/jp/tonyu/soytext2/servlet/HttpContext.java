@@ -818,7 +818,7 @@ public class HttpContext implements Wrappable {
 			execed=true;
 		} else if (defEdit!=null){
 			//DocumentScriptable defEditDoc = documentLoader.byId(defEdit);
-			redirect(rootPath()+"/exec/"+defEdit+"?this="+target);
+			redirect(rootPath()+"/exec/"+defEdit+"?doc="+target);
 		} else {
 			edit();
 		}

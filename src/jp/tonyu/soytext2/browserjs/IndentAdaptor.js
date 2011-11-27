@@ -1,5 +1,7 @@
 var _top={__ie:navigator.userAgent.indexOf("MSIE") != -1};
 
+
+function attachIndentAdaptor(elem) {
 function $conv(id) {
    if (typeof(id)=="string") return document.getElementById(id);
    return id;
@@ -11,8 +13,6 @@ function addEventListener(elem,type,func) {
       elem.addEventListener(type,func,false);
    }
 }
-
-function attachIndentAdaptor(elem) {
     elem=$conv(elem);
 	var nextInd=false;
 	var indDepth="";
