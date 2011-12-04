@@ -29,7 +29,7 @@ import java.io.InputStream;
 import org.tmatesoft.sqljet.core.SqlJetException;
 
 public class SMain extends HttpServlet {
-	private static final String DB_INIT_PATH = "jp/tonyu/soytext2/servlet/init/db";
+	public static final String DB_INIT_PATH = "jp/tonyu/soytext2/servlet/init/db";
 	JSSession j=new JSSession();
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse res)

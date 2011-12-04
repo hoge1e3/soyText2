@@ -144,8 +144,7 @@ public class RequestWrapper implements HttpServletRequest,Wrappable {
 
 	@Override
 	public HttpSession getSession() {
-		notimpl();
-		return null;
+		return SingletonHttpSession.inst;
 	}
 
 	@Override

@@ -27,6 +27,7 @@ import java.util.regex.Matcher;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.Args;
@@ -1143,6 +1144,15 @@ public class HttpContext implements Wrappable {
 	        }*/
 	    }
 	    return def;		
+	}
+	public Object getSession(String key) {
+		HttpSession s=req.getSession();
+		if (s!=null) return s.getAttribute(key);
+		return null;
+	}
+	public void putSession(String key,Object value) {
+		HttpSession s=req.getSession();
+		if (s!=null) s.setAttribute(key,value);		
 	}
 	
 	public static String detectContentType(DocumentScriptable d)
