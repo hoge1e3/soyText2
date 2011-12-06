@@ -22,18 +22,19 @@ public class ScriptableRubyInvocable {
 					return args.get(0);
 				} else {
 					Object r=ScriptableObject.getProperty(s, name);
-					if (args.size()>0) {
-						if (r instanceof Function) {
-							Function f = (Function) r;
-							return JSSession.cur.get().call(f, args.toArray());
-						} else {
-							Log.die("Cannot call "+r);
+					if (r instanceof Function) {
+						Function f = (Function) r;
+						int l=args.getLength();
+						Object[] oargs=new Object[l];
+						for (int i=0 ; i<l ; i++) {
+							Log.d("rubyarg",args.get(i));
+							oargs[i]=args.get(i);
 						}
+						return JSSession.cur.get().call(f, oargs);
 					} else {
 						return r;
 					}
 				}
-				return null;
 			}
 		});
 	}

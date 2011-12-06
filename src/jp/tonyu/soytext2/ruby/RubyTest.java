@@ -34,13 +34,22 @@ public class RubyTest {
         ScriptEngine engine = manager.getEngineByName("jruby");
         Bindings b=engine.createBindings();
         b.put("window", this);
-        b.put("a", RubyInvocable.create(engine, new MethodMissingHandler() {
+        b.put("$a", RubyInvocable.create(engine, new MethodMissingHandler() {
 			
 			@Override
 			public Object methodMissing(String name, RubyArray args) {
 				Object a=args.get(0);
 				Object b=args.get(1);
 				return name+":"+b+a;
+			}
+		}));
+        b.put("$b", RubyInvocable.create(engine, new MethodMissingHandler() {
+			
+			@Override
+			public Object methodMissing(String name, RubyArray args) {
+				Object a=args.get(0);
+				Object b=args.get(1);
+				return name+":--"+a+b;
 			}
 		}));
         /*Object res=engine.eval("class Test\n"+
@@ -50,7 +59,7 @@ public class RubyTest {
         "   end\n" +
         "end\n" +
         "Test.new");//.test(window.test(3))\n",b);*/
-        Object res2=engine.eval("a.hoge(\"fuga\",\"haga\")",b);
+        Object res2=engine.eval("$a.hoge(\"fuga\",\"haga\")+$b.hoge(\"fugo\",\"hige\")",b);
         System.out.println(res2);
 	}
 	public int test(int x) {
