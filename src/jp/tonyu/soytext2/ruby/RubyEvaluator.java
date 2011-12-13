@@ -24,8 +24,8 @@ public class RubyEvaluator implements Wrappable {
 			
 			@Override
 			public void run(String key, Object value) {
-				if (b instanceof Scriptable) {
-					Scriptable s = (Scriptable) b;
+				if (value instanceof Scriptable) {
+					Scriptable s = (Scriptable) value;
 					b.put(key, ScriptableRubyInvocable.create(engine,s));
 				} else {
 					b.put(key, value);

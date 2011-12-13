@@ -15,11 +15,11 @@ public class ReflectMethod implements Wrappable {
 		System.out.println("foo24si-2:"+(x+y));
 	
 	}
-	public static void main(String[] args) {
-		JSSession s = new JSSession();
+	/*public static void main(String[] args) {
+		JSSession s = JSSession.get("test");
 		//; 
 		Object r = s.eval("test","a=(function (a,b) {return a+b;})+\"baka\";", Maps.create("b",(Object)new ReflectMethod()) );
 		System.out.println(r);
 
-	}
+	}*/
 }

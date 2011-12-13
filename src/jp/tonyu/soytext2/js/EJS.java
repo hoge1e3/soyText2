@@ -25,7 +25,7 @@ public class EJS implements Wrappable {
     public Scriptable convert(Scriptable d, Scriptable scope) {
     	//Thread.dumpStack();
 		String src=""+ScriptableObject.getProperty(d ,HttpContext.ATTR_BODY );
-		JSSession jssession=JSSession.cur.get();
+		JSSession jssession=DocumentLoader.curJsSesssion();
 		Parser p=new Parser(src);
 		p.setSpacePattern(null);
 		StringBuilder buf=new StringBuilder();

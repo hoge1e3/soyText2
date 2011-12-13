@@ -682,7 +682,9 @@ public class HttpContext implements Wrappable {
 		return execed;
 	}
 	private JSSession jssession() {
-		return JSSession.cur.get();
+		JSSession jsSession = DocumentLoader.curJsSesssion();
+		Log.d("htpctx_jsses",jsSession);
+		return jsSession;
 	}
 	/*public Cursor query(Query q) {
 		Debug.syslog("Query starting "+q.toString());

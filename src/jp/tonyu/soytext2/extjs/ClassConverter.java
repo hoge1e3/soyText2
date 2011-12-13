@@ -160,7 +160,7 @@ public class ClassConverter extends Parser implements Wrappable, CompileResult {
 	}
 	private ClassDef getClassDef(DocumentScriptable sd) {
 		ClassDef res;
-		CompileResult compileRes =  JSSession.cur.get().compile(sd);
+		CompileResult compileRes =  DocumentLoader.curJsSesssion().compile(sd);
 		if (compileRes==null) Log.die("Compile Result of "+sd+" null. Perhaps forget compiler:extJS?");
 		ClassConverter c= Log.notNull(
 				(ClassConverter)compileRes,

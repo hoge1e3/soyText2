@@ -9,34 +9,30 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import jp.tonyu.debug.Log;
-import jp.tonyu.js.BlankScriptableObject;
 import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.js.Scriptables;
 import jp.tonyu.js.StringPropAction;
 import jp.tonyu.js.Wrappable;
-import jp.tonyu.soytext2.auth.Authenticator;
 import jp.tonyu.soytext2.auth.AuthenticatorList;
-import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentAction;
+import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentSet;
 import jp.tonyu.soytext2.document.IndexRecord;
-import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.search.Query;
 import jp.tonyu.soytext2.search.QueryBuilder;
 import jp.tonyu.soytext2.search.QueryResult;
 import jp.tonyu.soytext2.search.expr.AttrOperator;
 import jp.tonyu.soytext2.servlet.DocumentProcessor;
 import jp.tonyu.soytext2.servlet.HttpContext;
-import jp.tonyu.util.Maps;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
-import org.mozilla.javascript.ScriptableObject;
 import org.tmatesoft.sqljet.core.SqlJetException;
 
 
 public class DocumentLoader implements Wrappable, IDocumentLoader {
+	public static final jp.tonyu.util.Context<DocumentLoader> cur=new jp.tonyu.util.Context<DocumentLoader>();
 	//private static final Object LOADING = "LOADING";
 	public static final Pattern idpatWiki= DocumentProcessor.idpatWiki ;//Pattern.compile("\\[\\[([^\\]]+)\\]\\]");
 	private static final String ERROR_CONTENT = "err_content";
@@ -44,9 +40,11 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 	//Map<String, Scriptable>objs=new HashMap<String, Scriptable>();
 	private final DocumentSet documentSet;
 	private Map<String, DocumentScriptable> objs=new HashMap<String, DocumentScriptable>();
+	private final JSSession jsSession;
 	public DocumentLoader(DocumentSet documentSet) {
 		super();
 		this.documentSet = documentSet;
+		this.jsSession=new JSSession();
 	}
 	/*private Scriptable instanciator(final DocumentRecord src) {
 		return new BlankScriptableObject() {
@@ -125,8 +123,12 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 		res.setContentAndSave(res.getDocument().content);
 		return res;
 	}
+	//Map<String, DocumentScriptable> debugH=new HashMap<String, DocumentScriptable>();
+
 	private DocumentScriptable defaultDocumentScriptable(final DocumentRecord src) {
 		DocumentScriptable res = new DocumentScriptable(this, src);
+		if (objs.containsKey(src.id)) Log.die("Already have "+src);
+		
 		objs.put(src.id, res);
 		return res;
 	}
@@ -149,8 +151,11 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 			dst.put(ERROR_CONTENT, newContent );
 		}
 	}
-	private JSSession jsSession() {
-		return JSSession.cur.get();
+	public static JSSession curJsSesssion() {
+		return cur.get().jsSession();
+	}
+	public JSSession jsSession() {
+		return jsSession; //JSSession.cur.get();
 	}
 	public DocumentScriptable newDocument(Scriptable hash) {
 		final Object id = hash!=null ? hash.get("id", hash) : null;

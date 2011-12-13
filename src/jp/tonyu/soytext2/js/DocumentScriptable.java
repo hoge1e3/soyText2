@@ -41,12 +41,10 @@ public class DocumentScriptable implements Function {
 	public DocumentRecord getDocument() {
 		return d;
 	}
-	static Map<String, DocumentScriptable> debugH=new HashMap<String, DocumentScriptable>();
+	//static Map<String, DocumentScriptable> debugH=new HashMap<String, DocumentScriptable>();
 	public DocumentScriptable(final DocumentLoader loader,final DocumentRecord d) {
 		this.loader=loader;
 		this.d=d;
-		if (debugH.containsKey(d.id)) Log.die("Already have "+d);
-		debugH.put(d.id, this);
 		/*put("id",this , d.id );
 		put("lastUpdate",this, d.lastUpdate);
 		put("save",this, );*/
@@ -80,7 +78,7 @@ public class DocumentScriptable implements Function {
 		@Override
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 				Object[] args) {
-			CompileResult c = JSSession.cur.get().compile(DocumentScriptable.this);
+			CompileResult c = DocumentLoader.curJsSesssion().compile(DocumentScriptable.this);
 			/*if (args.length>=1 && args[0]!=null) {
 				Log.d(this, args[0]+" -  Class="+args[0].getClass());
 			//org.mozilla.javascript.IdFunctionObject

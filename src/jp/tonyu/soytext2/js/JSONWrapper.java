@@ -70,14 +70,14 @@ public class JSONWrapper implements Wrappable{
 	}
 	public Object parse(String source) {
 		Object r=json.parse(source);
-		return postparse(r,JSSession.cur.get());
+		return postparse(r,DocumentLoader.curJsSesssion());
 	}	/*Function objFactory,aryFactory;
 	public void setFactories(Function object,Function array) {
 		objFactory=object;
 		aryFactory=array;
 	}*/
-	public static void main(String[] args) {
-		JSSession.cur.enter(new JSSession(), new Runnable() {
+	/*public static void main(String[] args) {
+		JSSession.cur.enter(JSSession.get("test"), new Runnable() {
 			
 			@Override
 			public void run() {
@@ -102,5 +102,5 @@ public class JSONWrapper implements Wrappable{
 				
 			}
 		});
-	}
+	}*/
 }

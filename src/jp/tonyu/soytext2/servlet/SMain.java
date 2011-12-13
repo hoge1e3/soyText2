@@ -14,6 +14,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import jp.tonyu.debug.Log;
 import jp.tonyu.nanoservlet.AutoRestart;
@@ -30,7 +31,8 @@ import org.tmatesoft.sqljet.core.SqlJetException;
 
 public class SMain extends HttpServlet {
 	public static final String DB_INIT_PATH = "jp/tonyu/soytext2/servlet/init/db";
-	JSSession j=new JSSession();
+	private static final String KEY_DOCLOADER = "__Document_LOADER";
+	//JSSession j=new JSSession();
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse res)
 			throws ServletException, IOException {
@@ -44,12 +46,18 @@ public class SMain extends HttpServlet {
 		} catch (SqlJetException e1) {
 			e1.printStackTrace();
 		}
-		JSSession.cur.enter(j, new Runnable() {
+		HttpSession s=req2.getSession();
+		Object jsl=s.getAttribute(KEY_DOCLOADER);
+		if (!(jsl instanceof DocumentLoader)) {
+			jsl=new DocumentLoader(sdb);
+			s.setAttribute(KEY_DOCLOADER, jsl);
+		}
+		DocumentLoader.cur.enter((DocumentLoader)jsl, new Runnable() {
 
 			@Override
 			public void run() {
 				try {
-					new HttpContext(loader, req, res).proc();
+					new HttpContext(DocumentLoader.cur.get(), req, res).proc();
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -62,7 +70,7 @@ public class SMain extends HttpServlet {
 		doIt(req,res);
 	}
 	SDB sdb;
-	DocumentLoader loader;
+	//DocumentLoader loader;
 	public  File getNewest() {
 		long max=0;
 		File res=null;
@@ -112,7 +120,7 @@ public class SMain extends HttpServlet {
 		File newest = getNewest();
 		System.out.println("Using "+newest+" as db.");
 		sdb=new SDB(newest);//, SDB.UID_EXISTENT_FILE);
-		loader=new DocumentLoader(sdb);
+		//loader=new DocumentLoader(sdb);
 	}
 	File setupDB() throws IOException {
 		final SFile dbDir=dbDir();
@@ -161,7 +169,7 @@ public class SMain extends HttpServlet {
 		if (newest==null) newest=setupDB();
 		System.out.println("Using "+newest+" as db.");
 		sdb=new SDB(newest);//, uid);
-		loader=new DocumentLoader(sdb);
+		//loader=new DocumentLoader(sdb);
 		//int port = 3002;
 		AutoRestart auto = new AutoRestart(port, workspaceDir.rel("stop.lock").javaIOFile());
 		NanoServlet n=new NanoServlet(port, this, auto);

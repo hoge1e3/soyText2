@@ -24,7 +24,7 @@ import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 
 public class JSSession {
-	public static final jp.tonyu.util.Context<JSSession> cur=new jp.tonyu.util.Context<JSSession>();
+	//public static final jp.tonyu.util.Context<JSSession> cur=new jp.tonyu.util.Context<JSSession>();
 	public final Scriptable root;
 	private Scriptable initObject(Context cx) {
 		ScriptableObject o=cx.initStandardObjects();
@@ -47,9 +47,25 @@ public class JSSession {
 			}
 		}*/
 		cx.evaluateString(o, Resource.text(Prototype.class,	 ".js"), "<prototype>", 1, null);
+		ScriptableObject.putProperty(o, "session", o);
 		return o;
 	}
-	public JSSession() {
+	//private static Map<String,JSSession> ses=new HashMap<String, JSSession>();
+	/*public static JSSession get(String sessionId) {
+		Log.d("jssget", sessionId);
+		JSSession res = ses.get(sessionId);
+		if (res==null) {
+			res=new JSSession();
+			ses.put(sessionId, res);
+		}
+		Log.d("jssgetres", System.identityHashCode(res.root) );
+		Log.d("jssgetres2", ScriptableObject.getProperty(res.root,"count") );
+		for (Object k:res.root.getIds()) {
+			Log.d("jssgetres2",k+" - "+ScriptableObject.getProperty(res.root, k.toString()));
+		}
+		return res;
+	}*/
+	JSSession() {
 		Context c=Context.enter();
 		
 		root=initObject(c);

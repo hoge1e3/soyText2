@@ -19,7 +19,7 @@ public class HashLiteralConv {
 	static Function compiled;
 	public static Function compile() {
 		if (compiled!=null) return compiled;
-		compiled=(Function)JSSession.cur.get().eval("toHashLiteral",
+		compiled=(Function)DocumentLoader.curJsSesssion().eval("toHashLiteral",
 				Resource.text(HashLiteralConv.class, ".js"),
 				Maps.create("debug", (Object)debug)
 				    .p("decompile", decompile)
@@ -61,7 +61,7 @@ public class HashLiteralConv {
 		}
 	};
 	public static String toHashLiteral(Object res) {
-		return JSSession.cur.get().call(compile(), new Object[]{res})+"";
+		return DocumentLoader.curJsSesssion().call(compile(), new Object[]{res})+"";
 	}
 	public static void main(String[] args) {
 		/*Scanner in= new Scanner(

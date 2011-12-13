@@ -6,6 +6,7 @@ import java.util.Map;
 import org.mozilla.javascript.Function;
 
 import jp.tonyu.js.Wrappable;
+import jp.tonyu.soytext2.js.DocumentLoader;
 import jp.tonyu.soytext2.js.JSSession;
 import jp.tonyu.soytext2.js.MapScriptable;
 
@@ -20,7 +21,7 @@ public class WebAPISearcher implements Wrappable {
 		return this;
 	}
 	public void each(final Function iter) throws Exception {
-		final JSSession s=JSSession.cur.get();
+		final JSSession s=DocumentLoader.curJsSesssion();
 		api.search(params,new ItemIterator() {
 			@Override
 			public boolean iterate(Map<String, String> item) {

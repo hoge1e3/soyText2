@@ -167,7 +167,7 @@ public class DefaultCompiler implements DocumentCompiler {
 
 	private CompileResult runeval(final HeaderInfo inf, final StringBuilder buf) {
 		final DocumentScriptable d=inf.doc;
-		final JSSession jsSession=JSSession.cur.get();
+		final JSSession jsSession=DocumentLoader.curJsSesssion();
 		final Object res=jsSession.eval(scriptName(d), buf.toString(), inf.consts);
 		/*if (res instanceof Scriptable) {
 			Scriptable s = (Scriptable) res;

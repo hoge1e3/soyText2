@@ -62,7 +62,7 @@ public class ContentChecker implements IDocumentLoader, Wrappable {
 	final private DocumentLoaderScriptable scope;
 	public ContentChecker(String content, Map<String, String> newVars,String[]reqs) {
 		super();
-		final JSSession jssession = JSSession.cur.get();
+		final JSSession jssession = DocumentLoader.curJsSesssion();
 		this.content = content;
 		this.newVars=newVars;
 		this.reqs=reqs;
