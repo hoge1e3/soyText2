@@ -39,6 +39,7 @@ public class SMain extends HttpServlet {
 		doIt(req,res);
 	}
 	private void doIt(final HttpServletRequest req2, final HttpServletResponse res2) {
+		DocumentLoader docLoader;
 		final HttpServletRequest req=new WrappableRequest(req2);
 		final HttpServletResponse res=new WrappableResponse(res2);
 		try {
@@ -52,7 +53,11 @@ public class SMain extends HttpServlet {
 			jsl=new DocumentLoader(sdb);
 			s.setAttribute(KEY_DOCLOADER, jsl);
 		}
-		DocumentLoader.cur.enter((DocumentLoader)jsl, new Runnable() {
+		docLoader=(DocumentLoader)jsl;
+		/*if (docLoader==null) {
+			docLoader=new DocumentLoader(sdb);
+		}*/
+		DocumentLoader.cur.enter(docLoader, new Runnable() {
 
 			@Override
 			public void run() {

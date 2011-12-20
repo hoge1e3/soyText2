@@ -1,10 +1,12 @@
 package jp.tonyu.soytext2.js;
 
+import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,10 +43,25 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 	private final DocumentSet documentSet;
 	private Map<String, DocumentScriptable> objs=new HashMap<String, DocumentScriptable>();
 	private final JSSession jsSession;
+	public static WeakHashMap<DocumentLoader,Boolean> loaders=new WeakHashMap<DocumentLoader,Boolean>();
 	public DocumentLoader(DocumentSet documentSet) {
 		super();
 		this.documentSet = documentSet;
 		this.jsSession=new JSSession();
+		loaders.put(this,true);
+	}
+	public void notifySave(DocumentRecord d) {
+		for (DocumentLoader dl:loaders.keySet()) {
+			if (dl!=this) {
+				dl.onSaveNotified(d);
+			}
+		}
+	}
+	public void onSaveNotified(DocumentRecord d) {
+		DocumentScriptable s=objs.get(d.id);
+		if (s!=null) {
+			s.reloadFromContent();
+		}
 	}
 	/*private Scriptable instanciator(final DocumentRecord src) {
 		return new BlankScriptableObject() {
@@ -113,7 +130,24 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 			}
 		}*/
 		//objs.put(id, o); moved to defDocscr
-		loadFromContent(src.content, o);
+		if (src.content!=null) {
+			loadFromContent(src.content, o);
+		} else {
+			Log.d(this, src.id+".content is still null");
+			/*
+			 * Why allowed this?
+			 *  at  1206@1.2010.tonyu.jp
+			   com=new Comment();
+               wrt(com);
+               sub.com=com;
+               sub.save(); // At this time, com.content == null. 
+                           // And notify content of sub to other sessions
+                           // In other sessions, com has not loaded(because it is new)
+                           // Thus, com will loaded while saving sub with null content                           
+               com.save(); // at this time, com.content is properly set. No problem.
+
+			 */
+		}
 		return o;
 
 	}
@@ -122,6 +156,11 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 		if (res==null) return byId(id);
 		res.setContentAndSave(res.getDocument().content);
 		return res;
+	}
+	public void save(DocumentRecord d,Map<String,String> updatingIndex) {
+		if (d.content==null) Log.die("Content of "+d.id+" is null!");
+		getDocumentSet().save(d,updatingIndex);// d.save();
+		notifySave(d);
 	}
 	//Map<String, DocumentScriptable> debugH=new HashMap<String, DocumentScriptable>();
 
@@ -132,7 +171,8 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 		objs.put(src.id, res);
 		return res;
 	}
-	public void loadFromContent(String newContent, DocumentScriptable dst) {
+	public void loadFromContent(final String newContent, DocumentScriptable dst) {
+		if (newContent==null) Log.die("New content is null!");
 		//BlankScriptableObject tools=new BlankScriptableObject(jsSession().root);
 		dst.clear();
 		//tools.put("$", this);
@@ -333,11 +373,11 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 			DocumentRecord existentDr=documentSet.byId(dr.id);
 			if (existentDr!=null) {
 				copyDocumentExceptDates(dr , existentDr);
-				documentSet.save(existentDr, new HashMap<String, String>());
+				/*documentSet.*/save(existentDr, new HashMap<String, String>());
 			} else {
 				DocumentRecord newDr=getDocumentSet().newDocument(dr.id);
 				copyDocumentExceptDates(dr, newDr);
-				documentSet.save(newDr, new HashMap<String, String>());
+				/*documentSet.*/save(newDr, new HashMap<String, String>());
 			}
 			willUpdateIndex.add(dr.id);
 			if (objs.containsKey(dr.id)) willReload.add(objs.get(dr.id));

@@ -358,7 +358,8 @@ public class DocumentScriptable implements Function {
 		refreshContent();
 		Log.d(this, "save() content changed to "+d.content);
 		Map<String, String> updatingIndex = indexUpdateMap();
-		loader.getDocumentSet().save(d,updatingIndex);// d.save();
+		loader.save(d, updatingIndex);
+		//loader.getDocumentSet().save(d,updatingIndex);// d.save();
 	}
 	private Map<String, String> indexUpdateMap() {
 		Map<String,String> updatingIndex=new HashMap<String, String>();
@@ -406,15 +407,18 @@ public class DocumentScriptable implements Function {
 	}
 	public void setContentAndSave(String content) {
 		d.content=content;
+		if (d.content==null) Log.die("Content of "+d.id+" is null!");
 		String c=d.content;
 		if (c.length()>10000) c=c.substring(0,10000); 
 		Log.d(System.identityHashCode(this), "setContentAndSave() content changed to "+c);
 		loader.loadFromContent(content, this);		
 		refreshSummary();
 		Map<String, String> idx = indexUpdateMap();
-		loader.getDocumentSet().save(d, idx);//d.save();
+		loader.save(d, idx);
+		//loader.getDocumentSet().save(d, idx);//d.save();
 	}
 	public void reloadFromContent() {
+		if (d.content==null) Log.die("Content of "+d.id+" is null!");
 		loader.loadFromContent(d.content, this);		
 		refreshSummary();
 	}

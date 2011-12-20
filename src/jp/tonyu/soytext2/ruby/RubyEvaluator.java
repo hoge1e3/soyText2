@@ -18,8 +18,12 @@ public class RubyEvaluator implements Wrappable {
 		engine = manager.getEngineByName("jruby");
 	}
 	static ScriptEngine engine;
+	public RubyEngine createEngine() {
+		return new RubyEngine(engine);
+	}
 	public Object eval(String rubySrc,Scriptable scope) throws ScriptException {
-        final Bindings b=engine.createBindings();
+		return createEngine().eval(rubySrc, scope);
+		/*final Bindings b=engine.createBindings();
         Scriptables.each(scope, new StringPropAction() {
 			
 			@Override
@@ -32,6 +36,6 @@ public class RubyEvaluator implements Wrappable {
 				}
 			}
 		});
-        return engine.eval(rubySrc,b);
+        return engine.eval(rubySrc,b);*/
 	}
 }

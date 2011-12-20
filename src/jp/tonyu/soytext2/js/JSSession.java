@@ -109,6 +109,7 @@ public class JSSession {
 					Object result = cx.evaluateString(scope , s, name , 1, null);
 					return result;
 				} catch (EvaluatorException e) {
+					e.printStackTrace();
 					Log.die("JS -error at ||"+e.lineSource()+"|| "+e.details());
 					return null;
 				}

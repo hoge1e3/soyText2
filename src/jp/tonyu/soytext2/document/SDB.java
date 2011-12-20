@@ -144,7 +144,9 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 					e.printStackTrace();
 				}
 			}
-			return cache.get(id);			
+			DocumentRecord res = cache.get(id);
+			//if (res.content==null) Log.die(res.id+" has null content");
+			return res;			
 		}
 	}
 	/*public void save(DocumentRecord d) {

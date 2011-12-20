@@ -1099,7 +1099,8 @@ public class HttpContext implements Wrappable {
         		"<input name=q value=%s></form>", path+"/search" ,q));
         //buf.append(Html.p("<a href=%a>検索</a> |\n" , path+"/search"));
         buf.append("DB: "+documentSet());
-        buf.append(Html.p("Err: <a href=%a>%s</a>", 
+        buf.append("| Loaders: "+DocumentLoader.loaders.size());
+        buf.append(Html.p("| Err: <a href=%a>%s</a>", 
         		path+"/errorlog", ""+Log.errorLog.getBuffer().length()));
         buf.append("<HR>");
         return buf.toString();
