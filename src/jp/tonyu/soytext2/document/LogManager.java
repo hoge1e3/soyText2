@@ -108,7 +108,10 @@ public class LogManager {
 		res.date=new Date().toString();
 		return res;
 	}
-
+	public void setLastNumber(int n) {
+		lastNumber=n-1;
+		write("setLastNumber","");
+	}
 	public LogRecord write(String action, String target) {
 		LogRecord l=create();
 		l.action=action;

@@ -4,6 +4,7 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.URI;
 import java.net.URL;
 import java.util.Enumeration;
@@ -136,14 +137,21 @@ public class SMain extends HttpServlet {
 	File setupDB() throws IOException {
 		final SFile dbDir=dbDir();
 		ClassLoader cl=this.getClass().getClassLoader();
-		SFile dbIdFile=dbDir.rel(SDB.PRIMARY_DBID_TXT);
+		//SFile dbIdFile=dbDir.rel(SDB.PRIMARY_DBID_TXT);
 		InputStream in=cl.getResourceAsStream(DB_INIT_PATH+"/"+SDB.PRIMARY_DBID_TXT);
-		dbIdFile.readFrom(in);
-		//String dbId=dbIdFile.text();		
-		SFile dbFile=dbDir.rel("main.db");
-		in=cl.getResourceAsStream(DB_INIT_PATH+"/"+"main.db");
-		dbFile.readFrom(in);
+		Scanner s=new Scanner(in);
+		String dbid=s.nextLine();
+		s.close();
 		
+		//dbIdFile.readFrom(in);
+		//String dbId=dbIdFile.text();		
+		SFile dbDir_in=dbDir.rel(dbid);		
+		SFile dbFile=dbDir_in.rel("main.db");
+		if (!dbFile.exists()) {
+			in=cl.getResourceAsStream(DB_INIT_PATH+"/"+"main.db");
+			dbFile.readFrom(in);
+		}
+		return dbFile.javaIOFile();
 		/*ResourceTraverser r=new ResourceTraverser() {
 			
 			@Override
@@ -171,7 +179,7 @@ public class SMain extends HttpServlet {
 		//r.traverse(".");//DB_INIT_PATH);
 		//r.traverse("jp/tonyu/db/DBAction.class");//DB_INIT_PATH);
 		//Log.die("Die");
-		return getNewest();
+		//return getNewest();
 	}
 	// As Application
 	public SMain(int port) throws Exception{

@@ -396,6 +396,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 			DocumentRecord d=byId(id);
 			dest.save(d, new HashMap<String,String>());
 		}
+		dest.logManager.setLastNumber(logManager.lastNumber);
 	}
 	public File getFile() {
 		return dbFile;
