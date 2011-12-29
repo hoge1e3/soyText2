@@ -39,7 +39,7 @@ public class SMain extends HttpServlet {
 		doIt(req,res);
 	}
 	private void doIt(final HttpServletRequest req2, final HttpServletResponse res2) {
-		DocumentLoader docLoader;
+		final DocumentLoader docLoader;
 		final HttpServletRequest req=new WrappableRequest(req2);
 		final HttpServletResponse res=new WrappableResponse(res2);
 		try {
@@ -57,15 +57,19 @@ public class SMain extends HttpServlet {
 		/*if (docLoader==null) {
 			docLoader=new DocumentLoader(sdb);
 		}*/
-		DocumentLoader.cur.enter(docLoader, new Runnable() {
-
+		JarDownloader.jarFile.enter(jarFile, new Runnable() {
 			@Override
 			public void run() {
-				try {
-					new HttpContext(DocumentLoader.cur.get(), req, res).proc();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				DocumentLoader.cur.enter(docLoader, new Runnable() {
+					@Override
+					public void run() {
+						try {
+							new HttpContext(DocumentLoader.cur.get(), req, res).proc();
+						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+				});
 			}
 		});
 	}
@@ -75,6 +79,7 @@ public class SMain extends HttpServlet {
 		doIt(req,res);
 	}
 	SDB sdb;
+	String jarFile;
 	//DocumentLoader loader;
 	public  File getNewest() {
 		long max=0;
@@ -103,7 +108,7 @@ public class SMain extends HttpServlet {
 			res=c;
 			if (new File(c).exists()) return c;
 		}
-		throw new RuntimeException("No workspace in "+path);
+		throw new RuntimeException("No file in "+path);
 	}
 	String workspace;
 	SFile workspaceDir;
@@ -122,6 +127,7 @@ public class SMain extends HttpServlet {
 		if (!isServlet || servletInited) return;
 		servletInited=true;
 		setupApplicationContext();
+		jarFile=detectWorkSpace(getServletContext().getInitParameter("jarFile")  );
 		File newest = getNewest();
 		System.out.println("Using "+newest+" as db.");
 		sdb=new SDB(newest);//, SDB.UID_EXISTENT_FILE);

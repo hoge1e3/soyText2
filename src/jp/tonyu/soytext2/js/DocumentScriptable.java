@@ -475,7 +475,7 @@ public class DocumentScriptable implements Function {
 	}
 	@Override
 	 public Scriptable construct(Context cx, Scriptable scope, Object[] args) {
-		DocumentScriptable d=loader.newDocument(null); //  null means "generate id"
+		DocumentScriptable d=loader.newDocument(); //  generate id
 		//Scriptable cons = getConstructor();
 		d.put(CONSTRUCTOR, this); //cons);
 		String name=Scriptables.getAsString(this, "name", null);

@@ -1,5 +1,6 @@
 package jp.tonyu.soytext2.js;
 
+import jp.tonyu.debug.Log;
 import jp.tonyu.js.Wrappable;
 
 import org.mozilla.javascript.Function;
@@ -33,6 +34,15 @@ public class DBHelper implements Wrappable{
 	}
 	public Object byId(String id) {
 		return loader.byId(id);
+	}
+	public void debug(Object o) {
+		Log.d("db.debug", o);
+	}
+	public Object byIdOrCreate(String id) {
+		Object res=loader.byId(id);
+		if (res!=null) return res;
+		return loader.newDocument(id);
+		
 	}
 	public String getContent(DocumentScriptable d) {
 		return d.getDocument().content;

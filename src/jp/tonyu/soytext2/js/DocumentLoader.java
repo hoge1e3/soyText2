@@ -46,7 +46,8 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 	public static WeakHashMap<DocumentLoader,Boolean> loaders=new WeakHashMap<DocumentLoader,Boolean>();
 	public DocumentLoader(DocumentSet documentSet) {
 		super();
-		this.documentSet = documentSet;
+		this.documentSet = Log.notNull(documentSet,"documentSet");
+		
 		this.jsSession=new JSSession();
 		loaders.put(this,true);
 	}
@@ -112,7 +113,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 	 * @see jp.tonyu.soytext2.js.IDocumentLoader#byId(java.lang.String)
 	 */
 	public DocumentScriptable byId(String id) {
-		final DocumentRecord src=getDocumentSet().byId(id);
+		final DocumentRecord src=Log.notNull(getDocumentSet(),"gds").byId(id);
 
 		if (src==null) return null;
 		DocumentScriptable o=objs.get(id);
@@ -196,6 +197,16 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 	}
 	public JSSession jsSession() {
 		return jsSession; //JSSession.cur.get();
+	}
+	public DocumentScriptable newDocument(String id) {
+		DocumentRecord d = getDocumentSet().newDocument((String)id);
+		final DocumentScriptable res=defaultDocumentScriptable(d);
+		return res;
+	}
+	public DocumentScriptable newDocument() {
+		DocumentRecord d = getDocumentSet().newDocument();
+		final DocumentScriptable res=defaultDocumentScriptable(d);
+		return res;
 	}
 	public DocumentScriptable newDocument(Scriptable hash) {
 		final Object id = hash!=null ? hash.get("id", hash) : null;

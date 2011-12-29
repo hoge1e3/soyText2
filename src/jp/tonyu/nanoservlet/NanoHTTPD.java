@@ -289,6 +289,7 @@ public class NanoHTTPD
 	}
 	public static final String ENTIRE_QUERY_STRING = "ENTIRE_QUERY_STRING";
 
+	public static final String REMOTE_HOST = "__remote_host";
 	public static final String REMOTE_ADDR = "__remote_addr";
 
 	/**
@@ -332,7 +333,8 @@ public class NanoHTTPD
 				SocketAddress remoteAddr = mySocket.getRemoteSocketAddress();
 				if (remoteAddr instanceof InetSocketAddress) {
 					InetSocketAddress rems = (InetSocketAddress) remoteAddr;
-					header.put(REMOTE_ADDR,rems.getHostName()+"");
+					header.put(REMOTE_ADDR,rems.getAddress()+"");
+					header.put(REMOTE_HOST,rems.getHostName()+"");
 				}
 				// Decode the header into parms and header java properties
 				decodeHeader(hin, pre, parms, header);

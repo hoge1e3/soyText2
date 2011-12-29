@@ -10,4 +10,5 @@ public interface DocumentSet {
 	public DocumentRecord byId(String id);
 	public void all(DocumentAction a);
 	public int log( String date, String action, String target, String option);
+	public String getDBID();
 }

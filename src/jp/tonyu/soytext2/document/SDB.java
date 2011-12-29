@@ -40,11 +40,13 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	//public static final String UID_EXISTENT_FILE = "86e08ee0-0bd5-4d1f-a7f5-66c2251e60ad";
 	
 	String dbid;
+	final File dbFile;
 	SFile blobDir;
 	SFile backupDir;
 	SFile homeDir;
 	public SDB(File file /*, String uid*/) throws SqlJetException {
 		open(file, version);
+		dbFile=file;
 		homeDir=new SFile(file).parent();
 		blobDir=homeDir.rel("blob");
 		backupDir=homeDir.rel("backup");
@@ -389,4 +391,18 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		in.close();
 		restore(b);
 	}
+	public void cloneWithFilter(SDB dest, String[] ids) {
+		for (String id:ids) {
+			DocumentRecord d=byId(id);
+			dest.save(d, new HashMap<String,String>());
+		}
+	}
+	public File getFile() {
+		return dbFile;
+	}
+	@Override
+	public String getDBID() {
+		return dbid;
+	}
+	
 }

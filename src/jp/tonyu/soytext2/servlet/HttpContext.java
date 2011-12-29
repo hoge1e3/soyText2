@@ -41,6 +41,7 @@ import jp.tonyu.soytext2.auth.SessionSet;
 import jp.tonyu.soytext2.browserjs.IndentAdaptor;
 import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentSet;
+import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.document.backup.Importer;
 import jp.tonyu.soytext2.js.ContentChecker;
 import jp.tonyu.soytext2.js.DocumentLoader;
@@ -81,9 +82,14 @@ public class HttpContext implements Wrappable {
 	}*/
 	public boolean isRoot() {
 		String addr=req.getRemoteAddr();
+		Log.d("RMT", addr);
+		String host=req.getRemoteHost();
+		Log.d("RMTH", host);
+		
 		if ("localhost".equals(addr) || "127.0.0.1".equals(addr) || "0:0:0:0:0:0:0:1".equals(addr)) {
 			return true;
 		}
+		if (addr !=null && addr.length()>0 && addr.indexOf(".")<0) return true; // like my_computer
 		String user=currentSession().userName();
 		if (documentLoader.authenticator().isRootUser(user)) return true;
 		return false;
@@ -171,6 +177,9 @@ public class HttpContext implements Wrappable {
 		_params=res;
 		return res;
 	}
+    public void downloadJar(String dbid, String []ids) throws IOException, SqlJetException {
+    	JarDownloader.startDownload(this, dbid, (SDB)documentSet(), ids);
+    }
 
     public Map<String,Object> params(final Map<String, ?> typeHints) {
     	final Map<String, String> p = params();
@@ -595,16 +604,22 @@ public class HttpContext implements Wrappable {
 		s.close();
 		if (d==null) all();*/
 		final Ref<Boolean> execed = Ref.create(false);
-		documentLoader.searchByQuery(Query.create("topPage:true"),new BuiltinFunc( ) {
-			
-			@Override
-			public Object call(Context cx, Scriptable scope, Scriptable thisObj,
-					Object[] args) {
-				exec((DocumentScriptable)args[0]);
-				execed.set(true);
-				return true;
-			}
-		});
+		DocumentScriptable boot=documentLoader.byId("boot@"+documentSet().getDBID());
+		if (boot!=null) {
+			exec(boot);
+			execed.set(true);
+		} else {
+			documentLoader.searchByQuery(Query.create("topPage:true"),new BuiltinFunc( ) {
+
+				@Override
+				public Object call(Context cx, Scriptable scope, Scriptable thisObj,
+						Object[] args) {
+					exec((DocumentScriptable)args[0]);
+					execed.set(true);
+					return true;
+				}
+			});
+		}
 		if (!execed.get()){
 			all();
 		}
@@ -751,7 +766,7 @@ public class HttpContext implements Wrappable {
 			String[] reqs = getRequires();
 			ContentChecker c=new ContentChecker(content,addedVars(),reqs);
 			if (c.check()) {
-				DocumentScriptable d = documentLoader.newDocument(null);
+				DocumentScriptable d = documentLoader.newDocument();
 				documentProcessor(d).proc();
 				return;
 			}
@@ -901,6 +916,11 @@ public class HttpContext implements Wrappable {
 					"./"+id, HttpContext.ATTR_BODY, d.get(ATTR_BODY)+"")
 			);
 		}
+	}
+	public void su(String user) {
+		assertRoot();
+		res.addCookie(new Cookie(SESSION_NAME, user));
+			
 	}
     private void auth() throws IOException {
 		String user=params().get("user");

@@ -3,6 +3,7 @@ package jp.tonyu.soytext2.servlet;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.jar.JarOutputStream;
@@ -13,20 +14,29 @@ import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.util.SFile;
 
 public class JarGenerator {
-	SFile inputJarFile, outputJarFile;
+	SFile inputJarFile;
+	OutputStream outputJar;
 	SFile dbFile;
 	String dbid;
 	JarInputStream in;
+	public JarGenerator(SFile inputJarFile, OutputStream outputJar, SFile dbFile,
+			String dbid) {
+		super();
+		this.inputJarFile = inputJarFile;
+		this.outputJar = outputJar;
+		this.dbFile = dbFile;
+		this.dbid = dbid;
+	}
 	JarOutputStream out;
 	public void generate() throws IOException {
 		in=new JarInputStream(inputJarFile.inputStream());
 		Manifest m = in.getManifest();
-		out=new JarOutputStream(outputJarFile.outputStream(),m);
+		out=new JarOutputStream(outputJar/*File.outputStream()*/,m);
 		boolean putdb=false;
 		while(true){
 			ZipEntry e = in.getNextJarEntry();
 			if (e==null) break;
-			System.out.println(e.getName());
+			//System.out.println(e.getName());
 			if (e.getName().startsWith(SMain.DB_INIT_PATH)) {
 				if (!putdb){
 					putdb=true;
@@ -50,11 +60,13 @@ public class JarGenerator {
 		in.close();
 	}
 	public static void main(String[] args) throws IOException {
-		JarGenerator j = new JarGenerator();
-		j.inputJarFile=new SFile("C:/Users/shinya/Dropbox/Downloads/drt.jar");
-		j.outputJarFile=new SFile("C:/bin/Downloads/tmp/drt.out.jar");
-		j.dbid="test.tonyu.jp";
-		j.dbFile=new SFile("C:/Users/shinya/Dropbox/workspace/Dtl2Rhino/db/main.db");
+		OutputStream outputStream = new SFile("C:/bin/Downloads/tmp/drt.out.jar").outputStream();
+		JarGenerator j = new JarGenerator(
+				new SFile("C:/Users/shinya/Dropbox/Downloads/drt.jar"),
+				outputStream,
+				new SFile("C:/Users/shinya/Dropbox/workspace/Dtl2Rhino/db/main.db"),
+				"test.tonyu.jp");
 		j.generate();
+		outputStream.close();
 	}
 }

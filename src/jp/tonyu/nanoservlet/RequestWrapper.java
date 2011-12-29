@@ -308,8 +308,8 @@ public class RequestWrapper implements HttpServletRequest,Wrappable {
 
 	@Override
 	public String getRemoteHost() {
-		notimpl();
-		return null;
+		//notimpl();
+		return header.getProperty(NanoHTTPD.REMOTE_HOST);
 	}
 
 	@Override
