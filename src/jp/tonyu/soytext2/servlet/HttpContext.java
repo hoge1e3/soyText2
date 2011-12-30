@@ -36,8 +36,8 @@ import jp.tonyu.js.ContextRunnable;
 import jp.tonyu.js.Wrappable;
 import jp.tonyu.soytext2.auth.Authenticator;
 import jp.tonyu.soytext2.auth.AuthenticatorList;
-import jp.tonyu.soytext2.auth.Session;
-import jp.tonyu.soytext2.auth.SessionSet;
+//import jp.tonyu.soytext2.auth.Session;
+//import jp.tonyu.soytext2.auth.SessionSet;
 import jp.tonyu.soytext2.browserjs.IndentAdaptor;
 import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentSet;
@@ -76,6 +76,7 @@ public class HttpContext implements Wrappable {
 	private static final String SEL = "sel_";
 	public static final jp.tonyu.util.Context<HttpContext> cur=new jp.tonyu.util.Context<HttpContext>();
 	private static final String SESSION_NAME = "soyText_Session";
+	private static final String USERNAME = "soyText_UserName";
 	/*public final soytext.script.Context context= new soytext.script.Context(true);
 	public SessionManager sessionManager() {
 		return appCtx.sessionManager;
@@ -90,19 +91,27 @@ public class HttpContext implements Wrappable {
 			return true;
 		}
 		if (addr !=null && addr.length()>0 && addr.indexOf(".")<0) return true; // like my_computer
-		String user=currentSession().userName();
+		String user = user();
 		if (documentLoader.authenticator().isRootUser(user)) return true;
 		return false;
+	}
+	public String user() {
+		Object o=req.getSession().getAttribute(USERNAME);
+		String user=(o==null?"nobody":o.toString()); //  currentSession().userName();
+		return user;
 	}
 	public boolean assertRoot() {
 		if (isRoot()) return false;
 		redirect(rootPath()+"/auth");
 		return true;
 	}
-	Session currentSession=null;
+	/*Session currentSession=null;
 	public Session currentSession() {
 		if (currentSession!=null) return currentSession;
 		if (req.getCookies()!=null) {
+			for (Cookie c:req.getCookies()) {
+				Log.d("Curuser", c.getName()+" = "+c.getValue());
+			}
 			for (Cookie c:req.getCookies()) {
 				if (c.getName().equals(SESSION_NAME)) {
 					currentSession= SessionSet.get(c.getValue());
@@ -112,7 +121,7 @@ public class HttpContext implements Wrappable {
 			}
 		}
 		return currentSession=Session.NOBODY;
-	}
+	}*/
 	/*public ApplicationContext applicationContext() {
 		return currentSession().applicationContext();
 	}*/
@@ -491,6 +500,11 @@ public class HttpContext implements Wrappable {
 		for (String s:imported) {
 			w.println(s+" ");
 		}
+		w.println("<HR>Excluded : <BR>");
+		for (String s:excludes) {
+			w.println(s+" ");
+		}
+
 		w.println("<HR>new LocalLastSynced = "+newLocalLastSynced+"<BR>");
 		w.println("new RemoteLastSynced = "+newRemoteLastSynced+"<BR>");
     }
@@ -575,14 +589,17 @@ public class HttpContext implements Wrappable {
 			while (true) {
 				DocumentRecord d = new DocumentRecord();
 				nextCl=d.importRecord(sc);
-				if (!d.tableName().equals(nextCl) ) break;
+				Log.d("IMPORT", d.id);
+				Log.d("IMPORT2", d.id);
 				if (d.content!=null) {
 					if (d.lastUpdate>newRemoteLastSynced) newRemoteLastSynced=d.lastUpdate;
 					if (excludes==null || !excludes.contains(d.id)) {
 						if (importedIds!=null) importedIds.add(d.id);
 						loaded.add(0,d);
+						Log.d("LOADED", d.id);
 					}
 				}
+				if (!d.tableName().equals(nextCl) ) break;
 			}
 			documentLoader.importDocuments(loaded);
 			if (SETLASTUPDATE.equals(nextCl)) {
@@ -918,24 +935,34 @@ public class HttpContext implements Wrappable {
 		}
 	}
 	public void su(String user) {
-		assertRoot();
-		res.addCookie(new Cookie(SESSION_NAME, user));
-			
+		boolean assertRoot = assertRoot();
+		Log.d(this, "Session_assert = "+assertRoot);
+		if (assertRoot) return;
+		req.getSession().setAttribute(USERNAME, user);
+		/*Session s=SessionSet.create(user);
+		res.addCookie(new Cookie(SESSION_NAME, s.id()));
+		Log.d(this, "SEssion = "+s.id());
+			*/
+		
 	}
     private void auth() throws IOException {
 		String user=params().get("user");
 		String pass=params().get("pass");
-		Session s=null;
+		//Session s=null;
 		String msg="";
+		boolean prompt=true;
 		if ("logout".equals(user) || (user!=null && user.length()>0 && pass!=null && pass.length()>0)) {
 			if ("logout".equals(user)) {
 				user="";
-				s=Session.NOBODY;
+				//s=Session.NOBODY;
+				req.getSession().removeAttribute(USERNAME);
 			}  else {
 				Authenticator a=documentLoader.authenticator();
 				if (a!=null && a/*AuthentificatorList.alist*/.check(user, pass)) {
-					s=SessionSet.create(user);
-		    		res.addCookie(new Cookie(SESSION_NAME, s.id()));
+					prompt=false;
+					/*s=SessionSet.create(user);
+		    		res.addCookie(new Cookie(SESSION_NAME, s.id()));*/
+					req.getSession().setAttribute(USERNAME, user);
 		    		String after=params().get("after");
 		    		if (after!=null) {
 		    			res.sendRedirect(rootPath()+"/"+after);
@@ -947,7 +974,7 @@ public class HttpContext implements Wrappable {
 				}
 			}
     	} 
-		if (s==null) {
+		if (prompt) {
     		if (user==null) user="";
     		String aft="";
     		String after=params().get("after");
@@ -1111,7 +1138,7 @@ public class HttpContext implements Wrappable {
         buf.append(Html.p("<html><head><meta http-equiv=%a content=%a></head>"
         		                ,CONTENT_TYPE,TEXT_HTML_CHARSET_UTF_8));
         buf.append("<body>");
-        buf.append("User: "+currentSession().userName()+" | ");
+        buf.append("User: "+user()+" | ");
         buf.append(Html.p("<a href=%a>ログイン</a>  |" , path+"/auth"));
         buf.append(Html.p("<a href=%a>ホーム</a>  |" , path+"/all"));
         buf.append(Html.p("<a href=%a>新規作成</a> | ", path+"/new"));
