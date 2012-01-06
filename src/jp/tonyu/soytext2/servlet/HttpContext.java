@@ -470,6 +470,7 @@ public class HttpContext implements Wrappable {
     	Vector<String> exported=new Vector<String>(), imported=new Vector<String>();
     	exportDocuments(uploadsince, pdata,exported);
     	String remoteSyncid=params().get(REMOTE_SYNCID);
+    	
 		w.println("RemoteSyncProfile = "+remoteSyncid+"<BR>");
     	long downloadsince=getLongProp(localSyncProf, REMOTE_LAST_SYNCED);
 
@@ -507,6 +508,12 @@ public class HttpContext implements Wrappable {
 
 		w.println("<HR>new LocalLastSynced = "+newLocalLastSynced+"<BR>");
 		w.println("new RemoteLastSynced = "+newRemoteLastSynced+"<BR>");
+		
+    	String after = params().get("after");
+    	if (after!=null && after.length()>0) {
+    		w.println(Html.p("<HR><a href=%a>戻る</a>",rootPath()+after));
+    	}
+
     }
 	private void download() throws IOException {
 		//input param:
@@ -580,6 +587,9 @@ public class HttpContext implements Wrappable {
 			Scanner sc=new Scanner(rd);
 			importDocuments(sc,null,null);
 		}
+	}
+	public boolean isOfflineMode() {
+		return JarDownloader.jarFile.get().length()==0;
 	}
 	private long importDocuments(Scanner sc, List<String> importedIds, Set<String> excludes) {
 		long newRemoteLastSynced=0;

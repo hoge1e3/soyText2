@@ -14,6 +14,7 @@ import jp.tonyu.util.SFile;
 public class JarDownloader {
 	public static final Context<String> jarFile=new Context<String>();
 	public static void startDownload(HttpContext ctx, String dbid,SDB src, String[] ids) throws IOException, SqlJetException {
+		if (jarFile.get().length()==0) Log.die("jar file not set");
 		SFile inputJarFile=new SFile(jarFile.get());
 		File outDbF=File.createTempFile("main.tmp",".db");
 		SDB outdb=new SDB(outDbF);

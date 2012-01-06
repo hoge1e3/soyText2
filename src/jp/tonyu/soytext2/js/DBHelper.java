@@ -50,4 +50,7 @@ public class DBHelper implements Wrappable{
 	public void setContentAndSave(DocumentScriptable d,String newContent) {
 		d.setContentAndSave(newContent);
 	}
+	public String dbid() {
+		return loader.getDocumentSet().getDBID();
+	}
 }

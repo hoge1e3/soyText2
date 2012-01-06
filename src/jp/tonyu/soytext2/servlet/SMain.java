@@ -188,6 +188,7 @@ public class SMain extends HttpServlet {
 		if (newest==null) newest=setupDB();
 		System.out.println("Using "+newest+" as db.");
 		sdb=new SDB(newest);//, uid);
+		jarFile="";
 		//loader=new DocumentLoader(sdb);
 		//int port = 3002;
 		AutoRestart auto = new AutoRestart(port, workspaceDir.rel("stop.lock").javaIOFile());
