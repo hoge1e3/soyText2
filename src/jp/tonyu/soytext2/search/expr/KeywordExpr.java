@@ -1,15 +1,14 @@
 package jp.tonyu.soytext2.search.expr;
 
 import jp.tonyu.debug.Log;
-import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.js.DocumentScriptable;
+import jp.tonyu.soytext2.search.QueryMatcher;
 import jp.tonyu.soytext2.search.QueryResult;
-import jp.tonyu.soytext2.search.SearchContext;
 
 public class KeywordExpr extends QueryExpression {
 	String keyword;
 	@Override
-	public QueryResult matches(DocumentScriptable d, SearchContext context) {
+	public QueryResult matches(DocumentScriptable d, QueryMatcher context) {
 		if (d==null) Log.die("Query d is null");
 		if (d.getDocument()==null) Log.die(d+" getDocument is null");
 		if (d.getDocument().content==null) Log.die(d+"/"+ d.getDocument()+"  getDocument.content is null");

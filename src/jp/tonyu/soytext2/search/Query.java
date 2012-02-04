@@ -43,7 +43,7 @@ public class Query {
 		this(new QueryTemplateParser(cstr).parse(),templateValues);
 	}
 	public QueryResult matches(DocumentScriptable d) {
-		SearchContext s = new SearchContext(d, this);
+		QueryMatcher s = new QueryMatcher(d,this);
 		return s.matches();
 	}
 	/*private Filter(FilterTemplate qt) {

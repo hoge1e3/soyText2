@@ -9,9 +9,9 @@ import jp.tonyu.soytext2.js.DocumentScriptable;
 import jp.tonyu.soytext2.search.expr.AttrExpr;
 
 
-public class SearchContext {
+public class QueryMatcher {
 	final Map<String, TemplateMatchResult> tmpl=new Hashtable<String, TemplateMatchResult>();
-    final DocumentScriptable toBeSearched;
+    final DocumentScriptable toBeMatched;
     final QueryTemplate queryTmpl;
    // DocumentRef documentRef;
     void init(SortedSet<AttrExpr> templateValues) {
@@ -20,13 +20,13 @@ public class SearchContext {
 			tmpl.put(a.name, new TemplateMatchResult(a));
 		}
     }
-	private SearchContext(DocumentScriptable toBeSearched, QueryTemplate query, SortedSet<AttrExpr> templateValues) {
-		this.toBeSearched=toBeSearched;
+	private QueryMatcher(DocumentScriptable toBeSearched, QueryTemplate query, SortedSet<AttrExpr> templateValues) {
+		this.toBeMatched=toBeSearched;
 		this.queryTmpl=query;//Debug.notNull(query);
 		
 		init(templateValues);
 	}
-	public SearchContext(DocumentScriptable toBeSearched, Query query) {
+	public QueryMatcher(DocumentScriptable toBeSearched, Query query) {
 		this(toBeSearched, query.getFilterTemplate(), query.attrs);
 	}
 		
@@ -42,10 +42,10 @@ public class SearchContext {
 		//if (toBeSearched.getDocument().id.indexOf("306")>=0) {
 		//	Log.d("TEST!", toBeSearched.get("id"));
 		//}
-		QueryResult res=queryTmpl.cond.matches(toBeSearched, this);
+		QueryResult res=queryTmpl.cond.matches(toBeMatched, this);
 		
 		if (res.templateMatched && !templateFilled()) {
-			Log.die(queryTmpl+": still null "+tmpl.values()+" for document "+toBeSearched);
+			Log.die(queryTmpl+": still null "+tmpl.values()+" for document "+toBeMatched);
 		}
 		return res;
 	}

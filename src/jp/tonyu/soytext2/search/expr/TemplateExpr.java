@@ -1,9 +1,8 @@
 package jp.tonyu.soytext2.search.expr;
 
-import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.js.DocumentScriptable;
+import jp.tonyu.soytext2.search.QueryMatcher;
 import jp.tonyu.soytext2.search.QueryResult;
-import jp.tonyu.soytext2.search.SearchContext;
 import jp.tonyu.soytext2.search.TemplateMatchResult;
 
 
@@ -13,7 +12,7 @@ public class TemplateExpr extends QueryExpression implements Comparable<Template
 		name=attrName;
 	}
 	@Override
-	public QueryResult matches(DocumentScriptable d, SearchContext context) {
+	public QueryResult matches(DocumentScriptable d, QueryMatcher context) {
 		TemplateMatchResult r=null;
 		r=context.getTemplateMatchResult(name);
 		Object actualValue=d.get(name);

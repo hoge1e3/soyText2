@@ -6,7 +6,7 @@ import java.util.Vector;
 
 import jp.tonyu.soytext2.js.DocumentScriptable;
 import jp.tonyu.soytext2.search.QueryResult;
-import jp.tonyu.soytext2.search.SearchContext;
+import jp.tonyu.soytext2.search.QueryMatcher;
 
 
 
@@ -17,7 +17,7 @@ public class AndExpr extends QueryExpression implements Iterable<QueryExpression
 		return conditions.iterator();
 	}
 	@Override
-	public QueryResult matches(DocumentScriptable d, SearchContext ctx) {
+	public QueryResult matches(DocumentScriptable d, QueryMatcher ctx) {
 		boolean fm=true, tm=true;
 		//boolean debugsw=toString() .indexOf("aiu")>=0;//SearchLog".equals( d.str("type") );
 		for (QueryExpression c:conditions) {

@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 
 
 import jp.tonyu.db.DBAction;
+import jp.tonyu.db.PrimaryKeySequence;
 import jp.tonyu.db.SqlJetHelper;
 import jp.tonyu.db.SqlJetRecord;
 import jp.tonyu.db.SqlJetRecordCursor;
@@ -52,6 +53,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		backupDir=homeDir.rel("backup");
 		//this.dbid=uid;
 		logManager=new LogManager(this);
+		idxSeq=new PrimaryKeySequence(this, indexTable());
 		//setupDBID();
 		//Log.d(this, "DBID = "+getDBID());
 		dbid/*FromFile*/=getDBIDFromFile(new SFile(file.getAbsoluteFile()));
@@ -88,13 +90,15 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	
 	@Override
 	public SqlJetRecord[] tables(int version) {
-		return q(documentRecord,logRecord);//, dbidRecord/*,indexRecord*/);
+		return q(documentRecord,logRecord,indexRecord);//, dbidRecord/*,indexRecord*/);
 	}
 	public String toString() {
 		return "(SDB dbid="+dbid+")";
 	}	
 	Map<String,DocumentRecord> cache=new HashMap<String, DocumentRecord>();
 	final private LogManager logManager;
+
+	final private PrimaryKeySequence idxSeq;
 	@Override
 	public void all(final DocumentAction action) {
 		all(action,true);
@@ -155,7 +159,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		save(d,new HashMap<String,String>());
 	}*/
 	@Override
-	public void save(final DocumentRecord d, final Map<String, String> indexValues) {
+	public void save(final DocumentRecord d, final PairSet<String,String> indexValues) {
 	    LogRecord log=logManager.write("save",d.id);
 	    d.lastUpdate=log.id;
 		reserveWriteTransaction(new DBAction() {
@@ -236,6 +240,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	private void addIndexValue(DocumentRecord d,String name, String value) throws SqlJetException {
 		// use in writetransaction
 		IndexRecord i = new IndexRecord();
+		i.id=idxSeq.next();
 		i.document=d.id;
 		i.name=name;
 		i.value=value;
@@ -305,7 +310,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	}
 	@Override
 	public void updateIndex(final DocumentRecord d,
-			final Map<String, String> indexValues) {
+			final PairSet<String,String> indexValues) {
 		reserveWriteTransaction(new DBAction() {
 			@Override
 			public void run(SqlJetDb db) throws SqlJetException {
@@ -314,13 +319,18 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		});
 	}
 	private void updateIndexInTransaction(final DocumentRecord d,
-			final Map<String, String> indexValues) throws SqlJetException {
-		if (IndexRecord.useIndex) {
+			final PairSet<String,String> indexValues) throws SqlJetException {
+		if (useIndex()) {
 			removeIndexValues(d);
-			for (Map.Entry<String, String> e:indexValues.entrySet()) {
-				addIndexValue(d, e.getKey(), e.getValue());
+			for (Pair<String, String> e:indexValues) {
+				addIndexValue(d, e.key, e.value);
 			}
 		}
+	}
+	Boolean _useIndex=null;
+	public boolean useIndex() {
+		if (_useIndex!=null) return _useIndex;
+		return _useIndex=indexTable().exists();
 	}
 	public static final String MIN_STRING="",MAX_STRING=new String(new char[]{65535,65535,65535});
 	/*
@@ -394,7 +404,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	public void cloneWithFilter(SDB dest, String[] ids) {
 		for (String id:ids) {
 			DocumentRecord d=byId(id);
-			dest.save(d, new HashMap<String,String>());
+			dest.save(d, new PairSet<String,String>());
 		}
 		dest.logManager.setLastNumber(logManager.lastNumber);
 	}
@@ -404,6 +414,30 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	@Override
 	public String getDBID() {
 		return dbid;
+	}
+	@Override
+	public void searchByIndex(String key, String value, DocumentAction a) {
+		// TODO Auto-generated method stub
+		SqlJetTableHelper t = table(indexRecord);
+		try {
+			ISqlJetCursor cur = t.scope(IndexRecord.NAME_VALUE_LAST_UPDATE, new Object[]{key,value,0L},new Object[]{key,value,Long.MAX_VALUE});
+			while (!cur.eof()) {
+				indexRecord.fetch(cur);
+				DocumentRecord d = byId(indexRecord.document);
+				if (a.run(d)) {
+					break;
+				}
+				cur.next();
+			}
+		} catch (SqlJetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	@Override
+	public boolean indexAvailable(String key) {
+		return "name".equals(key) || IndexRecord.INDEX_BACKREF.equals(key);
 	}
 	
 }

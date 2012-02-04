@@ -3,7 +3,7 @@ package jp.tonyu.soytext2.search.expr;
 import jp.tonyu.debug.Log;
 import jp.tonyu.soytext2.js.DocumentScriptable;
 import jp.tonyu.soytext2.search.QueryResult;
-import jp.tonyu.soytext2.search.SearchContext;
+import jp.tonyu.soytext2.search.QueryMatcher;
 
 
 public class AttrExpr extends QueryExpression implements Comparable<AttrExpr> {
@@ -30,7 +30,7 @@ public class AttrExpr extends QueryExpression implements Comparable<AttrExpr> {
 		this.op = op;
 	}
 	@Override
-	public QueryResult matches(DocumentScriptable d, SearchContext ctx) {
+	public QueryResult matches(DocumentScriptable d, QueryMatcher ctx) {
 		Object actualValue=d.get(name);
 		return new QueryResult(matches(actualValue));
 	}

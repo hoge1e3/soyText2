@@ -240,6 +240,7 @@ public class SqlJetHelper {
 			@Override
 			public void run(SqlJetDb db) throws SqlJetException {
 				for (SqlJetRecord r:tables(version)) {
+					if (!table(r).exists()) continue;
 					SqlJetRecordCursor<SqlJetRecord> cur = order(r,null);
 					List<Map<String,Object>> list=new Vector<Map<String,Object>>();
 					res.put(r.tableName(), list);

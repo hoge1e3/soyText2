@@ -20,6 +20,8 @@ import jp.tonyu.soytext2.document.DocumentAction;
 import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentSet;
 import jp.tonyu.soytext2.document.IndexRecord;
+import jp.tonyu.soytext2.document.SDB;
+import jp.tonyu.soytext2.document.PairSet;
 import jp.tonyu.soytext2.search.Query;
 import jp.tonyu.soytext2.search.QueryBuilder;
 import jp.tonyu.soytext2.search.QueryResult;
@@ -158,7 +160,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 		res.setContentAndSave(res.getDocument().content);
 		return res;
 	}
-	public void save(DocumentRecord d,Map<String,String> updatingIndex) {
+	public void save(DocumentRecord d,PairSet<String,String> updatingIndex) {
 		if (d.content==null) Log.die("Content of "+d.id+" is null!");
 		getDocumentSet().save(d,updatingIndex);// d.save();
 		notifySave(d);
@@ -384,11 +386,11 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 			DocumentRecord existentDr=documentSet.byId(dr.id);
 			if (existentDr!=null) {
 				copyDocumentExceptDates(dr , existentDr);
-				/*documentSet.*/save(existentDr, new HashMap<String, String>());
+				/*documentSet.*/save(existentDr, new PairSet<String,String>());
 			} else {
 				DocumentRecord newDr=getDocumentSet().newDocument(dr.id);
 				copyDocumentExceptDates(dr, newDr);
-				/*documentSet.*/save(newDr, new HashMap<String, String>());
+				/*documentSet.*/save(newDr, new PairSet<String,String>());
 			}
 			willUpdateIndex.add(dr.id);
 			if (objs.containsKey(dr.id)) willReload.add(objs.get(dr.id));
@@ -396,7 +398,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 		for (DocumentScriptable ds:willReload) {
 			ds.reloadFromContent();
 		}
-		if (IndexRecord.useIndex) {
+		if (((SDB)documentSet).useIndex()) {
 			for (String id: willUpdateIndex) {
 				DocumentScriptable s=byId(id);
 				s.refreshIndex();

@@ -15,6 +15,7 @@ import jp.tonyu.js.StringPropAction;
 import jp.tonyu.soytext.Origin;
 import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.IndexRecord;
+import jp.tonyu.soytext2.document.PairSet;
 import jp.tonyu.soytext2.file.FileSyncer;
 import jp.tonyu.soytext2.servlet.HttpContext;
 import jp.tonyu.util.SPrintf;
@@ -357,26 +358,28 @@ public class DocumentScriptable implements Function {
 		refreshSummary();
 		refreshContent();
 		Log.d(this, "save() content changed to "+d.content);
-		Map<String, String> updatingIndex = indexUpdateMap();
+		PairSet<String,String> updatingIndex = indexUpdateMap();
 		loader.save(d, updatingIndex);
 		//loader.getDocumentSet().save(d,updatingIndex);// d.save();
 	}
-	private Map<String, String> indexUpdateMap() {
-		Map<String,String> updatingIndex=new HashMap<String, String>();
+	private PairSet<String,String> indexUpdateMap() {
+		PairSet<String,String> updatingIndex=new PairSet<String,String>();
 		updateIndex(updatingIndex);
 		Log.d(this, "save() - index set to "+updatingIndex);
 		return updatingIndex;
 	}
-	private void updateIndex(Map<String, String> idx) {
+	private void updateIndex(PairSet<String,String> idx) {
 		String name = Scriptables.getAsString(this, "name", null);
 		if (name!=null) idx.put("name", name);
 		updateIndex(this , idx);
 	}
-	private static void updateIndex(Scriptable s, final Map<String, String> idx) {
+	private static void updateIndex(Scriptable s, final PairSet<String,String> idx) {
 		Scriptables.each(s, new AllPropAction() {
 			@Override
 			public void run(Object key, Object value) {
+				Log.d("updateIndex", key+"="+value);
 				if (value instanceof DocumentScriptable) {
+					Log.d("updateIndex", "put "+key+"="+value);
 					DocumentScriptable d = (DocumentScriptable) value;
 					idx.put(IndexRecord.INDEX_BACKREF, d.getDocument().id);
 				} else 	if (value instanceof Scriptable) {
@@ -413,7 +416,7 @@ public class DocumentScriptable implements Function {
 		Log.d(System.identityHashCode(this), "setContentAndSave() content changed to "+c);
 		loader.loadFromContent(content, this);		
 		refreshSummary();
-		Map<String, String> idx = indexUpdateMap();
+		PairSet<String,String> idx = indexUpdateMap();
 		loader.save(d, idx);
 		//loader.getDocumentSet().save(d, idx);//d.save();
 	}
@@ -502,7 +505,7 @@ public class DocumentScriptable implements Function {
 		return d;
 	}
 	public void refreshIndex() {
-		Map<String, String> h = indexUpdateMap();
+		PairSet<String,String> h = indexUpdateMap();
 		loader.getDocumentSet().updateIndex(getDocument(), h);
 	}
 }

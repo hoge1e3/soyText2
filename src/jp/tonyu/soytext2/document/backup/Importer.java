@@ -15,6 +15,7 @@ import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentSet;
 import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.document.LogRecord;
+import jp.tonyu.soytext2.document.PairSet;
 import jp.tonyu.soytext2.js.DocumentLoader;
 import jp.tonyu.util.Literal;
 import jp.tonyu.util.SFile;
@@ -117,7 +118,7 @@ public class Importer {
 			curlog=null;
 		}
 		if (curdoc!=null) {
-			sdb.save(curdoc, new HashMap<String, String>());// curdoc.save();
+			sdb.save(curdoc, new PairSet<String,String>());// curdoc.save();
 			if (documentLoader!=null) {
 				documentLoader.reload(curdoc.id);
 			}

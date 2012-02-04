@@ -21,6 +21,14 @@ public class SqlJetTableHelper {
 	public ISqlJetTable table() throws SqlJetException {
 		return db.getTable(name);
 	}
+	public boolean exists() {
+		try {
+			table();
+		} catch (SqlJetException e) {
+			return false;
+		}
+		return true;
+	}
 	List<String> attrs=new Vector<String>();
 	public SqlJetTableHelper a(String name ,String type) {
 		attrs.add(name+" "+type);
