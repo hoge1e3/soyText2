@@ -416,24 +416,28 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		return dbid;
 	}
 	@Override
-	public void searchByIndex(String key, String value, DocumentAction a) {
-		// TODO Auto-generated method stub
-		SqlJetTableHelper t = table(indexRecord);
+	public void searchByIndex(final String key, final String value, final DocumentAction a) {
 		try {
-			ISqlJetCursor cur = t.scope(IndexRecord.NAME_VALUE_LAST_UPDATE, new Object[]{key,value,0L},new Object[]{key,value,Long.MAX_VALUE});
-			while (!cur.eof()) {
-				indexRecord.fetch(cur);
-				DocumentRecord d = byId(indexRecord.document);
-				if (a.run(d)) {
-					break;
+			readTransaction(new DBAction() {
+				@Override
+				public void run(SqlJetDb db) throws SqlJetException {
+					SqlJetTableHelper t = table(indexRecord);
+					String value2=value+(char)32767;
+					ISqlJetCursor cur = t.scope(IndexRecord.NAME_VALUE_LAST_UPDATE, new Object[]{key,value,0L},new Object[]{key,value2,0L});
+					while (!cur.eof()) {
+						indexRecord.fetch(cur);
+						DocumentRecord d = byId(indexRecord.document);
+						if (a.run(d)) {
+							break;
+						}
+						cur.next();
+					}
+
 				}
-				cur.next();
-			}
+			}, -1);
 		} catch (SqlJetException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
 	}
 	@Override
 	public boolean indexAvailable(String key) {

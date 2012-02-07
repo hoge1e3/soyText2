@@ -11,15 +11,13 @@ import jp.tonyu.soytext2.search.expr.AttrExpr;
 public class Query {
 	QueryTemplate queryTemplate;
 	SortedSet<AttrExpr> attrs;
-	public QueryTemplate getExpr() {
-		return queryTemplate;
-	}
+
 	@Override
 	public String toString() {
 		return "(Query "+queryTemplate+" attrs:"+attrs+")";
 	}
 
-	public QueryTemplate getFilterTemplate() {
+	public QueryTemplate getTemplate() {
 		return queryTemplate;
 	}
 
