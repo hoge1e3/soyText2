@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.BuiltinFunc;
+import jp.tonyu.js.ContextRunnable;
 import jp.tonyu.js.Scriptables;
 import jp.tonyu.js.StringPropAction;
 import jp.tonyu.js.Wrappable;
@@ -254,6 +255,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 
 			@Override
 			public boolean run(DocumentRecord d) {
+				Log.d("QueryMatched", d);
 				DocumentScriptable s=(DocumentScriptable) byId(d.id);
 				QueryResult r = q.matches(s);
 				if (r.filterMatched) {
@@ -438,13 +440,20 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 		}
 	}
 	public void rebuildIndex() {
-		documentSet.all(new DocumentAction() {
+		JSSession.withContext(new ContextRunnable() {
 			
 			@Override
-			public boolean run(DocumentRecord d) {
-				DocumentScriptable s=byId(d.id);
-				s.refreshIndex();
-				return false;
+			public Object run(Context cx) {
+				documentSet.all(new DocumentAction() {
+					
+					@Override
+					public boolean run(DocumentRecord d) {
+						DocumentScriptable s=byId(d.id);
+						s.refreshIndex();
+						return false;
+					}
+				});
+				return null;
 			}
 		});
 	}

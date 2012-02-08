@@ -24,18 +24,20 @@ public class DumpIndex {
 				while (!cur.eof()) {
 					ir.fetch(cur);
 					cur.next();
-					System.out.println(ir.document+"の"+ir.name+"は"+ir.value+"だ");
+					if (ir.name.equals("name")) {	
+						System.out.println(ir.document+"の"+ir.name+"は"+ir.value+"だ");
+					}
 				}
 				cur.close();
 				
-				/*sdb.searchByIndex("name", "HttpHelper", new DocumentAction() {
+				sdb.searchByIndex("name", "振り返り", new DocumentAction() {
 					
 					@Override
 					public boolean run(DocumentRecord d) {
 						System.out.println("IDXFND "+d);
 						return false;
 					}
-				});*/
+				});
 			}
 		}, -1);
 		sdb.close();

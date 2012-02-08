@@ -1,6 +1,9 @@
 package jp.tonyu.soytext2.search.expr;
 
+import org.mozilla.javascript.ScriptableObject;
+
 import jp.tonyu.debug.Log;
+import jp.tonyu.js.Scriptables;
 import jp.tonyu.soytext2.js.DocumentScriptable;
 import jp.tonyu.soytext2.search.QueryResult;
 import jp.tonyu.soytext2.search.QueryMatcher;
@@ -31,7 +34,7 @@ public class AttrExpr extends QueryExpression implements Comparable<AttrExpr> {
 	}
 	@Override
 	public QueryResult matches(DocumentScriptable d, QueryMatcher ctx) {
-		Object actualValue=d.get(name);
+		Object actualValue=ScriptableObject.getProperty(d,name);
 		return new QueryResult(matches(actualValue));
 	}
 	public boolean matches(Object actualValue) {

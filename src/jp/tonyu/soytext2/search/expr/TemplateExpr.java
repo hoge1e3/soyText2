@@ -1,5 +1,7 @@
 package jp.tonyu.soytext2.search.expr;
 
+import org.mozilla.javascript.ScriptableObject;
+
 import jp.tonyu.soytext2.js.DocumentScriptable;
 import jp.tonyu.soytext2.search.QueryMatcher;
 import jp.tonyu.soytext2.search.QueryResult;
@@ -15,7 +17,7 @@ public class TemplateExpr extends QueryExpression implements Comparable<Template
 	public QueryResult matches(DocumentScriptable d, QueryMatcher context) {
 		TemplateMatchResult r=null;
 		r=context.getTemplateMatchResult(name);
-		Object actualValue=d.get(name);
+		Object actualValue=ScriptableObject.getProperty(d,name);
 		if (actualValue!=null) {
 			boolean fm = r.sendResult(actualValue);
 			return new QueryResult(fm, true);

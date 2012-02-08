@@ -422,6 +422,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	@Override
 	public void searchByIndex(final String key, final String value, final DocumentAction a) {
 		try {
+			Log.d("SearchByIndex", "["+key+"]=["+value+"]");
 			readTransaction(new DBAction() {
 				@Override
 				public void run(SqlJetDb db) throws SqlJetException {

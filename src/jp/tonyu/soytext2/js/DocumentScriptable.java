@@ -22,6 +22,7 @@ import jp.tonyu.util.SPrintf;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
+import org.mozilla.javascript.NativeJavaObject;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.UniqueTag;
@@ -374,6 +375,7 @@ public class DocumentScriptable implements Function {
 		updateIndex(this , idx);
 	}
 	private static void updateIndex(Scriptable s, final PairSet<String,String> idx) {
+		if (s instanceof NativeJavaObject) return;
 		Scriptables.each(s, new AllPropAction() {
 			@Override
 			public void run(Object key, Object value) {

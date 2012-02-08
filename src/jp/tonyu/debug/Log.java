@@ -14,7 +14,7 @@ public class Log {
 		lw.setVisible(true);
 	}
 	public static void d(Object tag,Object content) {
-		//if ((tag+"").equals("Query")) {
+		//if ((tag+"").equals("QQuery")) {
 			String cont = "["+tag+"]"+content;
 			System.out.println(cont);
 			if (lw!=null) lw.println(cont);

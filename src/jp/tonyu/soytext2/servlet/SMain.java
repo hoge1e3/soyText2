@@ -95,7 +95,9 @@ public class SMain extends HttpServlet {
 		} else {
 			dir=dbDir;
 		}
+		Log.d("getNewestDB", "Search in "+dir);
 		for (SFile d:dir) {
+			Log.d("getNewestDB", d);
 			if (!d.name().endsWith(".db")) continue;
 			long l=d.lastModified();
 			if (l>max) {
