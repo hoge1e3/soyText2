@@ -47,6 +47,8 @@ public class SMain extends HttpServlet {
 			initServlet();
 		} catch (SqlJetException e1) {
 			e1.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		HttpSession s=req2.getSession();
 		Object jsl=s.getAttribute(KEY_DOCLOADER);
@@ -82,11 +84,18 @@ public class SMain extends HttpServlet {
 	SDB sdb;
 	String jarFile;
 	//DocumentLoader loader;
-	public  File getNewest() {
+	public  File getNewestDBFile() throws IOException {
 		long max=0;
 		File res=null;
 		SFile dbDir =  dbDir();
-		for (SFile d:dbDir) {
+		SFile dir;
+		SFile pid=dbDir.rel(SDB.PRIMARY_DBID_TXT);
+		if (pid.exists()) {
+			dir=dbDir.rel(pid.text());
+		} else {
+			dir=dbDir;
+		}
+		for (SFile d:dir) {
 			if (!d.name().endsWith(".db")) continue;
 			long l=d.lastModified();
 			if (l>max) {
@@ -124,12 +133,14 @@ public class SMain extends HttpServlet {
 	public static int insts=0;
 	// As Servlet
 	public SMain() {insts++; isServlet=true;}
-	public void initServlet() throws SqlJetException {
+	public void initServlet() throws SqlJetException,IOException {
 		if (!isServlet || servletInited) return;
 		servletInited=true;
 		setupApplicationContext();
-		jarFile=detectWorkSpace(getServletContext().getInitParameter("jarFile")  );
-		File newest = getNewest();
+		String jarfileP = getServletContext().getInitParameter("jarFile");
+		if (jarfileP!=null) jarFile=detectWorkSpace(jarfileP  );
+		File newest = getNewestDBFile();
+		if (newest==null) Log.die("Error no db file exitst in "+dbDir());
 		System.out.println("Using "+newest+" as db.");
 		sdb=new SDB(newest);//, SDB.UID_EXISTENT_FILE);
 		//loader=new DocumentLoader(sdb);
@@ -184,7 +195,7 @@ public class SMain extends HttpServlet {
 	// As Application
 	public SMain(int port) throws Exception{
 		workspaceDir=new SFile(new File("."));
-		File newest = getNewest();
+		File newest = getNewestDBFile();
 		if (newest==null) newest=setupDB();
 		System.out.println("Using "+newest+" as db.");
 		sdb=new SDB(newest);//, uid);

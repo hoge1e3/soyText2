@@ -53,7 +53,11 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		backupDir=homeDir.rel("backup");
 		//this.dbid=uid;
 		logManager=new LogManager(this);
-		idxSeq=new PrimaryKeySequence(this, indexTable());
+		if (useIndex()) {
+			idxSeq=new PrimaryKeySequence(this, indexTable());
+		} else {
+			idxSeq=null;
+		}
 		//setupDBID();
 		//Log.d(this, "DBID = "+getDBID());
 		dbid/*FromFile*/=getDBIDFromFile(new SFile(file.getAbsoluteFile()));
