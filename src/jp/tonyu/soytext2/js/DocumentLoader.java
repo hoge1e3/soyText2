@@ -25,7 +25,11 @@ import jp.tonyu.soytext2.document.PairSet;
 import jp.tonyu.soytext2.search.Query;
 import jp.tonyu.soytext2.search.QueryBuilder;
 import jp.tonyu.soytext2.search.QueryResult;
+import jp.tonyu.soytext2.search.QueryTemplate;
+import jp.tonyu.soytext2.search.expr.AndExpr;
+import jp.tonyu.soytext2.search.expr.AttrExpr;
 import jp.tonyu.soytext2.search.expr.AttrOperator;
+import jp.tonyu.soytext2.search.expr.QueryExpression;
 import jp.tonyu.soytext2.servlet.DocumentProcessor;
 import jp.tonyu.soytext2.servlet.HttpContext;
 
@@ -226,9 +230,27 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 		final Query q = newQuery(cond, tmpl);
 		searchByQuery(q,iter);
 	}
+	private AttrExpr extractIndexExpr(QueryExpression e) {
+		if (e instanceof AndExpr) {
+			AndExpr a = (AndExpr) e;
+			for (QueryExpression ea:a) {
+				AttrExpr res=extractIndexExpr(ea);
+				if (res!=null) return res;
+			}
+		} else if (e instanceof AttrExpr) {
+			AttrExpr r = (AttrExpr) e;
+			if (getDocumentSet().indexAvailable(r.getKey())) {
+				return r;
+			}
+		}
+		return null;
+	}
 	public void searchByQuery(final Query q, final Function iter) {
 		Log.d(this, "Search by "+q);
-		getDocumentSet().all(new DocumentAction() {
+		QueryTemplate qt = q.getTemplate();
+		QueryExpression e = qt.getCond();
+		AttrExpr idx = extractIndexExpr(e);
+		DocumentAction docAct = new DocumentAction() {
 
 			@Override
 			public boolean run(DocumentRecord d) {
@@ -243,7 +265,17 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 				}
 				return false;
 			}
-		});
+		};
+		if (idx==null) {
+			getDocumentSet().all(docAct);			
+		} else {
+			Object value = idx.getValue();
+			if (value instanceof DocumentScriptable) {
+				DocumentScriptable ds = (DocumentScriptable) value;
+				value=ds.getDocument().id;
+			}
+			getDocumentSet().searchByIndex(idx.getKey(), value.toString(), docAct);
+		}
 	}
 	public Query newQuery(String cond, Scriptable tmpl) {
 		final QueryBuilder qb=QueryBuilder.create(cond);

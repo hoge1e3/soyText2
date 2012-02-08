@@ -27,7 +27,7 @@ public class QueryMatcher {
 		init(templateValues);
 	}
 	public QueryMatcher(DocumentScriptable toBeSearched, Query query) {
-		this(toBeSearched, query.getFilterTemplate(), query.attrs);
+		this(toBeSearched, query.getTemplate(), query.attrs);
 	}
 		
 	/*public SearchContext(DocumentRef d, SortedSet<AttrExpr> templateValues) {

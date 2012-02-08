@@ -105,6 +105,9 @@ public class HttpContext implements Wrappable {
 		redirect(rootPath()+"/auth");
 		return true;
 	}
+	void rebuildIndex() {
+		documentLoader.rebuildIndex();
+	}
 	/*Session currentSession=null;
 	public Session currentSession() {
 		if (currentSession!=null) return currentSession;
@@ -303,6 +306,9 @@ public class HttpContext implements Wrappable {
         }
         else if (s.length==2 && s[1].equalsIgnoreCase("all")) {
         	all();
+        }
+        else if (s.length==2 && s[1].equalsIgnoreCase("rebuildindex")) {
+        	rebuildIndex();
         }
         else if (s.length>=2 && s[1].equalsIgnoreCase("upload")) {
         	upload();
