@@ -372,7 +372,22 @@ public class DocumentScriptable implements Function {
 	private void updateIndex(PairSet<String,String> idx) {
 		String name = Scriptables.getAsString(this, "name", null);
 		if (name!=null) idx.put("name", name);
+		updateClassIndex(this, idx);
 		updateIndex(this , idx);
+	}
+	public static final String INDEX_CLASS="INDEX_CLASS";
+	private void updateClassIndex(DocumentScriptable documentScriptable,
+			PairSet<String, String> idx) {
+		for (Function klass=Scriptables.getClass(documentScriptable);
+		     klass!=null;
+		     klass=Scriptables.getSuperclass(klass)
+		) {
+			String id=Scriptables.getAsString(klass, "id", null);
+			if (id!=null) {
+				idx.put(INDEX_CLASS, id);
+			}
+			
+		}
 	}
 	private static void updateIndex(Scriptable s, final PairSet<String,String> idx) {
 		if (s instanceof NativeJavaObject) return;

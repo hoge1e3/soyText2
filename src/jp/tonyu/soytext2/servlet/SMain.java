@@ -85,9 +85,12 @@ public class SMain extends HttpServlet {
 	String jarFile;
 	//DocumentLoader loader;
 	public  File getNewestDBFile() throws IOException {
+		return getNewestDBFile(dbDir());
+	}
+	public static File getNewestDBFile(SFile dbDir) throws IOException {
 		long max=0;
 		File res=null;
-		SFile dbDir =  dbDir();
+		
 		SFile dir;
 		SFile pid=dbDir.rel(SDB.PRIMARY_DBID_TXT);
 		if (pid.exists()) {

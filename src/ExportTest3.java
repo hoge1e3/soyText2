@@ -8,13 +8,14 @@ import net.arnx.jsonic.JSON;
 import org.tmatesoft.sqljet.core.SqlJetException;
 
 import jp.tonyu.soytext2.document.SDB;
+import jp.tonyu.soytext2.servlet.SMain;
 import jp.tonyu.util.SFile;
 import jp.tonyu.util.TDate;
 
 
 public class ExportTest3 {
 	public static void main(String[] args) throws SqlJetException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException, IOException {
-		SDB s=new SDB(new File("db/main.db"));
+		SDB s=new SDB(SMain.getNewestDBFile(new SFile("db")));
 		/*Object b=s.backup();
 		JSON json = new JSON();
 		json.setPrettyPrint(true);

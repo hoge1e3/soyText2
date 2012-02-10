@@ -164,7 +164,7 @@ public class Scriptables {
 		return null;
 	}
 
-	private static Function getClass(Scriptable obj) {
+	public static Function getClass(Scriptable obj) {
 		Object res = ScriptableObject.getProperty(obj, CONSTRUCTOR);
 		return null;
 	}
