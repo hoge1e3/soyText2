@@ -329,5 +329,9 @@ public class ContentChecker implements IDocumentLoader, Wrappable {
 		//overrideMethods.setPrototype((Scriptable)ScriptableObject.getProperty(superClass, DocumentScriptable.PROTOTYPE));
 		return overrideMethods;
 	}
+	@Override
+	public Scriptable bless(Function klass, Scriptable fields) {
+		return inherit(klass,fields);
+	}
 
 }

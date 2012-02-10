@@ -380,9 +380,13 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 	}
 	@Override
 	public Scriptable inherit(Function superclass, Scriptable overrideMethods) {
-		SuperclassPrototype res = new SuperclassPrototype(superclass);
+		BlessedScriptable res = new BlessedScriptable(superclass);
 		Scriptables.extend(res, overrideMethods);
 		return res;
+	}
+	@Override
+	public Scriptable bless(Function klass, Scriptable fields) {
+		return inherit(klass, fields);
 	}
 	AuthenticatorList auth;
 	public AuthenticatorList authenticator() {

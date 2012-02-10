@@ -71,7 +71,11 @@ res=function (d) {
 	     }*/
 	}
 	function hash(h,ctx) {
-	   var res="{"+ctx.indentBr();
+		var blessed;
+		if (isDocument(h.constructor) || typeof(h.constructor)=="function") {
+			blessed=h.constructor;
+		}
+	   var res=(blessed?:"$.bless("+expr(blessed)+",":"")+"{"+ctx.indentBr();
 	   var kv=[];
 	   for (var key in h) {
 		   if (h.hasOwnProperty && !h.hasOwnProperty(key)) continue;
@@ -87,7 +91,7 @@ res=function (d) {
 			  res+=","+ctx.br();
 		  }
 	   });
-       return res+ctx.dedentBr()+"}";
+       return res+ctx.dedentBr()+"}"+(blessed?")":"");
 	}
 	function isDocument(d) {
 		if (d && d.id) return d.id;

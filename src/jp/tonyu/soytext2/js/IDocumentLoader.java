@@ -12,4 +12,5 @@ public interface IDocumentLoader {
 	public Wrappable javaNative(String className);
 	public Scriptable inherit(Function superClass, Scriptable overrideMethods);
 	//public Object find(Object expr);
+	public Scriptable bless(Function klass, Scriptable fields);
 }

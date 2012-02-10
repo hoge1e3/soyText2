@@ -29,8 +29,8 @@ import org.mozilla.javascript.UniqueTag;
 import org.omg.CosNaming.NamingContextPackage.NotFound;
 
 public class DocumentScriptable implements Function {
-	public static final String PROTOTYPE = "prototype";
-	public static final String CONSTRUCTOR = "constructor";
+	//public static final String PROTOTYPE = "prototype";
+	//public static final String CONSTRUCTOR = "constructor";
 	public static final String CALLSUPER="callSuper";
 	private static final Object GETTERKEY = "[[110414_051952@"+Origin.uid+"]]";
 	//Scriptable __proto__;
@@ -286,7 +286,7 @@ public class DocumentScriptable implements Function {
 		return null;
 	}
 	public Scriptable getConstructor() {
-		Object cons = binds.get(CONSTRUCTOR);
+		Object cons = binds.get(Scriptables.CONSTRUCTOR);
 		if (cons instanceof Scriptable) {
 			Scriptable s = (Scriptable) cons;
 			return s;
@@ -297,7 +297,7 @@ public class DocumentScriptable implements Function {
 	public Scriptable getPrototype() {
 		Scriptable s=getConstructor();
 		if (s==null) return null;
-		Object res=s.get(PROTOTYPE,s);
+		Object res=s.get(Scriptables.PROTOTYPE,s);
 		if (res instanceof Scriptable) {
 			Scriptable ss = (Scriptable) res;
 			return ss;
@@ -318,11 +318,11 @@ public class DocumentScriptable implements Function {
 	@Override
 	public boolean hasInstance(Scriptable instance) {
 		for (int i=0 ;i<100 ;i++) {
-			Object c=ScriptableObject.getProperty(instance, CONSTRUCTOR);
+			Object c=ScriptableObject.getProperty(instance, Scriptables.CONSTRUCTOR);
 			if (equals(this)) return true;
 			if (c instanceof Scriptable) {
 				Scriptable cs = (Scriptable) c;
-				Object p=ScriptableObject.getProperty(cs, PROTOTYPE);
+				Object p=ScriptableObject.getProperty(cs, Scriptables.PROTOTYPE);
 				if (p instanceof Scriptable) {
 					instance = (Scriptable) p;
 					continue;
@@ -482,7 +482,7 @@ public class DocumentScriptable implements Function {
 	 public Scriptable construct(Context cx, Scriptable scope, Object[] args) {
 		DocumentScriptable d=loader.newDocument(); //  generate id
 		//Scriptable cons = getConstructor();
-		d.put(CONSTRUCTOR, this); //cons);
+		d.put(Scriptables.CONSTRUCTOR, this); //cons);
 		String name=Scriptables.getAsString(this, "name", null);
 		if (name!=null) {
 			Scriptable scope2=new BlankScriptableObject();

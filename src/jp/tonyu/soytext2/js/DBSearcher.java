@@ -3,6 +3,7 @@ package jp.tonyu.soytext2.js;
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.js.ContextRunnable;
+import jp.tonyu.js.Scriptables;
 import jp.tonyu.js.Wrappable;
 import jp.tonyu.soytext2.search.Query;
 import jp.tonyu.soytext2.search.QueryBuilder;
@@ -29,7 +30,7 @@ public class DBSearcher implements Wrappable {
 			String qstr = (String) value;
 			qb=QueryBuilder.create(qstr);			
 		} else {
-			qb=QueryBuilder.create(null).tmpl(DocumentScriptable.CONSTRUCTOR, value, AttrOperator.exact);
+			qb=QueryBuilder.create(null).tmpl(Scriptables.CONSTRUCTOR, value, AttrOperator.exact);
 		}
 		
 	}

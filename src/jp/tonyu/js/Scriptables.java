@@ -9,10 +9,14 @@ import java.util.Vector;
 
 import jp.tonyu.debug.Log;
 
+import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 
 public class Scriptables {
+	public static final String CONSTRUCTOR = "constructor";
+	public static final String PROTOTYPE = "prototype";
+
 	public static Object[] toArray(Object scriptable) {
 		if (scriptable instanceof Scriptable) {
 			Scriptable ary = (Scriptable) scriptable;
@@ -148,6 +152,20 @@ public class Scriptables {
 			if (r==null) return null;
 			return r+"";
 		}
+		return null;
+	}
+	public static Function getSuperclass(Scriptable obj) {
+		if (obj==null) return null;
+		Object res = ScriptableObject.getProperty(obj, PROTOTYPE);
+		if (res instanceof Scriptable) {
+			Scriptable s = (Scriptable) res;
+			return getClass(s);
+		}
+		return null;
+	}
+
+	private static Function getClass(Scriptable obj) {
+		Object res = ScriptableObject.getProperty(obj, CONSTRUCTOR);
 		return null;
 	}
 
