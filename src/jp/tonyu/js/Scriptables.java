@@ -154,11 +154,15 @@ public class Scriptables {
 		}
 		return null;
 	}
-	public static Function getSuperclass(Scriptable obj) {
-		if (obj==null) return null;
-		Object res = ScriptableObject.getProperty(obj, PROTOTYPE);
+	public static Function getSuperclass(Scriptable klass) {
+		if (klass==null) return null;
+		Object res = ScriptableObject.getProperty(klass, PROTOTYPE);
+		//Log.d("getSPClass", res+" "+res.getClass());
 		if (res instanceof Scriptable) {
 			Scriptable s = (Scriptable) res;
+			/*for (Object k: s.getIds()) {
+				Log.d("getSPClass", "keys="+k);
+			}*/
 			return getClass(s);
 		}
 		return null;
@@ -166,6 +170,10 @@ public class Scriptables {
 
 	public static Function getClass(Scriptable obj) {
 		Object res = ScriptableObject.getProperty(obj, CONSTRUCTOR);
+		if (res instanceof Function) {
+			Function f = (Function) res;
+			return f;
+		}
 		return null;
 	}
 

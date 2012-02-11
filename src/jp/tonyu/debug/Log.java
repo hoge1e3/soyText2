@@ -14,11 +14,11 @@ public class Log {
 		lw.setVisible(true);
 	}
 	public static void d(Object tag,Object content) {
-		//if ((tag+"").equals("QQuery")) {
+		if ("ToValues".equals(tag) || "ClassIdx".equals(tag) ||"getSPClass".equals(tag)) {
 			String cont = "["+tag+"]"+content;
 			System.out.println(cont);
 			if (lw!=null) lw.println(cont);
-		//}
+		}
 	}
 
 	public static Object die(String string) {

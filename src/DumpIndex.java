@@ -24,20 +24,20 @@ public class DumpIndex {
 				while (!cur.eof()) {
 					ir.fetch(cur);
 					cur.next();
-					if (ir.name.equals("name")) {	
+					if (ir.name.equals("INDEX_CLASS")) {	
 						System.out.println(ir.document+"の"+ir.name+"は"+ir.value+"だ");
 					}
 				}
 				cur.close();
 				
-				sdb.searchByIndex("name", "振り返り", new DocumentAction() {
+				/*sdb.searchByIndex("INDEX_CLASS", "振り返り", new DocumentAction() {
 					
 					@Override
 					public boolean run(DocumentRecord d) {
 						System.out.println("IDXFND "+d);
 						return false;
 					}
-				});
+				});*/
 			}
 		}, -1);
 		sdb.close();

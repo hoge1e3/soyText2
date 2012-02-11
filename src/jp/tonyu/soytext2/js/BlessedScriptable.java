@@ -33,9 +33,10 @@ import jp.tonyu.js.Scriptables;
 public class BlessedScriptable extends BlankScriptableObject {
 	private static final long serialVersionUID = 2800093915277316789L;
 	//Function superclass;
+	Function klass;
 	@Override
 	public Scriptable getPrototype() {
-		Function klass = getConstructor();
+		//Function klass = getConstructor();
 		Object prot = ScriptableObject.getProperty(klass, Scriptables.PROTOTYPE);
 		if (prot instanceof Scriptable) {
 			return (Scriptable)prot;
@@ -44,18 +45,26 @@ public class BlessedScriptable extends BlankScriptableObject {
 	}
 	public BlessedScriptable(Function klass) { // klass == superclass
 		super();
-		ScriptableObject.putProperty(this, Scriptables.CONSTRUCTOR, klass);
+		this.klass=klass;
+		//ScriptableObject.putProperty(this, Scriptables.CONSTRUCTOR, klass);
 	}
 	@Override
 	public String toString() {
-		return "(Blessed for "+getConstructor()+")";
+		return "(Blessed from "+klass+")";
 	}
-	public Function getConstructor() {
+	/*public Function getConstructor() {
 		Object cons=ScriptableObject.getProperty(this, Scriptables.CONSTRUCTOR);
 		if (cons instanceof Function) {
 			Function s = (Function) cons;
 			return s;
 		}
 		return null;
+	}*/
+	@Override
+	public Object get(String name, Scriptable start) {
+		if (Scriptables.CONSTRUCTOR.equals(name)) {
+			return klass;
+		}
+		return super.get(name, start);
 	}
 }
