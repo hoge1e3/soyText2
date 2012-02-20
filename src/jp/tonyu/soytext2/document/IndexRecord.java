@@ -8,8 +8,10 @@ public class IndexRecord extends SqlJetRecord {
 	public String document,name,value;
 	public long lastUpdate;
 	// value = "s{String}";  value="d{ID}";  
-	public static String DEFINED_INDEX_NAMES="DEFINED_INDEX_NAMES";
-	public static String INDEX_BACKREF="INDEX_BACKREF";
+	public static final String DEFINED_INDEX_NAMES="#DEFINED_INDEX_NAMES";
+	public static final String INDEX_REFERS="#REFERS";
+	public static final String INDEX_INSTANCEOF="#INSTANCEOF";
+
 	//public static final boolean useIndex=false;
 	public IndexRecord() {
 		super();

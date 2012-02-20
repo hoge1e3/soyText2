@@ -30,6 +30,8 @@ import jp.tonyu.soytext2.search.QueryTemplate;
 import jp.tonyu.soytext2.search.expr.AndExpr;
 import jp.tonyu.soytext2.search.expr.AttrExpr;
 import jp.tonyu.soytext2.search.expr.AttrOperator;
+import jp.tonyu.soytext2.search.expr.BackLinkExpr;
+import jp.tonyu.soytext2.search.expr.InstanceofExpr;
 import jp.tonyu.soytext2.search.expr.QueryExpression;
 import jp.tonyu.soytext2.servlet.DocumentProcessor;
 import jp.tonyu.soytext2.servlet.HttpContext;
@@ -231,11 +233,11 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 		final Query q = newQuery(cond, tmpl);
 		searchByQuery(q,iter);
 	}
-	private AttrExpr extractIndexExpr(QueryExpression e) {
+	private QueryExpression extractIndexExpr(QueryExpression e) {
 		if (e instanceof AndExpr) {
 			AndExpr a = (AndExpr) e;
 			for (QueryExpression ea:a) {
-				AttrExpr res=extractIndexExpr(ea);
+				QueryExpression res=extractIndexExpr(ea);
 				if (res!=null) return res;
 			}
 		} else if (e instanceof AttrExpr) {
@@ -243,6 +245,12 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 			if (getDocumentSet().indexAvailable(r.getKey())) {
 				return r;
 			}
+		} else if (e instanceof BackLinkExpr) {
+			BackLinkExpr b = (BackLinkExpr) e;
+			return b;
+		} else if (e instanceof InstanceofExpr) {
+			InstanceofExpr i = (InstanceofExpr) e;
+			return i;
 		}
 		return null;
 	}
@@ -250,7 +258,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 		Log.d(this, "Search by "+q);
 		QueryTemplate qt = q.getTemplate();
 		QueryExpression e = qt.getCond();
-		AttrExpr idx = extractIndexExpr(e);
+		QueryExpression idx = extractIndexExpr(e);
 		DocumentAction docAct = new DocumentAction() {
 
 			@Override
@@ -271,12 +279,21 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 		if (idx==null) {
 			getDocumentSet().all(docAct);			
 		} else {
-			Object value = idx.getValue();
-			if (value instanceof DocumentScriptable) {
-				DocumentScriptable ds = (DocumentScriptable) value;
-				value=ds.getDocument().id;
+			if (idx instanceof AttrExpr) {
+				AttrExpr aidx = (AttrExpr) idx;
+				Object value = aidx.getValue();
+				if (value instanceof DocumentScriptable) {
+					DocumentScriptable ds = (DocumentScriptable) value;
+					value=ds.getDocument().id;
+				}
+				getDocumentSet().searchByIndex(aidx.getKey(), value.toString(), docAct);
+			} else if (idx instanceof BackLinkExpr) {
+				BackLinkExpr bidx = (BackLinkExpr) idx;
+				getDocumentSet().searchByIndex(IndexRecord.INDEX_REFERS, bidx.toId, docAct);
+			}  else if (idx instanceof InstanceofExpr) {
+				InstanceofExpr iidx = (InstanceofExpr) idx;
+				getDocumentSet().searchByIndex(IndexRecord.INDEX_INSTANCEOF, iidx.klass, docAct);
 			}
-			getDocumentSet().searchByIndex(idx.getKey(), value.toString(), docAct);
 		}
 	}
 	public Query newQuery(String cond, Scriptable tmpl) {

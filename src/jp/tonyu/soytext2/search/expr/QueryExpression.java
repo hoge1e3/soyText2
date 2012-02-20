@@ -7,8 +7,8 @@ import jp.tonyu.soytext2.search.QueryMatcher;
 
 public abstract class QueryExpression {
 	public String source;
-	public static QueryExpression parse(String src) {
+	/*public static QueryExpression parse(String src) {
 		return null;
-	}
+	}*/
 	public abstract QueryResult matches(DocumentScriptable d, QueryMatcher context);
 }

@@ -373,9 +373,8 @@ public class DocumentScriptable implements Function {
 		String name = Scriptables.getAsString(this, "name", null);
 		if (name!=null) idx.put("name", name);
 		updateClassIndex(idx);
-		updateIndex(this , idx);
+		updateBackLinkIndex(this , idx);
 	}
-	public static final String INDEX_CLASS="INDEX_CLASS";
 	private void updateClassIndex(	PairSet<String, String> idx) {
 		int depth=0;
 		for (Function klass=Scriptables.getClass(this);
@@ -384,7 +383,7 @@ public class DocumentScriptable implements Function {
 		) {
 			if (klass instanceof DocumentScriptable) {
 				DocumentScriptable d = (DocumentScriptable) klass;
-				idx.put(INDEX_CLASS, d.id());
+				idx.put(IndexRecord.INDEX_INSTANCEOF, d.id());
 			} else {
 				break;
 			}
@@ -394,7 +393,7 @@ public class DocumentScriptable implements Function {
 	public String id() {
 		return getDocument().id;
 	}
-	private static void updateIndex(Scriptable s, final PairSet<String,String> idx) {
+	private static void updateBackLinkIndex(Scriptable s, final PairSet<String,String> idx) {
 		if (s instanceof NativeJavaObject) return;
 		Scriptables.each(s, new AllPropAction() {
 			@Override
@@ -403,10 +402,10 @@ public class DocumentScriptable implements Function {
 				if (value instanceof DocumentScriptable) {
 					Log.d("updateIndex", "put "+key+"="+value);
 					DocumentScriptable d = (DocumentScriptable) value;
-					idx.put(IndexRecord.INDEX_BACKREF, d.getDocument().id);
+					idx.put(IndexRecord.INDEX_REFERS, d.getDocument().id);
 				} else 	if (value instanceof Scriptable) {
 					Scriptable scr = (Scriptable) value;
-					updateIndex(scr,idx);
+					updateBackLinkIndex(scr,idx);
 				}
 			}
 		});

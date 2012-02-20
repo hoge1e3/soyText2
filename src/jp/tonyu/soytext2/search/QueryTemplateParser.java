@@ -10,6 +10,8 @@ import jp.tonyu.parser.Parser;
 import jp.tonyu.soytext2.search.expr.AndExpr;
 import jp.tonyu.soytext2.search.expr.AttrExpr;
 import jp.tonyu.soytext2.search.expr.AttrOperator;
+import jp.tonyu.soytext2.search.expr.BackLinkExpr;
+import jp.tonyu.soytext2.search.expr.InstanceofExpr;
 import jp.tonyu.soytext2.search.expr.KeywordExpr;
 import jp.tonyu.soytext2.search.expr.NotExpr;
 import jp.tonyu.soytext2.search.expr.QueryExpression;
@@ -89,6 +91,8 @@ public class QueryTemplateParser {
 		return false;
 	}
 	static final Pattern attrCondPat=Pattern.compile("([^:\\s]+)(:[=<]?)([^\\s]+)");
+	public static final String BACKLINK="backlink";
+	public static final String CLASS="class";
 	public boolean parseAttrCond() {
 		// attrcond := [^\:]+:[=<]?[^\s]+
 		Matcher m=p.matcher(attrCondPat);
@@ -96,7 +100,13 @@ public class QueryTemplateParser {
 			String attrName=m.group(1);
 			String compType=m.group(2);
 			String attrValue=m.group(3);
-			lastCond=new AttrExpr(attrName, attrValue, AttrOperator.fromString(compType));
+			if (BACKLINK.equals(attrName)) {
+				lastCond=new BackLinkExpr(attrValue);
+			} else if (CLASS.equals(attrName)) {
+				lastCond=new InstanceofExpr(attrValue);
+			} else {
+				lastCond=new AttrExpr(attrName, attrValue, AttrOperator.fromString(compType));
+			}
 			return true;
 		}
 		return false;
