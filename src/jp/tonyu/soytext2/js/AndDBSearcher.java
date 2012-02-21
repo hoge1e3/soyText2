@@ -6,6 +6,7 @@ import jp.tonyu.js.ContextRunnable;
 import jp.tonyu.js.Scriptables;
 import jp.tonyu.js.Wrappable;
 import jp.tonyu.soytext2.document.IndexRecord;
+import jp.tonyu.soytext2.search.AndQueryBuilder;
 import jp.tonyu.soytext2.search.Query;
 import jp.tonyu.soytext2.search.QueryBuilder;
 import jp.tonyu.soytext2.search.expr.AttrOperator;
@@ -18,24 +19,14 @@ import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 import org.mozilla.javascript.Undefined;
 
-public class DBSearcher implements Wrappable {
+public class AndDBSearcher implements Wrappable {
 	public final DBHelper dbscr;
-	public DBSearcher(DBHelper dbscr) {
+	public AndDBSearcher(DBHelper dbscr) {
 		super();
 		this.dbscr = dbscr;
-		qb=QueryBuilder.create(null);
+		qb=new AndQueryBuilder();
 	}	
-	public DBSearcher(DBHelper dbHelper, Object value) {
-		this(dbHelper);
-		if (value instanceof String) {
-			String qstr = (String) value;
-			qb=QueryBuilder.create(qstr);			
-		} else {
-			qb=QueryBuilder.create(null).tmpl(IndexRecord.INDEX_INSTANCEOF, value, AttrOperator.exact);
-		}
-		
-	}
-	private QueryBuilder qb;
+	private AndQueryBuilder qb;
 	public void each(Function iter) {
 		dbscr.loader.searchByQuery(qb.toQuery(), iter);
 	}
@@ -56,16 +47,16 @@ public class DBSearcher implements Wrappable {
 		});
 		return ScriptableObject.getProperty(r, "node");
 	}
-	public DBSearcher q(String name, Object value) {
-		qb=qb.tmpl(name,value,AttrOperator.ge);		
+	public AndDBSearcher q(String name, Object value) {
+		qb=qb.attr(name,value,AttrOperator.ge);		
 		return this;
 	}
-	public DBSearcher q(String name) {
-		qb.addCond(name);
+	public AndDBSearcher q(String name) {
+		qb.keyword(name);
 		return this;
 	}
-	public DBSearcher qe(String name, Object value) {
-		qb=qb.tmpl(name,value,AttrOperator.exact);
+	public AndDBSearcher qe(String name, Object value) {
+		qb=qb.attr(name,value,AttrOperator.exact);
 		return this;
 	}
 
@@ -86,5 +77,12 @@ public class DBSearcher implements Wrappable {
 		if (res.isSet()) return res.get();	
 		return null;
 	}
-
+	public AndDBSearcher backlinks(Object value) {
+		qb.attr(IndexRecord.INDEX_REFERS, value, AttrOperator.exact);
+		return this;
+	}
+	public Object is(String klassId) {
+		qb.instof(klassId);
+		return this;
+	}
 }

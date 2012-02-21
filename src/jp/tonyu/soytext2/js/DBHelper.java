@@ -2,6 +2,9 @@ package jp.tonyu.soytext2.js;
 
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.Wrappable;
+import jp.tonyu.soytext2.document.IndexRecord;
+import jp.tonyu.soytext2.search.QueryBuilder;
+import jp.tonyu.soytext2.search.expr.AttrOperator;
 
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
@@ -9,21 +12,30 @@ import org.mozilla.javascript.Scriptable;
 public class DBHelper implements Wrappable{
 	public final DocumentLoader loader;
 
-	public DBSearcher q(Object value) {
-		return new DBSearcher(this,value);
+	public Object q(Object value) {
+		if (value instanceof String) {
+			String qstr = (String) value;
+			return new DBSearcher(this,qstr);
+		} else if (value instanceof DocumentScriptable){
+			DocumentScriptable ds=(DocumentScriptable)value;
+			return new AndDBSearcher(this).is(ds.id());
+		} else {
+			Log.die("Not a query value - "+value);
+			return null;
+		}
 	}
-	public DBSearcher backlinks(Object value) {
-		return new DBSearcher(this).backlinks(value);
+	public AndDBSearcher backlinks(Object value) {
+		return new AndDBSearcher(this).backlinks(value);
 	}
-	public DBSearcher q(String name, Object value) {
-		return new DBSearcher(this).q(name, value);
+	public AndDBSearcher q(String name, Object value) {
+		return new AndDBSearcher(this).q(name, value);
 	}
 	public DBHelper(DocumentLoader loader) {
 		super();
 		this.loader = loader;
 	}
-	public DBSearcher qe(String name, Object value) {
-		return new DBSearcher(this).qe(name, value);
+	public AndDBSearcher qe(String name, Object value) {
+		return new AndDBSearcher(this).qe(name, value);
 	}
 
 	public Object find(Function iter) {

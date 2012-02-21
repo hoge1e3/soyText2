@@ -14,7 +14,9 @@ public class Log {
 		lw.setVisible(true);
 	}
 	public static void d(Object tag,Object content) {
-		if ("ToValues".equals(tag) || "ClassIdx".equals(tag) ||"getSPClass".equals(tag)) {
+		//if ("ToValues".equals(tag) || "ClassIdx".equals(tag) ||"getSPClass".equals(tag)) {
+		if ("QueryMatched".equals(tag)) {
+		} else {
 			String cont = "["+tag+"]"+content;
 			System.out.println(cont);
 			if (lw!=null) lw.println(cont);

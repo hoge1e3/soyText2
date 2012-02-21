@@ -14,9 +14,7 @@ import jp.tonyu.soytext2.search.expr.QueryExpression;
 
 public class AndQueryBuilder {
 	AndExpr cond=new AndExpr();
-	public AndQueryBuilder(AndExpr cond) {
-		this.cond=cond;
-	}
+	
 	public AndQueryBuilder instof(String klassId) {
 		cond.add(new InstanceofExpr(klassId));
 		return this;
