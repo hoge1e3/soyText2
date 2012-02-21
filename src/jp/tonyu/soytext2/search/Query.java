@@ -29,7 +29,9 @@ public class Query {
 		this.queryTemplate=p.parse();	
 		attrs=new TreeSet<AttrExpr>();
 	}
-
+	public Query(QueryTemplate queryTemplate) {
+		this(queryTemplate,new TreeSet<AttrExpr>());
+	}
 	public Query(QueryTemplate queryTemplate, SortedSet<AttrExpr> attrs) {
 		super();
 		Log.d("Query", "Create query cond="+queryTemplate+" attrs="+attrs);

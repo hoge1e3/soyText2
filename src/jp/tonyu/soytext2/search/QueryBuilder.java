@@ -7,6 +7,8 @@ import jp.tonyu.debug.Log;
 import jp.tonyu.soytext2.document.DocumentSet;
 import jp.tonyu.soytext2.search.expr.AttrExpr;
 import jp.tonyu.soytext2.search.expr.AttrOperator;
+import jp.tonyu.soytext2.search.expr.InstanceofExpr;
+import jp.tonyu.soytext2.search.expr.QueryExpression;
 
 public class QueryBuilder {
 	String cond;

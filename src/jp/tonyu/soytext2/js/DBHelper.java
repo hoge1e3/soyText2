@@ -12,6 +12,9 @@ public class DBHelper implements Wrappable{
 	public DBSearcher q(Object value) {
 		return new DBSearcher(this,value);
 	}
+	public DBSearcher backlinks(Object value) {
+		return new DBSearcher(this).backlinks(value);
+	}
 	public DBSearcher q(String name, Object value) {
 		return new DBSearcher(this).q(name, value);
 	}

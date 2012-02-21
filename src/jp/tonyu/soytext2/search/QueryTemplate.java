@@ -5,6 +5,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import jp.tonyu.soytext2.search.expr.AndExpr;
 import jp.tonyu.soytext2.search.expr.AttrExpr;
 import jp.tonyu.soytext2.search.expr.QueryExpression;
 import jp.tonyu.soytext2.search.expr.TemplateExpr;
@@ -16,6 +17,9 @@ public class QueryTemplate {
 		super();
 		this.cond = cond;
 		this.templates = templates;
+	}
+	public QueryTemplate(QueryExpression expr) {
+		this(expr, new TreeSet<TemplateExpr>());
 	}
 	public QueryExpression getCond() {
 		return cond;

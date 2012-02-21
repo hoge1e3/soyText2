@@ -5,6 +5,7 @@ import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.js.ContextRunnable;
 import jp.tonyu.js.Scriptables;
 import jp.tonyu.js.Wrappable;
+import jp.tonyu.soytext2.document.IndexRecord;
 import jp.tonyu.soytext2.search.Query;
 import jp.tonyu.soytext2.search.QueryBuilder;
 import jp.tonyu.soytext2.search.expr.AttrOperator;
@@ -30,7 +31,7 @@ public class DBSearcher implements Wrappable {
 			String qstr = (String) value;
 			qb=QueryBuilder.create(qstr);			
 		} else {
-			qb=QueryBuilder.create(null).tmpl(Scriptables.CONSTRUCTOR, value, AttrOperator.exact);
+			qb=QueryBuilder.create(null).tmpl(IndexRecord.INDEX_INSTANCEOF, value, AttrOperator.exact);
 		}
 		
 	}
@@ -84,5 +85,8 @@ public class DBSearcher implements Wrappable {
 		});
 		if (res.isSet()) return res.get();	
 		return null;
+	}
+	public DBSearcher backlinks(Object value) {
+		return this;
 	}
 }
