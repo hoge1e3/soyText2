@@ -67,4 +67,20 @@ public class BlessedScriptable extends BlankScriptableObject {
 		}
 		return super.get(name, start);
 	}
+	@Override
+	public void put(String name, Scriptable start, Object value) {
+		if (Scriptables.CONSTRUCTOR.equals(name)) {
+			klass=(Function) value;
+			return;
+		}
+		super.put(name, start, value);
+	}
+	@Override
+	public Object[] getIds() {
+		Object[] res1=super.getIds();
+		Object[] res=new Object[res1.length+1];
+		res[0]=klass;
+		System.arraycopy(res1, 0 , res , 1, res1.length);
+		return res;
+	}
 }

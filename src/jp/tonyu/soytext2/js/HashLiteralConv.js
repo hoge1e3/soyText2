@@ -40,14 +40,14 @@ res=function (d) {
 	    	 return func(value,ctx);
 	     } else if (typeof value=="string") {
 	        return str(value,ctx);
+	     } else if (value==null) {
+	        return "null";
 	     } else if (typeof value=="object") {
 	        if (value instanceof Array) {
 	           return ary(value,ctx);
 	        } else {
 	           return hash(value,ctx);
 	        }
-	     } else if (value==null) {
-	        return "null";
 	     } else {
 	        return "null";
 	     }  
@@ -75,10 +75,11 @@ res=function (d) {
 		if (isDocument(h.constructor) || typeof(h.constructor)=="function") {
 			blessed=h.constructor;
 		}
-	   var res=(blessed?:"$.bless("+expr(blessed)+",":"")+"{"+ctx.indentBr();
+	   var res=(blessed?"$.bless("+expr(blessed)+",":"")+"{"+ctx.indentBr();
 	   var kv=[];
 	   for (var key in h) {
 		   if (h.hasOwnProperty && !h.hasOwnProperty(key)) continue;
+		   if (blessed && key=="constructor") continue;
 		   var value=h[key];
 		   kv.push([key,value]);
 	   }

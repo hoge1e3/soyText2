@@ -81,7 +81,7 @@ public class AndDBSearcher implements Wrappable {
 		qb.attr(IndexRecord.INDEX_REFERS, value, AttrOperator.exact);
 		return this;
 	}
-	public Object is(String klassId) {
+	public AndDBSearcher is(String klassId) {
 		qb.instof(klassId);
 		return this;
 	}
