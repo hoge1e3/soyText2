@@ -24,6 +24,13 @@ public class DBHelper implements Wrappable{
 			return null;
 		}
 	}
+	public AndDBSearcher is(Object value) {
+		if (value instanceof DocumentScriptable){
+			DocumentScriptable ds=(DocumentScriptable)value;
+			return new AndDBSearcher(this).is(ds.id());
+		}
+		return null;
+	}
 	public AndDBSearcher backlinks(Object value) {
 		return new AndDBSearcher(this).backlinks(value);
 	}
