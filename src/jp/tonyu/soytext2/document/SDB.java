@@ -248,7 +248,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		i.document=d.id;
 		i.name=name;
 		i.value=value;
-		i.lastUpdate=d.lastUpdate;
+		i.lastUpdate=-d.lastUpdate;
 		i.insertTo(indexTable());
 	}
 	private void removeIndexValues(final DocumentRecord d) throws SqlJetException {
@@ -260,7 +260,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		}
 		cur.close();
 	}
-	public void byIndex(final String name,final String value,final DocumentAction action) throws SqlJetException {
+	/*public void byIndex(final String name,final String value,final DocumentAction action) throws SqlJetException {
 		readTransaction(new DBAction() {
 			
 			@Override
@@ -279,7 +279,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 				cur.close();
 			}
 		},-1);
-	}
+	}*/
 	/*public void resetIndex() throws SqlJetException {
 		writeTransaction(new DBAction() {
 			
@@ -428,7 +428,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 				public void run(SqlJetDb db) throws SqlJetException {
 					SqlJetTableHelper t = table(indexRecord);
 					String value2=value+(char)32767;
-					ISqlJetCursor cur = t.scope(IndexRecord.NAME_VALUE_LAST_UPDATE, new Object[]{key,value,0L},new Object[]{key,value2,0L});
+					ISqlJetCursor cur = t.scope(IndexRecord.NAME_VALUE_LAST_UPDATE, new Object[]{key,value,Long.MIN_VALUE},new Object[]{key,value2,Long.MIN_VALUE});
 					while (!cur.eof()) {
 						indexRecord.fetch(cur);
 						DocumentRecord d = byId(indexRecord.document);

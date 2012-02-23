@@ -79,7 +79,7 @@ public class BlessedScriptable extends BlankScriptableObject {
 	public Object[] getIds() {
 		Object[] res1=super.getIds();
 		Object[] res=new Object[res1.length+1];
-		res[0]=klass;
+		res[0]=Scriptables.CONSTRUCTOR;
 		System.arraycopy(res1, 0 , res , 1, res1.length);
 		return res;
 	}

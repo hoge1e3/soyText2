@@ -23,6 +23,7 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.Vector;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -234,8 +235,10 @@ public class HttpContext implements Wrappable {
 		});
     	return res;
     }
+    String nativePrefix="ROM";
 	public String[] args() {
     	String str=req.getPathInfo();
+    	str=str.replaceAll("^/"+nativePrefix, "");
         String[] s=str.split("/");
         return s;
     }
@@ -637,11 +640,15 @@ public class HttpContext implements Wrappable {
 		s.close();
 		if (d==null) all();*/
 		final Ref<Boolean> execed = Ref.create(false);
-		DocumentScriptable boot=documentLoader.byId("boot@"+documentSet().getDBID());
-		if (boot!=null) {
-			exec(boot);
-			execed.set(true);
-		} else {
+		DocumentScriptable root=documentLoader.byId("root@"+documentSet().getDBID());
+		if (root!=null) {
+			Object home=root.get("home");
+			if (home instanceof DocumentScriptable) {
+				DocumentScriptable homed = (DocumentScriptable) home;
+				exec(homed);
+				execed.set(true);
+			}
+		}/* else {
 			documentLoader.searchByQuery(Query.create("topPage:true"),new BuiltinFunc( ) {
 
 				@Override
@@ -652,7 +659,7 @@ public class HttpContext implements Wrappable {
 					return true;
 				}
 			});
-		}
+		}*/
 		if (!execed.get()){
 			all();
 		}

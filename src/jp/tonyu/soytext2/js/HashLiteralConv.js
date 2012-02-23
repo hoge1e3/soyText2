@@ -75,7 +75,7 @@ res=function (d) {
 		if (isDocument(h.constructor) || typeof(h.constructor)=="function") {
 			blessed=h.constructor;
 		}
-	   var res=(blessed?"$.bless("+expr(blessed)+",":"")+"{"+ctx.indentBr();
+	   var res=(blessed?"$.bless("+expr(blessed,ctx)+",":"")+"{"+ctx.indentBr();
 	   var kv=[];
 	   for (var key in h) {
 		   if (h.hasOwnProperty && !h.hasOwnProperty(key)) continue;
