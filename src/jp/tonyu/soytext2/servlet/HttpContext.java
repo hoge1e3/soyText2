@@ -283,6 +283,10 @@ public class HttpContext implements Wrappable {
     {
 		req.setCharacterEncoding("UTF-8");
 		res.setContentType(TEXT_HTML_CHARSET_UTF_8);
+		if (!req.getPathInfo().startsWith("/"+nativePrefix) ) {
+			topPage();
+			return ;
+		}
 		String[] s=args();
         Log.d(this,"pathinfo = "+req.getPathInfo());
         Log.d(this,"qstr = "+req.getQueryString());
