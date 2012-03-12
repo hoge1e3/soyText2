@@ -13,10 +13,12 @@ import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.NativeJavaArray;
 import org.mozilla.javascript.Scriptable;
+import org.mozilla.javascript.ScriptableObject;
 
 public class HashLiteralConv {
+	private static final String GENERATE_CONTENT = "generateContent";
 	// generated from [[110412_050411]] by [[110222_102732]]
-	static Function compiled;
+	/*static Function compiled;
 	public static Function compile() {
 		if (compiled!=null) return compiled;
 		compiled=(Function)DocumentLoader.curJsSesssion().eval("toHashLiteral",
@@ -25,7 +27,7 @@ public class HashLiteralConv {
 				    .p("decompile", decompile)
 				    .p("isJavaNative", isJavaNative));
 		return compiled;
-	}
+	}*/
 	public static BuiltinFunc decompile=new BuiltinFunc() {
 		
 		@Override
@@ -37,7 +39,16 @@ public class HashLiteralConv {
 			return cx.decompileFunction(fun, indent);
 		}
 	};
-	private static BuiltinFunc isJavaNative=new BuiltinFunc() {
+	public static BuiltinFunc isDocument=new BuiltinFunc() {
+		
+		@Override
+		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
+				Object[] args) {
+			Object fun=args[0];
+			return fun instanceof DocumentScriptable;
+		}
+	}; 
+	public static BuiltinFunc isJavaNative=new BuiltinFunc() {
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
 			if (args.length==0) return null;
 			if  (args[0] instanceof Wrappable) return args[0].getClass().getCanonicalName() ;
@@ -61,7 +72,10 @@ public class HashLiteralConv {
 		}
 	};
 	public static String toHashLiteral(Object res) {
-		return DocumentLoader.curJsSesssion().call(compile(), new Object[]{res})+"";
+		JSSession jss = DocumentLoader.curJsSesssion();
+		Scriptable u=jss.utils;
+		Function f=(Function)ScriptableObject.getProperty(u, GENERATE_CONTENT);		
+		return jss.call(f, new Object[]{res})+"";
 	}
 	public static void main(String[] args) {
 		/*Scanner in= new Scanner(

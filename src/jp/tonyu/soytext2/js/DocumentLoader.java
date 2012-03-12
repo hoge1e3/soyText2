@@ -1,6 +1,5 @@
 package jp.tonyu.soytext2.js;
 
-import java.lang.ref.WeakReference;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,7 +10,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import jp.tonyu.debug.Log;
-import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.js.ContextRunnable;
 import jp.tonyu.js.Scriptables;
 import jp.tonyu.js.StringPropAction;
@@ -21,8 +19,8 @@ import jp.tonyu.soytext2.document.DocumentAction;
 import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentSet;
 import jp.tonyu.soytext2.document.IndexRecord;
-import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.document.PairSet;
+import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.search.Query;
 import jp.tonyu.soytext2.search.QueryBuilder;
 import jp.tonyu.soytext2.search.QueryResult;
@@ -209,11 +207,13 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 	}
 	public DocumentScriptable newDocument(String id) {
 		DocumentRecord d = getDocumentSet().newDocument((String)id);
+		d.owner=user();
 		final DocumentScriptable res=defaultDocumentScriptable(d);
 		return res;
 	}
 	public DocumentScriptable newDocument() {
 		DocumentRecord d = getDocumentSet().newDocument();
+		d.owner=user();
 		final DocumentScriptable res=defaultDocumentScriptable(d);
 		return res;
 	}
@@ -405,11 +405,24 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 	public Scriptable bless(Function klass, Scriptable fields) {
 		return inherit(klass, fields);
 	}
+	public DocumentScriptable rootDocument() {
+		return byId(rootDocumentId());
+	}
+	public String rootDocumentId() {
+		return "root@"+documentSet.getDBID();
+	}
 	AuthenticatorList auth;
 	public AuthenticatorList authenticator() {
 		if (auth!=null) return auth;
 		auth=new AuthenticatorList();
-		QueryBuilder qb=QueryBuilder.create("authenticatorList:true");
+		DocumentScriptable r=rootDocument();
+		Object a=r.get("authenticator");
+		if (a instanceof Function) {
+			Function f = (Function) a;
+			Log.d(this, "Using - "+f+" as authlist");
+			jsSession.call(f, new Object[]{auth});			
+		}
+		/*QueryBuilder qb=QueryBuilder.create("authenticatorList:true");
 		searchByQuery(qb.toQuery(), new BuiltinFunc() {
 			
 			@Override
@@ -420,7 +433,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 				f.call(cx, scope, f, new Object[]{auth});
 				return true;
 			}
-		});
+		});*/
 		return auth;
 	}
 	private void copyDocumentExceptDates(DocumentRecord src, DocumentRecord dst) throws SqlJetException {
@@ -478,4 +491,18 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 			}
 		});
 	}
+	private String user;
+	public boolean auth(String user, String pass) {
+		AuthenticatorList a=authenticator();
+		if (a!=null && a.check(user, pass)) {
+			this.user=user;
+			return true;
+		}
+		return false;
+	}
+	public String user() {
+		String user=(this.user==null?"nobody":this.user); //  currentSession().userName();
+		return user;
+	}
+	
 }

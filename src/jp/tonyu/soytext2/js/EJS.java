@@ -18,11 +18,15 @@ import org.mozilla.javascript.ScriptableObject;
 
 public class EJS implements Wrappable {
     static  final Pattern htmlPlain=Pattern.compile("([^<]*<[^%])*[^<]*");
+	// static  final Pattern htmlPlain=Pattern.compile("([^<]|(<[^%]))*"); StackOverflow
+    //    (a|b)*  ===  (a*b*)*    aabaababa
 	private static final String PRINT = "$.p";
-    // static  final Pattern htmlPlain=Pattern.compile("([^<]|(<[^%]))*"); StackOverflow
-    final Pattern embedLang=Pattern.compile("<%(=?) *(([^%]|(%[^>]))*)%>");
-  
+	//    final Pattern embedLang=Pattern.compile("<%(=?) *(([^%]|(%[^>]))*)%>"); StackOverflow
+
+	final Pattern embedLang=Pattern.compile("<%(=?) *(([^%]*(%[^>])*)*)%>");
+    //          <%=  a  %>
     public Scriptable convert(Scriptable d, Scriptable scope) {
+    	Log.d("EJS","convert..");
     	//Thread.dumpStack();
 		String src=""+ScriptableObject.getProperty(d ,HttpContext.ATTR_BODY );
 		JSSession jssession=DocumentLoader.curJsSesssion();
@@ -40,6 +44,8 @@ public class EJS implements Wrappable {
   	    		p.read(htmlPlain);
   	    		buf.append(PRINT+"("+Literal.toLiteral(p.group())+");\n");
   	    		if (p.read(embedLang)) {
+  	    			//Log.d("embedLang", p.group());
+  	    			//Log.d("embedLang", p.group(2));
   	    			if (p.group(1).length()>0) {
   	    				buf.append(PRINT+"("+p.group(2)+");\n");
   	    			} else {
@@ -58,6 +64,7 @@ public class EJS implements Wrappable {
 		BlankScriptableObject scope2 = new BlankScriptableObject(jssession.root);
 		Scriptables.extend(scope2, scope);
 		Object res=jssession.eval(d+"",   buf.toString(), scope2);
+    	Log.d("EJS","convert..end");
 		if (res instanceof Scriptable) {
 			//  Docscr 3564@4.2010.tonyu.jp)Comp
 			Scriptable s = (Scriptable) res;

@@ -446,6 +446,6 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	}
 	@Override
 	public boolean indexAvailable(String key) {
-		return "name".equals(key) || IndexRecord.INDEX_REFERS.equals(key);
+		return "name".equals(key) || IndexRecord.INDEX_REFERS.equals(key);// || DocumentRecord.OWNER.equals(key);
 	}
 }

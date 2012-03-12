@@ -29,6 +29,7 @@ public class DBHelper implements Wrappable{
 			DocumentScriptable ds=(DocumentScriptable)value;
 			return new AndDBSearcher(this).is(ds.id());
 		}
+		Log.die("db.is fail "+value+" is not document");
 		return null;
 	}
 	public AndDBSearcher backlinks(Object value) {

@@ -24,6 +24,7 @@ import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 
 public class JSSession {
+	private static final String UTIL = "SoyText";
 	//public static final jp.tonyu.util.Context<JSSession> cur=new jp.tonyu.util.Context<JSSession>();
 	public final Scriptable root;
 	private Scriptable initObject(Context cx) {
@@ -47,6 +48,7 @@ public class JSSession {
 			}
 		}*/
 		cx.evaluateString(o, Resource.text(Prototype.class,	 ".js"), "<prototype>", 1, null);
+		cx.evaluateString(o, Resource.text(HashLiteralConv.class,	 ".js"), "<hashLiteral>", 1, null);
 		ScriptableObject.putProperty(o, "session", o);
 		return o;
 	}
@@ -71,9 +73,14 @@ public class JSSession {
 		root=initObject(c);
 		objFactory=(Function)ScriptableObject.getProperty(root, "Object");
 		aryFactory=(Function)ScriptableObject.getProperty(root, "Array");
+		utils=(Scriptable)ScriptableObject.getProperty(root, UTIL);
+		ScriptableObject.putProperty(utils, "decompile", HashLiteralConv.decompile);
+		ScriptableObject.putProperty(utils, "isJavaNative", HashLiteralConv.isJavaNative);
+		ScriptableObject.putProperty(utils, "isDocument", HashLiteralConv.isDocument);
 		Context.exit();
 	}
 	Function objFactory,aryFactory;
+	Scriptable utils;
 
 	public Scriptable newObject() {
 		return (Scriptable)withContext(new ContextRunnable() {
@@ -197,7 +204,7 @@ public class JSSession {
 		}			
 	}
 
-	Map<String, CompileResult> compileCache=new HashMap<String, CompileResult>();
+	/*Map<String, CompileResult> compileCache=new HashMap<String, CompileResult>();
 	public CompileResult compile(DocumentScriptable d) {
 		String id = d.getDocument().id;
 		CompileResult compileResult = compileCache.get(id);
@@ -207,7 +214,7 @@ public class JSSession {
 		CompileResult res=CompilerResolver.compile(d);
 		compileCache.put(id, res);
 		return res;
-	}
+	}*/
 	/*public void install(DocumentScriptable d) {
 		CompileResult res=compile(d);
 		root.put(idref(d, null), root, res.value(Scriptable.class));

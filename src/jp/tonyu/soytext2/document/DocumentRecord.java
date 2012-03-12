@@ -43,6 +43,7 @@ public class DocumentRecord extends SqlJetRecord /*implements Wrappable*/ {
 	public String summary,content,preContent;
 	public String language="javascript";
 	public String owner="",group="",permission="";
+	public static final String OWNER="owner",LASTUPDATE="lastUpdate";
 	/*public DocumentRecord(String id) {
 		//this.documentSet=documentSet;
 		this.id=id;
@@ -53,7 +54,7 @@ public class DocumentRecord extends SqlJetRecord /*implements Wrappable*/ {
 	}
 	@Override
 	public String[] indexNames() {
-		return q("lastUpdate","lastAccessed","owner");
+		return q(LASTUPDATE,"lastAccessed",OWNER); //+","+LASTUPDATE);
 	}
 	/*public void save() {
 		documentSet.save(this);

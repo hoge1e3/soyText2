@@ -1,4 +1,5 @@
-res=function (d) {
+SoyText={};
+SoyText.generateContent=function (d) {
 	var buf="";
 	var ctx={
 	   d2sym:{},
@@ -53,7 +54,7 @@ res=function (d) {
 	     }  
 	}
 	function func(f,ctx) {
-   	     f=decompile(f,ctx.indentC*4);
+   	     f=SoyText.decompile(f,ctx.indentC*4);
    	     //f=f+"";
 	     f=f.replace(/\r/g,"").replace(/^\n/,"").replace(/^\s*/,"").replace(/\n$/,"");
 	     return f;
@@ -72,7 +73,8 @@ res=function (d) {
 	}
 	function hash(h,ctx) {
 		var blessed;
-		if (isDocument(h.constructor) || typeof(h.constructor)=="function") {
+		if (isDocument(h.constructor)) { //} || typeof(h.constructor)=="function") {  in what case?
+			                             // It is comment out due to h.construcotr==Object or Array or what else
 			blessed=h.constructor;
 		}
 	   var res=(blessed?"$.bless("+expr(blessed,ctx)+",":"")+"{"+ctx.indentBr();
@@ -95,8 +97,7 @@ res=function (d) {
        return res+ctx.dedentBr()+"}"+(blessed?")":"");
 	}
 	function isDocument(d) {
-		if (d && d.id) return d.id;
-		return false;
+		return SoyText.isDocument(d);
 	}
     function str(s) {
 	     s=s.replace(/\\/g,"\\\\")

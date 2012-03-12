@@ -75,16 +75,12 @@ public class DocumentScriptable implements Function {
 			return d.content;
 		}
 	};
-	BuiltinFunc compileFunc =new BuiltinFunc() {
+	/*BuiltinFunc compileFunc =new BuiltinFunc() {
 		
 		@Override
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 				Object[] args) {
 			CompileResult c = DocumentLoader.curJsSesssion().compile(DocumentScriptable.this);
-			/*if (args.length>=1 && args[0]!=null) {
-				Log.d(this, args[0]+" -  Class="+args[0].getClass());
-			//org.mozilla.javascript.IdFunctionObject
-			}*/
 			if (c==null) return DocumentScriptable.this;
 			if (c instanceof CompileResultScriptable) {
 				CompileResultScriptable cs = (CompileResultScriptable) c;
@@ -92,7 +88,7 @@ public class DocumentScriptable implements Function {
 			}
 			return c;
 		}
-	};
+	};*/
 	BuiltinFunc hasOwnPropFunc= new BuiltinFunc() {
 		
 		@Override
@@ -172,7 +168,8 @@ public class DocumentScriptable implements Function {
 
 	public Object get(Object key) {
 		if ("id".equals(key)) return d.id;
-		if ("lastUpdate".equals(key)) return d.lastUpdate;
+		if (DocumentRecord.LASTUPDATE.equals(key)) return d.lastUpdate;
+		if (DocumentRecord.OWNER.equals(key)) return d.owner;
 		if ("summary".equals(key)) return d.summary;
 		if ("save".equals(key)) return saveFunc;
 		if ("identityHashCode".equals(key)) return System.identityHashCode(this);

@@ -77,7 +77,7 @@ public class HttpContext implements Wrappable {
 	private static final String SEL = "sel_";
 	public static final jp.tonyu.util.Context<HttpContext> cur=new jp.tonyu.util.Context<HttpContext>();
 	private static final String SESSION_NAME = "soyText_Session";
-	private static final String USERNAME = "soyText_UserName";
+	//private static final String USERNAME = "soyText_UserName";
 	/*public final soytext.script.Context context= new soytext.script.Context(true);
 	public SessionManager sessionManager() {
 		return appCtx.sessionManager;
@@ -97,13 +97,14 @@ public class HttpContext implements Wrappable {
 		return false;
 	}
 	public String user() {
-		Object o=req.getSession().getAttribute(USERNAME);
+		return documentLoader.user();
+		/*Object o=req.getSession().getAttribute(USERNAME);
 		String user=(o==null?"nobody":o.toString()); //  currentSession().userName();
-		return user;
+		return user;*/
 	}
 	public boolean assertRoot() {
 		if (isRoot()) return false;
-		redirect(rootPath()+"/auth");
+		redirect(romRootPath()+"/auth");
 		return true;
 	}
 	void rebuildIndex() {
@@ -242,6 +243,12 @@ public class HttpContext implements Wrappable {
         String[] s=str.split("/");
         return s;
     }
+	public String[] argsIncludingRom() {
+    	String str=req.getPathInfo();
+    	//str=str.replaceAll("^/"+nativePrefix, "");
+        String[] s=str.split("/");
+        return s;
+    }
 	public String[] execArgs() {
 		//0  1    2   3     
 		// /exec/id/args0/args1
@@ -283,6 +290,14 @@ public class HttpContext implements Wrappable {
     {
 		req.setCharacterEncoding("UTF-8");
 		res.setContentType(TEXT_HTML_CHARSET_UTF_8);
+		if (req.getPathInfo().startsWith("/"+nativePrefix) ) {
+			procRom();
+		} else {
+			topPage();
+		}
+    }
+    public void procRom() throws IOException {
+    	if (assertRoot()) return;
 		String[] s=args();
         Log.d(this,"pathinfo = "+req.getPathInfo());
         Log.d(this,"qstr = "+req.getQueryString());
@@ -361,7 +376,7 @@ public class HttpContext implements Wrappable {
     	w.close();
 	}
 	public String browserjsPath(Class klass) {
-    	return rootPath()+"/browserjs/"+klass.getName();
+    	return romRootPath()+"/browserjs/"+klass.getName();
     }
     private void browserjs() throws IOException {
 		//0  1          2        
@@ -589,7 +604,7 @@ public class HttpContext implements Wrappable {
 					"<input type=submit>"+
 					"</form>" +
 					"</body></html>",
-					rootPath()+"/upload"));
+					romRootPath()+"/upload"));
 		} else {
 			String data=params().get(DATA);
 			StringReader rd=new StringReader(data);
@@ -640,7 +655,7 @@ public class HttpContext implements Wrappable {
 		s.close();
 		if (d==null) all();*/
 		final Ref<Boolean> execed = Ref.create(false);
-		DocumentScriptable root=documentLoader.byId("root@"+documentSet().getDBID());
+		DocumentScriptable root=documentLoader.rootDocument();
 		if (root!=null) {
 			Object home=root.get("home");
 			if (home instanceof DocumentScriptable) {
@@ -648,6 +663,9 @@ public class HttpContext implements Wrappable {
 				exec(homed);
 				execed.set(true);
 			}
+		} else {
+			root=documentLoader.newDocument(documentLoader.rootDocumentId());
+			root.save();
 		}/* else {
 			documentLoader.searchByQuery(Query.create("topPage:true"),new BuiltinFunc( ) {
 
@@ -664,6 +682,9 @@ public class HttpContext implements Wrappable {
 			all();
 		}
 	}
+	/*private String rootId() {
+		return "root@"+documentSet().getDBID();
+	}*/
 	private void view() throws IOException {
         String[] s=args();
 		String id = s[2];
@@ -712,6 +733,9 @@ public class HttpContext implements Wrappable {
 	}
 	private boolean exec(final DocumentScriptable d) {
 		return exec(d,d);
+	}
+	public String[] getParamNames(Function f) {
+		return Args.getArgs(f);
 	}
 	private boolean exec(final DocumentScriptable d, final Scriptable thiz) {
 		boolean execed=false;
@@ -778,7 +802,7 @@ public class HttpContext implements Wrappable {
 		
 		for (String name:c.getUndefinedSymbols()) {
 			String sel = SEL+name;
-			String searchAddr = Html.p(rootPath()+"/search?sel=%u&q=%u",sel, "name:"+name);
+			String searchAddr = Html.p(romRootPath()+"/search?sel=%u&q=%u",sel, "name:"+name);
 			msg.append(Html.p("<a href=%a target=%a>%t</a> <input id=%a name=%a/> <br/>\n", 
 					 searchAddr,
 					 "frame_"+name,
@@ -788,6 +812,9 @@ public class HttpContext implements Wrappable {
 			));
 		}
 		return msg+"";
+	}
+	private String romRootPath() {
+		return rootPath()+"/"+nativePrefix;
 	}
 	private void newDocument() throws IOException {
 		String content="$.extend(_,{\n    name:\"New_Document\"\n});";
@@ -876,7 +903,7 @@ public class HttpContext implements Wrappable {
 			execed=true;
 		} else if (defEdit!=null){
 			//DocumentScriptable defEditDoc = documentLoader.byId(defEdit);
-			redirect(rootPath()+"/exec/"+defEdit+"?doc="+target);
+			redirect(romRootPath()+"/exec/"+defEdit+"?doc="+target);
 		} else {
 			edit();
 		}
@@ -957,34 +984,40 @@ public class HttpContext implements Wrappable {
 			);
 		}
 	}
-	public void su(String user) {
+	/*public void su(String user) {
 		boolean assertRoot = assertRoot();
 		Log.d(this, "Session_assert = "+assertRoot);
 		if (assertRoot) return;
 		req.getSession().setAttribute(USERNAME, user);
-		/*Session s=SessionSet.create(user);
-		res.addCookie(new Cookie(SESSION_NAME, s.id()));
-		Log.d(this, "SEssion = "+s.id());
-			*/
 		
-	}
+	}*/
     private void auth() throws IOException {
 		String user=params().get("user");
 		String pass=params().get("pass");
 		//Session s=null;
 		String msg="";
 		boolean prompt=true;
-		if ("logout".equals(user) || (user!=null && user.length()>0 && pass!=null && pass.length()>0)) {
-			if ("logout".equals(user)) {
+		if (/*"logout".equals(user) || */
+				(user!=null && user.length()>0 && pass!=null && pass.length()>0)) {
+			if (documentLoader.auth(user, pass)) {
+				prompt=false;
+	    		String after=params().get("after");
+	    		if (after!=null) {
+	    			res.sendRedirect(rootPath()+"/"+after);
+	    		} else {
+	    			res.sendRedirect(rootPath()+"/");
+	    		}
+			} else {
+				msg="ユーザ名、パスワードが間違っています。";
+			}
+			/*if ("logout".equals(user)) {
 				user="";
 				//s=Session.NOBODY;
 				req.getSession().removeAttribute(USERNAME);
 			}  else {
 				Authenticator a=documentLoader.authenticator();
-				if (a!=null && a/*AuthentificatorList.alist*/.check(user, pass)) {
+				if (a!=null && a.check(user, pass)) {
 					prompt=false;
-					/*s=SessionSet.create(user);
-		    		res.addCookie(new Cookie(SESSION_NAME, s.id()));*/
 					req.getSession().setAttribute(USERNAME, user);
 		    		String after=params().get("after");
 		    		if (after!=null) {
@@ -995,7 +1028,7 @@ public class HttpContext implements Wrappable {
 				} else {
 					msg="ユーザ名、パスワードが間違っています。";
 				}
-			}
+			}*/
     	} 
 		if (prompt) {
     		if (user==null) user="";
@@ -1082,12 +1115,12 @@ public class HttpContext implements Wrappable {
 				"%t<br/>\n"
 				, AJAXTAG+id
 				, selt
-				, rootPath()+"/view/"+id 
-				, rootPath()+"/edit/"+id 
-				, rootPath()+"/editbody/"+id 
-				, rootPath()+"/customedit/"+id 
-				, rootPath()+"/exec/"+id 
-				, rootPath()+"/new?constructor="+id 
+				, romRootPath()+"/view/"+id 
+				, romRootPath()+"/edit/"+id 
+				, romRootPath()+"/editbody/"+id 
+				, romRootPath()+"/customedit/"+id 
+				, romRootPath()+"/exec/"+id 
+				, romRootPath()+"/new?constructor="+id 
 				, d.summary);
 		}
 	}
@@ -1098,8 +1131,7 @@ public class HttpContext implements Wrappable {
     {
     	Map<String,String> params=params();
     	//args[2]: id of savedsearch
-		String docBase=rootPath();
-        String cstr=params.get("q");
+		String cstr=params.get("q");
         Log.d(this,"cstr = "+cstr);
     	if (cstr==null) {
     		Httpd.respondByString(res,"<form action=\"search\" method=POST><input name=q></form>");
@@ -1127,7 +1159,7 @@ public class HttpContext implements Wrappable {
         Httpd.respondByString(res, buf.toString());
 	}
 	public String rootPath() {
-    	int length=args().length;
+    	int length=argsIncludingRom().length;
 		//  docBase()/byId/****
 		if (length<=2) {
 			// $SOYTEXT/aaa     args=["","aaa"]
@@ -1156,7 +1188,7 @@ public class HttpContext implements Wrappable {
 	String menuBar() {
 		String q=params().get("q");
 		if (q==null) q="";
-		String path=rootPath();
+		String path=romRootPath();
 		StringBuilder buf=new StringBuilder();
         buf.append(Html.p("<html><head><meta http-equiv=%a content=%a></head>"
         		                ,CONTENT_TYPE,TEXT_HTML_CHARSET_UTF_8));

@@ -1,4 +1,5 @@
-res=function (hash) {
+SoyText={};
+SoyText.generateContent=function (hash) {
  return _self(hash);
  function _self(hash) {
    var res="{";
