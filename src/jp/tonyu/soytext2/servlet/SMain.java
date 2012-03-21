@@ -85,19 +85,13 @@ public class SMain extends HttpServlet {
 	String jarFile;
 	//DocumentLoader loader;
 	public  File getNewestDBFile() throws IOException {
-		return getNewestDBFile(dbDir());
+		return getNewestPrimaryDBFile(dbDir());
 	}
-	public static File getNewestDBFile(SFile dbDir) throws IOException {
+	public static File getNewestPrimaryDBFile(SFile dbDir) throws IOException {
 		long max=0;
 		File res=null;
 		
-		SFile dir;
-		SFile pid=dbDir.rel(SDB.PRIMARY_DBID_TXT);
-		if (pid.exists()) {
-			dir=dbDir.rel(pid.text());
-		} else {
-			dir=dbDir;
-		}
+		SFile dir = getPrimaryDBDir(dbDir);
 		Log.d("getNewestDB", "Search in "+dir);
 		for (SFile d:dir) {
 			Log.d("getNewestDB", d);
@@ -112,6 +106,16 @@ public class SMain extends HttpServlet {
 			return dbDir.rel("main.db").javaIOFile();
 		}*/
 		return res;
+	}
+	public static SFile getPrimaryDBDir(SFile dbDir) throws IOException {
+		SFile dir;
+		SFile pid=dbDir.rel(SDB.PRIMARY_DBID_TXT);
+		if (pid.exists()) {
+			dir=dbDir.rel(pid.text());
+		} else {
+			dir=dbDir;
+		}
+		return dir;
 	}
 	private SFile dbDir() {
 		return workspaceDir.rel("db/");

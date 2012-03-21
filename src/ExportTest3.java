@@ -15,7 +15,7 @@ import jp.tonyu.util.TDate;
 
 public class ExportTest3 {
 	public static void main(String[] args) throws SqlJetException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException, IOException {
-		SDB s=new SDB(SMain.getNewestDBFile(new SFile("db")));
+		SDB s=new SDB(SMain.getNewestPrimaryDBFile(new SFile("db")));
 		/*Object b=s.backup();
 		JSON json = new JSON();
 		json.setPrettyPrint(true);

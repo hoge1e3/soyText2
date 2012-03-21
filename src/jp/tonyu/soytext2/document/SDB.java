@@ -378,12 +378,14 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	}*/
 	public SFile newestBackupFile() {
 		SFile src=null;
+		Log.d("newestBackup", "Search backup "+backupDir+" *.json");
 		for (SFile txt:backupDir) {
 			if (!txt.name().endsWith(".json")) continue;
 			if (src==null || txt.lastModified()>src.lastModified()) {
 				src=txt;
 			}
 		}
+		if (src==null) Log.die("Backup not found in "+backupDir);
 		return src;
 	}
 	public SFile newBackupFile() {

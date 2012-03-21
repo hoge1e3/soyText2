@@ -16,6 +16,8 @@ import java.io.UnsupportedEncodingException;
 import java.nio.channels.FileChannel;
 import java.util.Iterator;
 
+import jp.tonyu.debug.Log;
+
 public class SFile implements Iterable<SFile>{
 	java.io.File f;
 	public long lastModified() {
@@ -150,14 +152,27 @@ public class SFile implements Iterable<SFile>{
 		return new SFile(f.getParentFile());
 	}
 	public boolean moveTo(SFile dest) {
+		if (dest.exists()) return false;
 		dest.mkdirs();
-		return moveTo(dest.javaIOFile());
+		boolean res=moveTo(dest.javaIOFile());
+		if (!res) {
+			try {
+				//Log.d("move","copying to "+dest);
+				copyTo(dest);
+				//Log.d("move","deleting"+javaIOFile());
+				res=javaIOFile().delete();
+				//Log.d("move","done "+res);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return res;
 	}
 	public boolean moveTo(File dest) {
 		return f.renameTo(dest);
 	}
 	public static void copy(File src,	File dest) throws IOException {
-
+		long l=src.lastModified();
 		FileChannel srcChannel = new
 				FileInputStream(src).getChannel();
 		FileChannel destChannel = new
@@ -168,6 +183,7 @@ public class SFile implements Iterable<SFile>{
 			srcChannel.close();
 			destChannel.close();
 		}
+		dest.setLastModified(l);
 
 	}
 	public byte[] bytes() throws IOException {

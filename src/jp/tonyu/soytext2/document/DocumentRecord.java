@@ -54,7 +54,7 @@ public class DocumentRecord extends SqlJetRecord /*implements Wrappable*/ {
 	}
 	@Override
 	public String[] indexNames() {
-		return q(LASTUPDATE,"lastAccessed",OWNER); //+","+LASTUPDATE);
+		return q(LASTUPDATE,"lastAccessed",OWNER+","+LASTUPDATE);
 	}
 	/*public void save() {
 		documentSet.save(this);
