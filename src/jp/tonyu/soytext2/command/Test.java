@@ -1,3 +1,4 @@
+package jp.tonyu.soytext2.command;
 import java.io.File;
 
 import org.mozilla.javascript.ClassShutter;

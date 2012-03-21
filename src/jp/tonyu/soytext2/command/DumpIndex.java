@@ -1,3 +1,4 @@
+package jp.tonyu.soytext2.command;
 import java.io.File;
 
 import org.tmatesoft.sqljet.core.SqlJetException;

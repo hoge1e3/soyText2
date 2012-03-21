@@ -1,3 +1,4 @@
+package jp.tonyu.soytext2.command;
 import java.io.File;
 
 import org.tmatesoft.sqljet.core.SqlJetException;
@@ -15,6 +16,6 @@ public class ExportTest2 {
 		//new Exporter(s, new File("db/main.db.txt"));
 		String d=new TDate().toString("yyyy_MMdd_hh_mm_ss");
 		new Exporter2(s, new File("db/main.db."+d+".txt")).export();
-		s.close();
+		s.close();//aaa
 	}
 }

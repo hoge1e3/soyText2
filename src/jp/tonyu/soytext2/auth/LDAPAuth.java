@@ -11,7 +11,7 @@ import org.ietf.ldap.LDAPSearchResults;
 
 
 
-public class LDAPAuth implements Authenticator {		
+public class LDAPAuth implements Authenticator {
 	private static final String ADMINPASS = "admin";
 	private static final String GUESTIDPASS = "guest";
 	int ldapVersion=3;
@@ -24,7 +24,7 @@ public class LDAPAuth implements Authenticator {
 		this.base = base;
 	}
 	String passwordFieldName="userPassword";
-	String uidFieldName="uid";         
+	String uidFieldName="uid";
 	public LDAPAuth(int ldapVersion, String host, String binddn, String bindpw,
 			String base, String passwordFieldName, String uidFieldName) {
 		super();
@@ -51,7 +51,7 @@ public class LDAPAuth implements Authenticator {
 		try {
 			// LDAP サーバに接続する。ポートはデフォルト(389番)を使う。
 			lc.connect( host, LDAPConnection.DEFAULT_PORT );
-			//System.out.println( "Connected to " + host );
+			System.out.println( "Connected to " + host + " filter "+username+" base "+base );
 			//System.out.println();
 
 
@@ -63,7 +63,7 @@ public class LDAPAuth implements Authenticator {
 
 
 			// 指定条件でのディレクトリエントリの検索を行う。
-			LDAPSearchResults results =	lc.search( 
+			LDAPSearchResults results =	lc.search(
 					base,                     // 検索ベース
 					LDAPConnection.SCOPE_SUB, // 検索スコープ
 					filter,                   // 検索フィルタ
@@ -73,13 +73,21 @@ public class LDAPAuth implements Authenticator {
 			boolean res=false;
 			// 得られたエントリを全て表示する。
 			while( results.hasMore() ) {
-				res=checkLDAPEntry( results.next(), password );
-				if (res) break;
+				LDAPEntry entry = results.next();
+				String dn=entry.getDN();
+				try {
+					lc.bind( ldapVersion, dn, password.getBytes());
+					res=true;
+					break;
+				} catch (LDAPException e) {
+					e.printStackTrace();
+				}
+				//res=checkLDAPEntry( entry, password );
 			}
 
 			// 接続を切断する。
 			lc.disconnect();
-			//System.out.println();		
+			//System.out.println();
 			//System.out.println( "Disconnected" );
 			return res;
 		}
@@ -88,15 +96,18 @@ public class LDAPAuth implements Authenticator {
 			return false;
 		}
 	}
+
+
 	private boolean checkLDAPEntry( LDAPEntry entry, String inputPassword ) throws NoSuchAlgorithmException
 	{
-		//System.out.println( "Listing attributes of " + entry.getDN() + " :" );
+		System.out.println( "Listing attributes of " + entry.getDN() + " :" );
 		Iterator items = entry.getAttributeSet().iterator();
 
 		while( items.hasNext() ) {
 			// 各属性に対して複数の属性値が設定されている可能性があるが、
 			// ここでは最初の属性値のみ表示することにする。
 			LDAPAttribute attr = ( LDAPAttribute )items.next();
+			System.out.println(" ATtrname "+attr.getName());
 			Enumeration vals = attr.getStringValues();
 			String val  = ( String )vals.nextElement();
 			if (attr.getName().equals(passwordFieldName)) {

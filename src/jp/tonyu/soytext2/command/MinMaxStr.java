@@ -1,3 +1,4 @@
+package jp.tonyu.soytext2.command;
 import jp.tonyu.soytext2.document.SDB;
 
 

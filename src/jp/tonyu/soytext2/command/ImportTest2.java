@@ -1,3 +1,4 @@
+package jp.tonyu.soytext2.command;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;

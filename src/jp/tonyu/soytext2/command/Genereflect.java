@@ -1,3 +1,4 @@
+package jp.tonyu.soytext2.command;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 

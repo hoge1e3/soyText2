@@ -1,3 +1,4 @@
+package jp.tonyu.soytext2.command;
 import jp.tonyu.js.Wrappable;
 import jp.tonyu.soytext2.js.JSSession;
 import jp.tonyu.util.Maps;

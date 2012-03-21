@@ -1,4 +1,4 @@
-SoyText={};
+SoyText={}; //test
 SoyText.generateContent=function (d) {
 	var buf="";
 	var ctx={
@@ -29,7 +29,7 @@ SoyText.generateContent=function (d) {
 	}
 	buf+="$.extend(_,"+hash(d,ctx)+");"
 	return buf;
-	
+
 	function expr(value,ctx) {
 		if (isDocument(value)) {
 	        return document(value,ctx);
@@ -51,14 +51,14 @@ SoyText.generateContent=function (d) {
 	        }
 	     } else {
 	        return "null";
-	     }  
+	     }
 	}
 	function func(f,ctx) {
    	     f=SoyText.decompile(f,ctx.indentC*4);
    	     //f=f+"";
 	     f=f.replace(/\r/g,"").replace(/^\n/,"").replace(/^\s*/,"").replace(/\n$/,"");
 	     return f;
-	     
+
 	     /*var fa= f.split(/\n/);
 	     var res=fa.map(function (line, no) {
 	    	 if (true) return line;
