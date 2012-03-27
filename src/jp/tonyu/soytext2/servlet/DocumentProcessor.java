@@ -69,8 +69,8 @@ public class DocumentProcessor {
 			return ;
 		}
 		if (e==null) Debug.die(d+" is not evaluatable.");
-		
-		
+
+
 		String[] path=ctx.args(); //   /exec/id/params/params...
 
 		int argCnt=3;
@@ -150,9 +150,9 @@ public class DocumentProcessor {
 		} else {
 	   // String lastup = HttpContext.lastModifiedField(d);
 	   // res.setHeader( "Last-Modified" ,  lastup);
-	    
+
 	    /*InputStream in = d.blob();
-	    
+
 	    if (in != null)
 	    {
 	    	byte[] buf= new byte[1024];
@@ -274,7 +274,7 @@ public class DocumentProcessor {
 			{
 				long oneSec = 10000000;
 				//   10^-9 = 0.000000001（10億分の1）
-				// 100nano = 10^-7  
+				// 100nano = 10^-7
 				// 1sec/100nano sec = 1 sec / (10^-7) sec = 10^7
 				//long ifModifiedSince = req.getDateHeader(lm);//  TimeFormat.fromRFC2822(lm) + oneSec;
 				//long lastModified = d.lastUpdate(); //  TimeFormat.toUtcTicks(d.lastUpdate(), TimeZone.getDefault());
@@ -315,13 +315,19 @@ public class DocumentProcessor {
 		{
 
 			//String str = getContentStr(req);
-			
+
 			Map<String,String> keys=params();//  HttpUtility.ParseQueryString(str);
+			if (keys.containsKey(HttpContext.ATTR_OWNER)) {
+				String o=keys.get(HttpContext.ATTR_OWNER);
+				if (o!=null && o.length()>0) {
+					d.getDocument().owner=o;
+				}
+			}
 			if (keys.containsKey(HttpContext.ATTR_CONTENT)) {
 				if (keys.containsKey(HttpContext.ATTR_PRECONTENT)) {
 					d.getDocument().preContent= keys.get(HttpContext.ATTR_PRECONTENT);
 				}
-				d.setContentAndSave(keys.get(HttpContext.ATTR_CONTENT));				
+				d.setContentAndSave(keys.get(HttpContext.ATTR_CONTENT));
 			} else if (keys.containsKey(HttpContext.ATTR_BODY)) {
 				d.put(HttpContext.ATTR_BODY, keys.get(HttpContext.ATTR_BODY));
 				d.save();
@@ -370,7 +376,7 @@ public class DocumentProcessor {
 		if (ma.lookingAt()) {
 			return Literal.fromQuoteStrippedLiteral(ma.group(1));
 		}
-		ma=idpat.matcher(value);	
+		ma=idpat.matcher(value);
 		DocumentRecord dr=null;
 		if (ma.lookingAt()) {
 			try {
@@ -380,7 +386,7 @@ public class DocumentProcessor {
 		ma=idpatWiki.matcher(value);
 		if (ma.lookingAt()) {
 			dr=viewPoint.byId(ma.group(1));
-		}		
+		}
 		if (dr!=null) {
 			return (dr);
 		}

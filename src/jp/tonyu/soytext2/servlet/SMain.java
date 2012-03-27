@@ -90,7 +90,7 @@ public class SMain extends HttpServlet {
 	public static File getNewestPrimaryDBFile(SFile dbDir) throws IOException {
 		long max=0;
 		File res=null;
-		
+
 		SFile dir = getPrimaryDBDir(dbDir);
 		Log.d("getNewestDB", "Search in "+dir);
 		for (SFile d:dir) {
@@ -125,7 +125,10 @@ public class SMain extends HttpServlet {
 		String res=null;
 		for (String c:ws) {
 			res=c;
-			if (new File(c).exists()) return c;
+			if (new File(c).exists()) {
+				Log.d("SMain", "Workspace="+c);
+				return c;
+			}
 		}
 		throw new RuntimeException("No file in "+path);
 	}
@@ -162,10 +165,10 @@ public class SMain extends HttpServlet {
 		Scanner s=new Scanner(in);
 		String dbid=s.nextLine();
 		s.close();
-		
+
 		//dbIdFile.readFrom(in);
-		//String dbId=dbIdFile.text();		
-		SFile dbDir_in=dbDir.rel(dbid);		
+		//String dbId=dbIdFile.text();
+		SFile dbDir_in=dbDir.rel(dbid);
 		SFile dbFile=dbDir_in.rel("main.db");
 		if (!dbFile.exists()) {
 			in=cl.getResourceAsStream(DB_INIT_PATH+"/"+"main.db");
@@ -173,7 +176,7 @@ public class SMain extends HttpServlet {
 		}
 		return dbFile.javaIOFile();
 		/*ResourceTraverser r=new ResourceTraverser() {
-			
+
 			@Override
 			protected void visitFile(String name) throws IOException {
 				String rel=name.substring(DB_INIT_PATH.length()+1);
@@ -217,7 +220,7 @@ public class SMain extends HttpServlet {
 		final Ref<Boolean> stop=Ref.create(false);
 		Log.showLogWindow(new Runnable() {
 			public void run() {
-				stop.set(true);				
+				stop.set(true);
 			}
 		});
 		String openurl = "http://localhost:"+port+"/?"+Math.random();
@@ -229,7 +232,7 @@ public class SMain extends HttpServlet {
  			Thread.sleep(1000);
  			if (n.hasToBeStopped()) break;
  		}
- 		//try { System.in.read(); } catch( Throwable t ) {};		
+ 		//try { System.in.read(); } catch( Throwable t ) {};
 		sdb.close();
 		n.stop();
 		System.exit(1);

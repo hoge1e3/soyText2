@@ -39,7 +39,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	static final int version=3;
 	//public static final String UID_IMPORT = "77a729a1-5c5d-4d09-9141-72108ee9b634";
 	//public static final String UID_EXISTENT_FILE = "86e08ee0-0bd5-4d1f-a7f5-66c2251e60ad";
-	
+
 	String dbid;
 	final File dbFile;
 	SFile blobDir;
@@ -86,19 +86,19 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		return null;
 	}
 	public SFile getBlobDir() {return blobDir;}
-	
+
 	DocumentRecord documentRecord=new DocumentRecord();
 	LogRecord logRecord=new LogRecord();
 	//DBIDRecord dbidRecord=new DBIDRecord();
 	IndexRecord indexRecord=new IndexRecord();
-	
+
 	@Override
 	public SqlJetRecord[] tables(int version) {
 		return q(documentRecord,logRecord,indexRecord);//, dbidRecord/*,indexRecord*/);
 	}
 	public String toString() {
 		return "(SDB dbid="+dbid+")";
-	}	
+	}
 	Map<String,DocumentRecord> cache=new HashMap<String, DocumentRecord>();
 	final private LogManager logManager;
 
@@ -156,7 +156,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 			}
 			DocumentRecord res = cache.get(id);
 			//if (res.content==null) Log.die(res.id+" has null content");
-			return res;			
+			return res;
 		}
 	}
 	/*public void save(DocumentRecord d) {
@@ -177,9 +177,9 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 			    	d.update(cur);
 			    	//cur.update(d.id,d.lastUpdate,d.createDate,d.lastAccessed,"javascript",d.summary,d.preContent,d.content,d.owner,d.group,d.permission);
 			    } else {
-			    	d.insertTo(t);	
+			    	d.insertTo(t);
 			    	//insertDocument(d, t);
-			    }				
+			    }
 			    Log.d("SAVE", d+": done");
 			    cur.close();
 				cache.put(d.id, d);
@@ -262,10 +262,10 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	}
 	/*public void byIndex(final String name,final String value,final DocumentAction action) throws SqlJetException {
 		readTransaction(new DBAction() {
-			
+
 			@Override
 			public void run(SqlJetDb db) throws SqlJetException {
-				ISqlJetCursor _cur = indexTable().scope("name,value,lastUpdate", 
+				ISqlJetCursor _cur = indexTable().scope("name,value,lastUpdate",
 						q(name,value,Long.MIN_VALUE), q(name,value,Long.MAX_VALUE)).reverse();
 				SqlJetRecordCursor<DocumentRecord> cur=new SqlJetRecordCursor<DocumentRecord>(documentRecord,_cur);
 				while (!cur.eof()) {
@@ -282,7 +282,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	}*/
 	/*public void resetIndex() throws SqlJetException {
 		writeTransaction(new DBAction() {
-			
+
 			@Override
 			public void run(SqlJetDb db) throws SqlJetException {
 				ISqlJetCursor cur = indexTable().order();
@@ -294,7 +294,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 				cur = docTable().order();
 				while (!cur.eof()) {
 					documentRecord.fetch(cur);
-					
+
 				}
 			}
 		}, -1);
@@ -342,7 +342,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		Set<String> s = indexNames();
 		if (s.contains(name)) return;
 		reserveWriteTransaction(new DBAction() {
-			
+
 			@Override
 			public void run(SqlJetDb db) throws SqlJetException {
 				IndexRecord i = new IndexRecord();
@@ -359,10 +359,10 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		if (indexNames!=null) return indexNames;
 		indexNames = new HashSet<String>();
 		readTransaction(new DBAction() {
-			
+
 			@Override
 			public void run(SqlJetDb db) throws SqlJetException {
-				ISqlJetCursor cur = indexTable().scope("name,value,lastUpdate", 
+				ISqlJetCursor cur = indexTable().scope("name,value,lastUpdate",
 						new Object[]{IndexRecord.DEFINED_INDEX_NAMES, MIN_STRING},
 						new Object[]{IndexRecord.DEFINED_INDEX_NAMES, MAX_STRING});
 				IndexRecord rec=new IndexRecord();
@@ -422,13 +422,53 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		return dbid;
 	}
 	@Override
+	public void searchByIndex(final Map<String,String> keyValues, final DocumentAction a) {
+		if (keyValues.isEmpty()) {
+			all(a);
+			return;
+		}
+		try {
+			readTransaction(new DBAction() {
+				@Override
+				public void run(SqlJetDb db) throws SqlJetException {
+					final IntersectDocumentRecordIterator it=new IntersectDocumentRecordIterator();
+					for (String key:keyValues.keySet()) {
+						String value=keyValues.get(key);
+						/*if ("owner".equals(value)) {
+							it.add(new )
+						}*/
+						it.add(new IndexIterator(SDB.this, key, value));
+					}
+					while (it.hasNext()) {
+						DocumentRecord d = it.next();
+						if (a.run(d)) {
+							break;
+						}
+					}
+					it.close();
+				}
+			},-1);
+		} catch (SqlJetException e) {
+			e.printStackTrace();
+		}
+	}
+	@Override
 	public void searchByIndex(final String key, final String value, final DocumentAction a) {
 		try {
 			Log.d("SearchByIndex", "["+key+"]=["+value+"]");
 			readTransaction(new DBAction() {
 				@Override
 				public void run(SqlJetDb db) throws SqlJetException {
-					SqlJetTableHelper t = table(indexRecord);
+					DocumentRecordIterator it=new IndexIterator(SDB.this, key, value);
+					while (it.hasNext()) {
+						DocumentRecord d = it.next();
+						if (a.run(d)) {
+							break;
+						}
+					}
+					it.close();
+
+					/*SqlJetTableHelper t = table(indexRecord);
 					String value2=value+(char)32767;
 					ISqlJetCursor cur = t.scope(IndexRecord.NAME_VALUE_LAST_UPDATE, new Object[]{key,value,Long.MIN_VALUE},new Object[]{key,value2,Long.MIN_VALUE});
 					while (!cur.eof()) {
@@ -438,7 +478,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 							break;
 						}
 						cur.next();
-					}
+					}*/
 
 				}
 			}, -1);

@@ -77,6 +77,7 @@ public class HttpContext implements Wrappable {
 	private static final String SEL = "sel_";
 	public static final jp.tonyu.util.Context<HttpContext> cur=new jp.tonyu.util.Context<HttpContext>();
 	private static final String SESSION_NAME = "soyText_Session";
+	public static final String ATTR_OWNER="owner";
 	//private static final String USERNAME = "soyText_UserName";
 	/*public final soytext.script.Context context= new soytext.script.Context(true);
 	public SessionManager sessionManager() {
@@ -87,7 +88,7 @@ public class HttpContext implements Wrappable {
 		Log.d("RMT", addr);
 		String host=req.getRemoteHost();
 		Log.d("RMTH", host);
-		
+
 		if ("localhost".equals(addr) || "127.0.0.1".equals(addr) || "0:0:0:0:0:0:0:1".equals(addr)) {
 			return true;
 		}
@@ -144,12 +145,12 @@ public class HttpContext implements Wrappable {
 		this.documentLoader=loader;
 	}
 	int printc=0;
-	public void print(Object str) throws IOException { 
-		res.getWriter().print(str);		
+	public void print(Object str) throws IOException {
+		res.getWriter().print(str);
 		printc++;
 	}
 	public int getPrintCount(){return printc;}
-	
+
 	private HttpServletRequest req;
 	public HttpServletRequest getReq() {
 		return req;
@@ -158,9 +159,9 @@ public class HttpContext implements Wrappable {
 		return res;
 	}
 	private HttpServletResponse res;
-	
 
-	
+
+
 	static final String OP_="OP_";
 	//public static final String headAttr="_head";
 	public static final String ATTR_CONTENT="content"; //"[[110414_052728@"+Origin.uid+"]]";
@@ -168,14 +169,14 @@ public class HttpContext implements Wrappable {
 	public static final String AJAXTAG = "AJAXTAG:";
 	public static final String ATTR_ARGUMENTORDER="argumentOrder";
 
-	
-	
+
+
 	Map<String,String> _params=null;
 	static final String ATTR_FORMAT = "_format";
 	static final String ATTR_PRECONTENT = "precontent";
 	public static final String ATTR_SCOPE = "scope";
 	private static final String DOGET = "doGet";
-	
+
     public Map<String,String> params() {
 		if (_params!=null) return _params;
     	Map<String,Object> m=req.getParameterMap();
@@ -199,7 +200,7 @@ public class HttpContext implements Wrappable {
     	final Map<String, String> p = params();
     	final Map<String,Object> res=new HashMap<String, Object>();
     	Maps.entries(p).each(new MapAction<String, String>() {
-			
+
 			@Override
 			public void run(String key, String value) {
 				String type = typeHints.get(key)+"";
@@ -212,7 +213,7 @@ public class HttpContext implements Wrappable {
 					if (m.lookingAt()) {
 						id=m.group(1);
 					} else id=value;
-					o=documentLoader.byId(id);									
+					o=documentLoader.byId(id);
 				} else 	if (type.startsWith("?str")) {
 					o=value;
 				} else {
@@ -250,14 +251,14 @@ public class HttpContext implements Wrappable {
         return s;
     }
 	public String[] execArgs() {
-		//0  1    2   3     
+		//0  1    2   3
 		// /exec/id/args0/args1
 		int start=3;
 		String[] src = args();
 		String[] res=new String[src.length-start];
 		System.arraycopy(src,start,  res,0, res.length);
 		return res;
-		                        
+
 	}
     public String queryString() {
         String query = req.getQueryString();
@@ -285,7 +286,7 @@ public class HttpContext implements Wrappable {
 			}
 		});
     	if (ee.isSet()) throw ee.get();
-	}	
+	}
     private void proc2() throws IOException
     {
 		req.setCharacterEncoding("UTF-8");
@@ -309,9 +310,9 @@ public class HttpContext implements Wrappable {
         }
         else if (s.length == 2 && s[1].equalsIgnoreCase("auth")) {
         	auth();
-        } 
+        }
         else if (s.length == 2 && s[1].equalsIgnoreCase("new")) {
-        	newDocument();        	
+        	newDocument();
         }
         else if (s.length >= 3 && s[1].equalsIgnoreCase("edit")) {
         	edit();
@@ -379,7 +380,7 @@ public class HttpContext implements Wrappable {
     	return romRootPath()+"/browserjs/"+klass.getName();
     }
     private void browserjs() throws IOException {
-		//0  1          2        
+		//0  1          2
 		// /browserjs/path.to.Class
     	String[] a = args();
     	if (a.length<3) return ;
@@ -390,13 +391,13 @@ public class HttpContext implements Wrappable {
 			Httpd.respondByString(res,src);
     	} catch (ClassNotFoundException e) {
 			notfound("Class "+a[2]+" Not found.");
-		}    	
+		}
 	}
 	private void fileUpload() {
-    	//new FileUpload().uploadForm(this);		
+    	//new FileUpload().uploadForm(this);
 	}
     private void fileUploadDone() {
-    	//new FileUpload().uploadDone(this);		
+    	//new FileUpload().uploadDone(this);
 	}
 	private DocumentScriptable getSyncProf(String name) {
 		String syncProfId=params().get(name);
@@ -419,7 +420,7 @@ public class HttpContext implements Wrappable {
     /* input param:
      *   localsyncid=(this system's sync profile id)
      *   credential=
-     *   data= [DocumentRecord] ...  
+     *   data= [DocumentRecord] ...
      *   downloadsince= (optional)
      * output:
      *   [DocumentRecord]...   (since this.syncProf.localLastSynced)
@@ -431,7 +432,7 @@ public class HttpContext implements Wrappable {
     */
     private void recvSync() throws IOException {
     	DocumentScriptable localSyncProf = getSyncProf(LOCAL_SYNCID);
-    	
+
     	// download
     	Object sinceo=ScriptableObject.getProperty(localSyncProf, LOCAL_LAST_SYNCED);
 		String sinces=params().get(DOWNLOADSINCE);
@@ -446,13 +447,13 @@ public class HttpContext implements Wrappable {
 		}
     	res.setContentType (TEXT_PLAIN_CHARSET_UTF_8);
     	final PrintWriter writer=res.getWriter();
-    	exportDocuments(since, writer,null);   	 	
+    	exportDocuments(since, writer,null);
     	// upload
         String data=params().get(DATA);
 		StringReader rd=new StringReader(data);
 		Scanner sc=new Scanner(rd);
 		long newRemoteLastSynced=importDocuments(sc,null,null);
-		
+
 		// update local last synced
 		long newLocalLastSynced=documentLoader.getDocumentSet().log(
 				new Date()+"", "sync", params().get(LOCAL_SYNCID), "");
@@ -462,7 +463,7 @@ public class HttpContext implements Wrappable {
         writer.println(newLocalLastSynced);
 
 		localSyncProf.save();
-		
+
     }
     /* input param:
      *   remotesyncid=(remote's sync profile id)
@@ -485,8 +486,8 @@ public class HttpContext implements Wrappable {
 
 		DocumentScriptable localSyncProf = getSyncProf(LOCAL_SYNCID);
 		w.println("LocalSyncProfile = "+localSyncProf+"<BR>");
-		
-		
+
+
     	String urls=""+ScriptableObject.getProperty(localSyncProf, "url");
     	StringWriter data=new StringWriter();
     	PrintWriter pdata=new PrintWriter(data);
@@ -494,29 +495,29 @@ public class HttpContext implements Wrappable {
     	Vector<String> exported=new Vector<String>(), imported=new Vector<String>();
     	exportDocuments(uploadsince, pdata,exported);
     	String remoteSyncid=params().get(REMOTE_SYNCID);
-    	
+
 		w.println("RemoteSyncProfile = "+remoteSyncid+"<BR>");
     	long downloadsince=getLongProp(localSyncProf, REMOTE_LAST_SYNCED);
 
 		w.println("uploadsince= "+uploadsince+"<BR>");
 		w.println("downlocalsince= "+downloadsince+"<BR>");
 
-    	
+
     	String recv=HttpPost.send(urls, Maps.create(DATA, data.getBuffer()+"")
     			.p(LOCAL_SYNCID,remoteSyncid).p(DOWNLOADSINCE,""+downloadsince));
     	Scanner sc=new Scanner(new StringReader(recv));
-    	
+
     	Set<String> excludes=new HashSet<String>();
     	excludes.addAll(exported);
 		long newRemoteLastSynced=importDocuments(sc,imported,excludes);
-		
+
 		// update local last synced
 		long newLocalLastSynced=documentLoader.getDocumentSet().log
 				(new Date()+"", "sync", params().get(LOCAL_SYNCID), "");
 		ScriptableObject.putProperty(localSyncProf,LOCAL_LAST_SYNCED,newLocalLastSynced);
 		ScriptableObject.putProperty(localSyncProf,REMOTE_LAST_SYNCED,newRemoteLastSynced);
 		localSyncProf.save();
-		
+
 		w.println("<HR>Exported : <BR>");
 		for (String s:exported) {
 			w.println(s+" ");
@@ -532,7 +533,7 @@ public class HttpContext implements Wrappable {
 
 		w.println("<HR>new LocalLastSynced = "+newLocalLastSynced+"<BR>");
 		w.println("new RemoteLastSynced = "+newRemoteLastSynced+"<BR>");
-		
+
     	String after = params().get("after");
     	if (after!=null && after.length()>0) {
     		w.println(Html.p("<HR><a href=%a>戻る</a>",rootPath()+after));
@@ -543,7 +544,7 @@ public class HttpContext implements Wrappable {
 		//input param:
 		//  dbid=(client's DBID)
 		//  credential=(client's user name or something)
-		//  since=(= client's remoteLastsync) displays DocumentRecord.lastupdate>since 
+		//  since=(= client's remoteLastsync) displays DocumentRecord.lastupdate>since
 		//output:
 		//  [DocumentRecord]
 		//  [DocumentRecord]
@@ -561,12 +562,12 @@ public class HttpContext implements Wrappable {
 		}
     	res.setContentType (TEXT_PLAIN_CHARSET_UTF_8);
     	final PrintWriter writer=res.getWriter();
-        exportDocuments(since, writer, null);   	
-      
+        exportDocuments(since, writer, null);
+
 	}
 	private void exportDocuments(final long since, final PrintWriter writer,
 			final List<String> exportedIds) {
-		documentLoader.search("", null, new BuiltinFunc() {		
+		documentLoader.search("", null, new BuiltinFunc() {
 			@Override
 			public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 					Object[] args) {
@@ -594,7 +595,7 @@ public class HttpContext implements Wrappable {
 		//  none
 		//note: This system's remoteLastsync set to max(DocumentRecord.lastupdate)
 		//note: This system's localLastsync set to client's new log id
-		
+
 		if ("get".equalsIgnoreCase( req.getMethod())){
 			print(Html.p("<html><body>" +
 					"<form action=%a method=POST>"+
@@ -691,7 +692,7 @@ public class HttpContext implements Wrappable {
 		DocumentScriptable d = (DocumentScriptable)documentLoader.byId(id);
 		if (d != null)
 		{
-		    documentProcessor(d).proc();           
+		    documentProcessor(d).proc();
 		}
 		else
 		{
@@ -702,11 +703,11 @@ public class HttpContext implements Wrappable {
 			throws IOException {
 		//Map<String,String> params=params();
         String[] s=args();
-        
-        
+
+
 		String id=s[2];
 		final DocumentScriptable d= documentLoader.byId(id);
-        
+
 		if (d!=null) {
 	        /*CompileResult o=JSSession.cur.get().compile(d);
 	        boolean execed=false;
@@ -743,14 +744,14 @@ public class HttpContext implements Wrappable {
 		if (doGet instanceof Function ) {
 			final Function f=(Function) doGet;
 			JSSession.withContext(new ContextRunnable() {
-				
+
 				@Override
 				public Object run(Context cx) {
 					if (Args.getArgs(f).length>1) {
-						f.call(cx, jssession().root, thiz, 
+						f.call(cx, jssession().root, thiz,
 							new Object[]{getReq(),getRes(),HttpContext.this});
 					} else {
-						f.call(cx, jssession().root, thiz, 
+						f.call(cx, jssession().root, thiz,
 								new Object[]{HttpContext.this});
 					}
 					return null;
@@ -794,16 +795,16 @@ public class HttpContext implements Wrappable {
 		if (!found.get()) {
 			notfound(name);
 		}
-		
+
 	}
 	private String contentStatus(ContentChecker c) {
 		StringBuilder msg=new StringBuilder(c.getMsg()+"<br/>\n");
-		
-		
+
+
 		for (String name:c.getUndefinedSymbols()) {
 			String sel = SEL+name;
 			String searchAddr = Html.p(romRootPath()+"/search?sel=%u&q=%u",sel, "name:"+name);
-			msg.append(Html.p("<a href=%a target=%a>%t</a> <input id=%a name=%a/> <br/>\n", 
+			msg.append(Html.p("<a href=%a target=%a>%t</a> <input id=%a name=%a/> <br/>\n",
 					 searchAddr,
 					 "frame_"+name,
 					 name,
@@ -819,7 +820,7 @@ public class HttpContext implements Wrappable {
 	private void newDocument() throws IOException {
 		String content="$.extend(_,{\n    name:\"New_Document\"\n});";
 		String ctr=params().get("constructor");
-		if (ctr!=null) {			
+		if (ctr!=null) {
 			content=sprintf(
 					"$.extend(_,{\n"+
 					"  name:\"New_Document\",\n"+
@@ -868,7 +869,7 @@ public class HttpContext implements Wrappable {
 	}
 	private boolean customEdit() throws IOException {
 		String[] s=args();
-		//   $soyText/customedit/00000 
+		//   $soyText/customedit/00000
 		//   $soyText/customedit/00000?defaultEditor=id
 		String id=s[2];
 		String msg="";
@@ -876,25 +877,25 @@ public class HttpContext implements Wrappable {
 		if (target==null) {
 		    notfound(id);
 		    return false;
-		}	
+		}
 		String defEdit= params().get("defaultEditor");
 		boolean execed=false;
 		Object doEdit=ScriptableObject.getProperty(target, DO_EDIT);
 		if (doEdit instanceof Function ) {
 			final Function f=(Function) doEdit;
 			JSSession.withContext(new ContextRunnable() {
-				
+
 				@Override
 				public Object run(Context cx) {
 					if (Args.getArgs(f).length>1) {
-						f.call(cx, jssession().root, target, 
+						f.call(cx, jssession().root, target,
 							new Object[]{getReq(),getRes(),HttpContext.this});
 					} else {
-						f.call(cx, jssession().root, target, 
+						f.call(cx, jssession().root, target,
 								new Object[]{HttpContext.this});
 					}
-					/*	
-					f.call(cx, jssession().root, target, 
+					/*
+					f.call(cx, jssession().root, target,
 							new Object[]{getReq(),getRes(),HttpContext.this});
 					*/
 					return null;
@@ -919,7 +920,7 @@ public class HttpContext implements Wrappable {
 		    notfound(id);
 		    return;
 		}
-		String content = target.getDocument().content;	
+		String content = target.getDocument().content;
 		if (req.getMethod().equals("POST")) {
 			content=params().get(ATTR_CONTENT);
 			String[] reqs = getRequires();
@@ -938,14 +939,16 @@ public class HttpContext implements Wrappable {
 				"<input name=%a value=%a /><br/-->"+
 				"Requires: <input name=requires><BR>"+
 				"Content: <br/>\n"+
-				"<textarea id=edit name=%a rows=20 cols=80>%t</textarea>"+
+				"<textarea id=edit name=%a rows=20 cols=80>%t</textarea><br/>\n"+
+				"Owner: <input name=%a value=%a/><br/>\n"+
 				"<input type=submit>"+
 				"</form>"+indentAdap()+"</body></html>",
-				"./"+id, 
+				"./"+id,
 				msg,
 				HttpContext.ATTR_PRECONTENT,
 				preContent==null?"":preContent,
-						HttpContext.ATTR_CONTENT, content)
+						ATTR_CONTENT, content,
+						ATTR_OWNER, target.getDocument().owner)
 		);
 
 	}
@@ -973,7 +976,7 @@ public class HttpContext implements Wrappable {
 		} else if (req.getMethod().equals("POST")) {
 			documentProcessor(d).proc();
 		} else {
-			
+
 			Httpd.respondByString(res, menuBar()+Html.p(
 					"<form action=%a method=\"POST\">"+
 					"Body: <br/>\n"+
@@ -989,7 +992,7 @@ public class HttpContext implements Wrappable {
 		Log.d(this, "Session_assert = "+assertRoot);
 		if (assertRoot) return;
 		req.getSession().setAttribute(USERNAME, user);
-		
+
 	}*/
     private void auth() throws IOException {
 		String user=params().get("user");
@@ -1029,7 +1032,7 @@ public class HttpContext implements Wrappable {
 					msg="ユーザ名、パスワードが間違っています。";
 				}
 			}*/
-    	} 
+    	}
 		if (prompt) {
     		if (user==null) user="";
     		String aft="";
@@ -1082,24 +1085,24 @@ public class HttpContext implements Wrappable {
 		return linkBar(ds,null);
 	}
 	/**
-	 * 
+	 *
 	 * @param ds
 	 * @param sel
 	 * @return
 	 */
 	public String linkBar(DocumentScriptable ds,String sel) {
 		DocumentRecord d=ds.getDocument();
-		String id=d.id; 
-		
+		String id=d.id;
+
 		if (isAjaxRequest()) {
 			return 	Util.encodeTabJoin(new Object[] {d.lastUpdate , id, d.summary})+"\n";
 		} else {
 			String selt="";
 			if (sel!=null) {
-				selt=Html.p("<a href=%a>Sel</a> ", 
+				selt=Html.p("<a href=%a>Sel</a> ",
 					  SPrintf.sprintf(
 						 "javascript:window.opener.document.getElementById(%s).value=%s;window.close();",
-						 Literal.toLiteral(sel), 
+						 Literal.toLiteral(sel),
 						 Literal.toLiteral(SPrintf.sprintf("$.byId(%s)",Literal.toLiteral(id)))
 					  )
 				);
@@ -1115,12 +1118,12 @@ public class HttpContext implements Wrappable {
 				"%t<br/>\n"
 				, AJAXTAG+id
 				, selt
-				, romRootPath()+"/view/"+id 
-				, romRootPath()+"/edit/"+id 
-				, romRootPath()+"/editbody/"+id 
-				, romRootPath()+"/customedit/"+id 
-				, romRootPath()+"/exec/"+id 
-				, romRootPath()+"/new?constructor="+id 
+				, romRootPath()+"/view/"+id
+				, romRootPath()+"/edit/"+id
+				, romRootPath()+"/editbody/"+id
+				, romRootPath()+"/customedit/"+id
+				, romRootPath()+"/exec/"+id
+				, romRootPath()+"/new?constructor="+id
 				, d.summary);
 		}
 	}
@@ -1137,13 +1140,13 @@ public class HttpContext implements Wrappable {
     		Httpd.respondByString(res,"<form action=\"search\" method=POST><input name=q></form>");
     	} else {
     		search(cstr,params.get("sel"));
-    		
+
     	}
     }
     private void search(String cstr, final String sel) throws IOException {
     	if (assertRoot()) return;
     	final StringBuffer buf = new StringBuffer(isAjaxRequest() ? "" : menuBar());
-        documentLoader.search(cstr, null, new BuiltinFunc() {		
+        documentLoader.search(cstr, null, new BuiltinFunc() {
         	int c=0;
 			@Override
 			public Object call(Context cx, Scriptable scope, Scriptable thisObj,
@@ -1153,7 +1156,7 @@ public class HttpContext implements Wrappable {
 				c++;
 				return c>100;
 			}
-		});   	
+		});
         buf.append("<BR>insts= "+SMain.insts);
     	res.setContentType (TEXT_HTML_CHARSET_UTF_8);
         Httpd.respondByString(res, buf.toString());
@@ -1202,15 +1205,15 @@ public class HttpContext implements Wrappable {
         //buf.append(Html.p("<a href=%a>検索</a> |\n" , path+"/search"));
         buf.append("DB: "+documentSet());
         buf.append("| Loaders: "+DocumentLoader.loaders.size());
-        buf.append(Html.p("| Err: <a href=%a>%s</a>", 
+        buf.append(Html.p("| Err: <a href=%a>%s</a>",
         		path+"/errorlog", ""+Log.errorLog.getBuffer().length()));
         buf.append("<HR>");
         return buf.toString();
 	}
-	
+
 	/*public static String lastModifiedField(Document d)
 	{
-	    return TimeFormat.toRFC2822(d.lastUpdate());//TimeFormat.toUtcTicks(d.lastUpdate(), TimeZone.getDefault())); 
+	    return TimeFormat.toRFC2822(d.lastUpdate());//TimeFormat.toUtcTicks(d.lastUpdate(), TimeZone.getDefault()));
 	}*/
 	public static String detectContentType(String fileName) {
 		return detectContentType(fileName, TEXT_PLAIN_CHARSET_UTF_8);
@@ -1248,7 +1251,7 @@ public class HttpContext implements Wrappable {
 	            def = "application/x-java-applet";
 	        }*/
 	    }
-	    return def;		
+	    return def;
 	}
 	public Object getSession(String key) {
 		HttpSession s=req.getSession();
@@ -1257,9 +1260,9 @@ public class HttpContext implements Wrappable {
 	}
 	public void putSession(String key,Object value) {
 		HttpSession s=req.getSession();
-		if (s!=null) s.setAttribute(key,value);		
+		if (s!=null) s.setAttribute(key,value);
 	}
-	
+
 	public static String detectContentType(DocumentScriptable d)
 	{
 	    Object c = d.get(CONTENT_TYPE);
@@ -1343,12 +1346,12 @@ public class HttpContext implements Wrappable {
 			}
 			sc.close();
 			w.close();
-			
+
 			Importer i=new Importer(documentLoader);
 			i.importDocuments(file);
-			
+
 			all();
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -54,7 +54,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 	public DocumentLoader(DocumentSet documentSet) {
 		super();
 		this.documentSet = Log.notNull(documentSet,"documentSet");
-		
+
 		this.jsSession=new JSSession();
 		loaders.put(this,true);
 	}
@@ -91,7 +91,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 						}
 					};
 				}
-				if ("newInstance".equals(name)) { //  new func() 
+				if ("newInstance".equals(name)) { //  new func()
 					return new BuiltinFunc() {
 
 						@Override
@@ -148,10 +148,10 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 			   com=new Comment();
                wrt(com);
                sub.com=com;
-               sub.save(); // At this time, com.content == null. 
+               sub.save(); // At this time, com.content == null.
                            // And notify content of sub to other sessions
                            // In other sessions, com has not loaded(because it is new)
-                           // Thus, com will loaded while saving sub with null content                           
+                           // Thus, com will loaded while saving sub with null content
                com.save(); // at this time, com.content is properly set. No problem.
 
 			 */
@@ -175,7 +175,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 	private DocumentScriptable defaultDocumentScriptable(final DocumentRecord src) {
 		DocumentScriptable res = new DocumentScriptable(this, src);
 		if (objs.containsKey(src.id)) Log.die("Already have "+src);
-		
+
 		objs.put(src.id, res);
 		return res;
 	}
@@ -233,32 +233,50 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 		final Query q = newQuery(cond, tmpl);
 		searchByQuery(q,iter);
 	}
-	private QueryExpression extractIndexExpr(QueryExpression e) {
+	private void extractIndexExpr(Map<String,String> idxs, QueryExpression e) {
 		if (e instanceof AndExpr) {
 			AndExpr a = (AndExpr) e;
 			for (QueryExpression ea:a) {
-				QueryExpression res=extractIndexExpr(ea);
-				if (res!=null) return res;
+				extractIndexExpr(idxs,ea);
+				if (!idxs.isEmpty())break; // get only first: the result of first cond must be fewer than following
+				//QueryExpression res=extractIndexExpr(idxs,ea);
+				//if (res!=null) return res;
 			}
 		} else if (e instanceof AttrExpr) {
-			AttrExpr r = (AttrExpr) e;
-			if (getDocumentSet().indexAvailable(r.getKey())) {
-				return r;
+			AttrExpr aidx = (AttrExpr) e;
+			String key = aidx.getKey();
+			Object value = aidx.getValue();
+			if (getDocumentSet().indexAvailable(key)) {
+				if (value instanceof DocumentScriptable) {
+					DocumentScriptable ds = (DocumentScriptable) value;
+					value=ds.getDocument().id;
+				}
+				idxs.put(key, value.toString());
+			} else {
+				if (value instanceof DocumentScriptable) {
+					DocumentScriptable ds = (DocumentScriptable) value;
+					value=ds.getDocument().id;
+					idxs.put(IndexRecord.INDEX_REFERS, value.toString());
+				}
 			}
 		} else if (e instanceof BackLinkExpr) {
-			BackLinkExpr b = (BackLinkExpr) e;
-			return b;
+			BackLinkExpr bidx = (BackLinkExpr) e;
+			idxs.put(IndexRecord.INDEX_REFERS, bidx.toId);
+			//return b;
 		} else if (e instanceof InstanceofExpr) {
-			InstanceofExpr i = (InstanceofExpr) e;
-			return i;
+			InstanceofExpr iidx = (InstanceofExpr) e;
+			idxs.put(IndexRecord.INDEX_INSTANCEOF, iidx.klass);
 		}
-		return null;
+		//return null;
 	}
 	public void searchByQuery(final Query q, final Function iter) {
 		Log.d(this, "Search by "+q);
 		QueryTemplate qt = q.getTemplate();
 		QueryExpression e = qt.getCond();
-		QueryExpression idx = extractIndexExpr(e);
+		Map<String,String> idxs=new HashMap<String, String>();
+		//QueryExpression idx =
+		extractIndexExpr(idxs, e);
+		Log.d(this, "Search with index "+idxs);
 		DocumentAction docAct = new DocumentAction() {
 
 			@Override
@@ -276,8 +294,9 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 				return false;
 			}
 		};
-		if (idx==null) {
-			getDocumentSet().all(docAct);			
+		getDocumentSet().searchByIndex(idxs, docAct);
+		/*if (idx==null) {
+			getDocumentSet().all(docAct);
 		} else {
 			if (idx instanceof AttrExpr) {
 				AttrExpr aidx = (AttrExpr) idx;
@@ -294,7 +313,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 				InstanceofExpr iidx = (InstanceofExpr) idx;
 				getDocumentSet().searchByIndex(IndexRecord.INDEX_INSTANCEOF, iidx.klass, docAct);
 			}
-		}
+		}*/
 	}
 	public Query newQuery(String cond, Scriptable tmpl) {
 		final QueryBuilder qb=QueryBuilder.create(cond);
@@ -310,7 +329,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 							value=svalue.substring(1);
 						}
 					}
-					qb.tmpl(key, value, op);				
+					qb.tmpl(key, value, op);
 				}
 			});
 			/*for (Object n:tmpl.getIds()) {
@@ -325,7 +344,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 							value=svalue.substring(1);
 						}
 					}
-					qb.tmpl(name, value, op);				
+					qb.tmpl(name, value, op);
 				}
 			}*/
 		}
@@ -420,11 +439,11 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 		if (a instanceof Function) {
 			Function f = (Function) a;
 			Log.d(this, "Using - "+f+" as authlist");
-			jsSession.call(f, new Object[]{auth});			
+			jsSession.call(f, new Object[]{auth});
 		}
 		/*QueryBuilder qb=QueryBuilder.create("authenticatorList:true");
 		searchByQuery(qb.toQuery(), new BuiltinFunc() {
-			
+
 			@Override
 			public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 					Object[] args) {
@@ -442,7 +461,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 		dst.lastUpdate=lu;
 	}
 	/**
-	 * 
+	 *
 	 * @param dr DocumentRecord to be imported
 	 * @return true if DocumentScriptable having id equals to dr.id in objs(cache)
 	 * @throws SqlJetException
@@ -470,16 +489,16 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 			for (String id: willUpdateIndex) {
 				DocumentScriptable s=byId(id);
 				s.refreshIndex();
-			}			
+			}
 		}
 	}
 	public void rebuildIndex() {
 		JSSession.withContext(new ContextRunnable() {
-			
+
 			@Override
 			public Object run(Context cx) {
 				documentSet.all(new DocumentAction() {
-					
+
 					@Override
 					public boolean run(DocumentRecord d) {
 						DocumentScriptable s=byId(d.id);
@@ -504,5 +523,5 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 		String user=(this.user==null?"nobody":this.user); //  currentSession().userName();
 		return user;
 	}
-	
+
 }

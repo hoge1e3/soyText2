@@ -12,5 +12,6 @@ public interface DocumentSet {
 	public int log( String date, String action, String target, String option);
 	public String getDBID();
 	public void searchByIndex(String key, String value, DocumentAction a);
+	public void searchByIndex(Map<String, String> keyValues, DocumentAction a);
 	public boolean indexAvailable(String key);
 }
