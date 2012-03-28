@@ -8,15 +8,20 @@ import jp.tonyu.soytext2.document.DocumentSet;
 import jp.tonyu.soytext2.search.expr.AndExpr;
 import jp.tonyu.soytext2.search.expr.AttrExpr;
 import jp.tonyu.soytext2.search.expr.AttrOperator;
+import jp.tonyu.soytext2.search.expr.BackLinkExpr;
 import jp.tonyu.soytext2.search.expr.InstanceofExpr;
 import jp.tonyu.soytext2.search.expr.KeywordExpr;
 import jp.tonyu.soytext2.search.expr.QueryExpression;
 
 public class AndQueryBuilder {
 	AndExpr cond=new AndExpr();
-	
+
 	public AndQueryBuilder instof(String klassId) {
 		cond.add(new InstanceofExpr(klassId));
+		return this;
+	}
+	public AndQueryBuilder backlinks(String docId) {
+		cond.add(new BackLinkExpr(docId));
 		return this;
 	}
 	public AndQueryBuilder attr(String name, Object value, AttrOperator op) {

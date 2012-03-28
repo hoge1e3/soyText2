@@ -2,6 +2,7 @@ package jp.tonyu.soytext2.js;
 
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.Wrappable;
+import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.IndexRecord;
 import jp.tonyu.soytext2.search.QueryBuilder;
 import jp.tonyu.soytext2.search.expr.AttrOperator;
@@ -32,8 +33,8 @@ public class DBHelper implements Wrappable{
 		Log.die("db.is fail "+value+" is not document");
 		return null;
 	}
-	public AndDBSearcher backlinks(Object value) {
-		return new AndDBSearcher(this).backlinks(value);
+	public AndDBSearcher backlinks(DocumentScriptable value) {
+		return new AndDBSearcher(this).backlinks(value.id());
 	}
 	public AndDBSearcher q(String name, Object value) {
 		return new AndDBSearcher(this).q(name, value);
@@ -52,7 +53,7 @@ public class DBHelper implements Wrappable{
 	}
 
 	public Object insert(Scriptable obj) {
-		DocumentScriptable d = loader.newDocument(obj);		
+		DocumentScriptable d = loader.newDocument(obj);
 		return d;
 	}
 	public Object byId(String id) {
@@ -65,7 +66,7 @@ public class DBHelper implements Wrappable{
 		Object res=loader.byId(id);
 		if (res!=null) return res;
 		return loader.newDocument(id);
-		
+
 	}
 	public String getContent(DocumentScriptable d) {
 		return d.getDocument().content;

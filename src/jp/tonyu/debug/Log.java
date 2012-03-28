@@ -15,7 +15,7 @@ public class Log {
 	}
 	public static void d(Object tag,Object content) {
 		//if ("ToValues".equals(tag) || "ClassIdx".equals(tag) ||"getSPClass".equals(tag)) {
-		if ("QueryMatched".equals(tag)) {
+		if (!"htpcon".equals(tag)) {
 		} else {
 			String cont = "["+tag+"]"+content;
 			System.out.println(cont);
@@ -25,7 +25,7 @@ public class Log {
 
 	public static Object die(String string) {
 		throw new RuntimeException(string);
-		
+
 	}
 
 	public static void w(Object tag, Object content) {
