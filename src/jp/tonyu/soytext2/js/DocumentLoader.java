@@ -189,12 +189,12 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 		//scope.setPrototype(tools);
 		DocumentLoaderScriptable loaderScope = new DocumentLoaderScriptable(jsSession().root, this, dst);
 		try {
-			jsSession().eval(dst.getDocument()+"", newContent, loaderScope);
+			jsSession().eval(dst+"", newContent, loaderScope);
 			dst.put(HttpContext.ATTR_SCOPE, loaderScope.scope());
 		} catch (Exception e) {
 			e.printStackTrace();
 			Log.e(e);
-			Log.d(this , dst.getDocument().id+" has invalid content "+newContent);
+			Log.d(this , dst.id()+" has invalid content "+newContent);
 			dst.put(ERROR_MSG, e.getMessage() );
 			dst.put(ERROR_CONTENT, newContent );
 		}

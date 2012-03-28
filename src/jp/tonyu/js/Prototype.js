@@ -55,7 +55,7 @@ var Class = (function() {
     if (parent) {
       subclass.prototype = parent.prototype;
       klass.prototype = new subclass;
-      parent.subclasses.push(klass);
+      if (parent.subclasses) parent.subclasses.push(klass);
     }
 
     for (var i = 0; i < properties.length; i++)
@@ -668,7 +668,7 @@ var Enumerable = (function() {
       if (e != $break) {
     	  if (e.rhinoException) throw e.rhinoException;
     	  else throw e;
-      }    
+      }
     }
     return this;
   }

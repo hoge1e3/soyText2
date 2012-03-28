@@ -29,6 +29,7 @@ import org.mozilla.javascript.UniqueTag;
 import org.omg.CosNaming.NamingContextPackage.NotFound;
 
 public class DocumentScriptable implements Function {
+	public static final String IS_INSTANCE_ON_MEMORY = "isInstanceOnMemory";
 	//public static final String PROTOTYPE = "prototype";
 	//public static final String CONSTRUCTOR = "constructor";
 	public static final String CALLSUPER="callSuper";
@@ -52,7 +53,7 @@ public class DocumentScriptable implements Function {
 		put("save",this, );*/
 	}
 	BuiltinFunc saveFunc =new BuiltinFunc() {
-		
+
 		@Override
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 				Object[] args) {
@@ -76,7 +77,7 @@ public class DocumentScriptable implements Function {
 		}
 	};
 	/*BuiltinFunc compileFunc =new BuiltinFunc() {
-		
+
 		@Override
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 				Object[] args) {
@@ -90,7 +91,7 @@ public class DocumentScriptable implements Function {
 		}
 	};*/
 	BuiltinFunc hasOwnPropFunc= new BuiltinFunc() {
-		
+
 		@Override
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 				Object[] args) {
@@ -99,12 +100,12 @@ public class DocumentScriptable implements Function {
 		}
 	};
 	BuiltinFunc setBlobFunc= new BuiltinFunc() {
-		
+
 		@Override
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 				Object[] args) {
 			if (args.length==0) return false;
-			if (args[0] instanceof InputStream) {		
+			if (args[0] instanceof InputStream) {
 				InputStream str = (InputStream) args[0];
 				try {
 					FileSyncer.setBlob(DocumentScriptable.this, str);
@@ -117,7 +118,7 @@ public class DocumentScriptable implements Function {
 	};
 	int callsuperlim=0;
 	BuiltinFunc callSuperFunc =new BuiltinFunc() {
-		
+
 		@Override
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 				Object[] args) {
@@ -130,13 +131,13 @@ public class DocumentScriptable implements Function {
 						c++;
 						if (c==2) {
 							Function f = (Function) fo;
-							
+
 							Object[] argShift=new Object[args.length-1];
 							for (int i=0 ; i<argShift.length ; i++) {
 								argShift[i]=args[i+1];
 							}
 							Log.d(this, "Calling superclass function "+cx.decompileFunction(f,0));
-							return f.call(cx, scope, thisObj, argShift);							
+							return f.call(cx, scope, thisObj, argShift);
 						}
 					}
 				}
@@ -149,11 +150,11 @@ public class DocumentScriptable implements Function {
 			Scriptable p = proto.getPrototype();
 			Log.d(this, "proto.p = "+p);
 			if (p!=null && args.length>0) {
-				
+
 				Object fo = p.get(args[0]+"", p);
 				if (fo instanceof Function) {
 					Function f = (Function) fo;
-					
+
 					Object[] argShift=new Object[args.length-1];
 					for (int i=0 ; i<argShift.length ; i++) {
 						argShift[i]=args[i+1];
@@ -189,7 +190,7 @@ public class DocumentScriptable implements Function {
 			DocumentScriptable keyDoc = (DocumentScriptable) key;
 			Getter g=keyDoc.getGetter();
 			if (g!=null) return g.getFrom(this);
-		}	
+		}
 		/*Scriptable __proto__ = getPrototype();
 		if (__proto__!=null) return __proto__.get(key+"",__proto__);*/
 		return UniqueTag.NOT_FOUND;
@@ -202,7 +203,7 @@ public class DocumentScriptable implements Function {
 	}
 	public Object put(Object key,Object value) {
 		/*if (key instanceof DocumentScriptable) {
-			DocumentScriptable s = (DocumentScriptable) key;			
+			DocumentScriptable s = (DocumentScriptable) key;
 			binds.put(JSSession.idref(s, d.documentSet),value);
 		} else*/
 		if (key instanceof String || key instanceof Number) {
@@ -220,7 +221,7 @@ public class DocumentScriptable implements Function {
 
 	@Override
 	public void delete(String name) {
-		binds.remove(name);		
+		binds.remove(name);
 	}
 
 	@Override
@@ -257,7 +258,7 @@ public class DocumentScriptable implements Function {
 		for (Object key:keys) {
 			/*if (key instanceof DocumentScriptable) {
 				DocumentScriptable s = (DocumentScriptable) key;
-				
+
 				res[i] = JSSession.idref(s, d.documentSet);
 				Log.d(this, "Put res["+i+"]="+res[i]);
 			} else
@@ -344,7 +345,7 @@ public class DocumentScriptable implements Function {
 	@Override
 	public void setParentScope(Scriptable parent) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -412,12 +413,12 @@ public class DocumentScriptable implements Function {
 		final StringBuilder b=new StringBuilder();
 		/*if (s instanceof Scriptable) {
 			Scriptables.each((Scriptable)s, new StringPropAction() {
-				
+
 				@Override
 				public void run(String key, Object value) {
 					if (value instanceof DocumentScriptable) {
 						DocumentScriptable dd = (DocumentScriptable) value;
-						b.append(SPrintf.sprintf("var %s=$.byId(\"%s\");\n",key,dd.d.id));						
+						b.append(SPrintf.sprintf("var %s=$.byId(\"%s\");\n",key,dd.d.id));
 					}
 				}
 			});
@@ -430,9 +431,9 @@ public class DocumentScriptable implements Function {
 		d.content=content;
 		if (d.content==null) Log.die("Content of "+d.id+" is null!");
 		String c=d.content;
-		if (c.length()>10000) c=c.substring(0,10000); 
+		if (c.length()>10000) c=c.substring(0,10000);
 		Log.d(System.identityHashCode(this), "setContentAndSave() content changed to "+c);
-		loader.loadFromContent(content, this);		
+		loader.loadFromContent(content, this);
 		refreshSummary();
 		PairSet<String,String> idx = indexUpdateMap();
 		loader.save(d, idx);
@@ -440,7 +441,7 @@ public class DocumentScriptable implements Function {
 	}
 	public void reloadFromContent() {
 		if (d.content==null) Log.die("Content of "+d.id+" is null!");
-		loader.loadFromContent(d.content, this);		
+		loader.loadFromContent(d.content, this);
 		refreshSummary();
 	}
 	@Override
@@ -486,7 +487,7 @@ public class DocumentScriptable implements Function {
 			Function f = (Function) r;
 			Object[] args2=new Object[args.length+1];
 			args2[0]=thisObj;
-			for (int i=1 ; i<args2.length ;i++){ 
+			for (int i=1 ; i<args2.length ;i++){
 				args2[i]=args[i-1];
 			}
 			return f.call(cx, scope, this , args2);
@@ -494,11 +495,28 @@ public class DocumentScriptable implements Function {
 		Log.die(this+" is not function-callable.");
 		return null;
 	}
+	public boolean isInstanceOnMemory() {
+		Object r=get(IS_INSTANCE_ON_MEMORY);
+		if (r instanceof Boolean) {
+			return (Boolean)r;
+		}
+		return false;
+	}
 	@Override
 	 public Scriptable construct(Context cx, Scriptable scope, Object[] args) {
-		DocumentScriptable d=loader.newDocument(); //  generate id
+		Scriptable d; //  generate id
+		if (isInstanceOnMemory()) {
+			d=new BlessedScriptable(this);
+			/* new BlankScriptableObject();
+			Object prot = get(Scriptables.PROTOTYPE);
+			if (prot instanceof Scriptables) {
+				d.setPrototype( (Scriptable)prot  );
+			}*/
+		} else {
+			d=loader.newDocument(); //  generate id
+		}
 		//Scriptable cons = getConstructor();
-		d.put(Scriptables.CONSTRUCTOR, this); //cons);
+		ScriptableObject.putProperty(d,Scriptables.CONSTRUCTOR, this); //cons);
 		String name=Scriptables.getAsString(this, "name", null);
 		if (name!=null) {
 			Scriptable scope2=new BlankScriptableObject();

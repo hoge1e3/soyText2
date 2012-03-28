@@ -62,6 +62,7 @@ import jp.tonyu.util.Util;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
+import org.mozilla.javascript.ScriptRuntime;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 import org.tmatesoft.sqljet.core.SqlJetException;
@@ -271,11 +272,13 @@ public class HttpContext implements Wrappable {
 			@Override
 			public void run() {
 				try {
+					Log.d("htpcon","Before proc2");
 					proc2();
+					Log.d("htpcon","After proc2");
 				}catch (Exception e) {
 					//ee.set(e);
 					try {
-						Log.d(this, "spawned Error - "+e);
+						Log.d("htpcon", "spawned Error - "+e);
 						res.setContentType(TEXT_PLAIN_CHARSET_UTF_8);
 						Httpd.respondByString(getRes(), "Error - "+e);
 					} catch (Exception e1) {
@@ -747,6 +750,17 @@ public class HttpContext implements Wrappable {
 
 				@Override
 				public Object run(Context cx) {
+					String sf = cx.decompileFunction(f,0);
+					//Log.d("htpcon","Before exec func "+ sf );
+					/*if (sf.indexOf("HttpHelper")>=0) {
+						Log.die("Who did it?"); //ListLessons did it
+					}*/
+					/*try {
+						print("Before exec");
+					} catch (IOException e) {
+						// TODO 自動生成された catch ブロック
+						e.printStackTrace();
+					}*/
 					if (Args.getArgs(f).length>1) {
 						f.call(cx, jssession().root, thiz,
 							new Object[]{getReq(),getRes(),HttpContext.this});
@@ -754,6 +768,13 @@ public class HttpContext implements Wrappable {
 						f.call(cx, jssession().root, thiz,
 								new Object[]{HttpContext.this});
 					}
+					//Log.d("htpcon","After exec func"+ sf);
+					/*try {
+						print("After exec");
+					} catch (IOException e) {
+						// TODO 自動生成された catch ブロック
+						e.printStackTrace();
+					}*/
 					return null;
 				}
 			});

@@ -69,7 +69,7 @@ public class JSSession {
 	}*/
 	JSSession() {
 		Context c=Context.enter();
-		
+
 		root=initObject(c);
 		objFactory=(Function)ScriptableObject.getProperty(root, "Object");
 		aryFactory=(Function)ScriptableObject.getProperty(root, "Array");
@@ -77,6 +77,8 @@ public class JSSession {
 		ScriptableObject.putProperty(utils, "decompile", HashLiteralConv.decompile);
 		ScriptableObject.putProperty(utils, "isJavaNative", HashLiteralConv.isJavaNative);
 		ScriptableObject.putProperty(utils, "isDocument", HashLiteralConv.isDocument);
+		ScriptableObject.putProperty(utils, "debug", new Debug());
+
 		Context.exit();
 	}
 	Function objFactory,aryFactory;
@@ -127,7 +129,7 @@ public class JSSession {
 	@SuppressWarnings("serial")
 	public Object eval (final String name, final String s , final Map<String,Object> scope) {
 		return withContext(new ContextRunnable() {
-			
+
 			@Override
 			public Object run(Context cx) {
 				try {
@@ -158,7 +160,7 @@ public class JSSession {
 		return call(f,root,args);
 	}
 	public Object call(final Function f, final Scriptable thisObject, final Object[] args) {
-		return withContext(new ContextRunnable() {			
+		return withContext(new ContextRunnable() {
 			@Override
 			public Object run(Context cx) {
 				//cx.setWrapFactory(new SafeWrapFactory());
@@ -185,7 +187,7 @@ public class JSSession {
 					try {
 						boolean res=false;
 						Class<?> c=Class.forName(fullClassName);
-						res=(Object.class.equals(c)) || 
+						res=(Object.class.equals(c)) ||
 							(Wrappable.class.isAssignableFrom(c)) ||
 						    (Exception.class.isAssignableFrom(c));
 						Log.d("ClassShutter", fullClassName+" - "+res);
@@ -201,7 +203,7 @@ public class JSSession {
 			return action.run(cx);
 		} finally {
 			Context.exit();
-		}			
+		}
 	}
 
 	/*Map<String, CompileResult> compileCache=new HashMap<String, CompileResult>();
@@ -225,7 +227,7 @@ public class JSSession {
 	}
 	/*public static void main(String[] args) {
 		JSSession s = new JSSession();
-		
+
 		Object r = s.eval("test","a.b(3);", Maps.create("a",(Object)new A()) );
 		System.out.println(r);
 

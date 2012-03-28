@@ -8,25 +8,25 @@ import jp.tonyu.js.BlankScriptableObject;
 import jp.tonyu.js.Scriptables;
 
 /**
- *  BlessedScriptable object traces valid prototype of the class(=constructor) 
+ *  BlessedScriptable object traces valid prototype of the class(=constructor)
  *  even when the class was modified.
- *  
+ *
  * It also prevents generate extra DocumentScriptable having id and stored to db.
- * 
+ *
  * BlessedScriptable can be create by $.inherit(class, initValues) or $.bless(class, initValues);
- * 
+ *
  * id=1
  *  $.extend(_,{name:"SPClass",prototype: { foo: function () { return x+1; } });
- * id=2 
+ * id=2
  *  $.extend(_ {name:"SBClass",prototype: $.inherit(SPClass, {x:3})});
- * s=new SBClass();  
+ * s=new SBClass();
  * s.foo(); // 4
  * id=1 (modify)
  *  $.extend(_,{name:"SPClass",prototype: { foo: function () { return x+2; } });
  * s.foo(); // 5
- * 
- * SPClass.prototype 
- * 
+ *
+ * SPClass.prototype
+ *
  * @author shinya
  *
  */
@@ -82,5 +82,23 @@ public class BlessedScriptable extends BlankScriptableObject {
 		res[0]=Scriptables.CONSTRUCTOR;
 		System.arraycopy(res1, 0 , res , 1, res1.length);
 		return res;
+	}
+
+	@Override
+	public boolean hasInstance(Scriptable instance) {
+		for (int i=0 ;i<100 ;i++) {
+			Object c=ScriptableObject.getProperty(instance, Scriptables.CONSTRUCTOR);
+			if (equals(this)) return true;
+			if (c instanceof Scriptable) {
+				Scriptable cs = (Scriptable) c;
+				Object p=ScriptableObject.getProperty(cs, Scriptables.PROTOTYPE);
+				if (p instanceof Scriptable) {
+					instance = (Scriptable) p;
+					continue;
+				}
+			}
+			return false;
+		}
+		return false;
 	}
 }

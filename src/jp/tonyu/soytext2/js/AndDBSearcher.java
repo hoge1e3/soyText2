@@ -5,6 +5,7 @@ import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.js.ContextRunnable;
 import jp.tonyu.js.Scriptables;
 import jp.tonyu.js.Wrappable;
+import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.IndexRecord;
 import jp.tonyu.soytext2.search.AndQueryBuilder;
 import jp.tonyu.soytext2.search.Query;
@@ -25,17 +26,17 @@ public class AndDBSearcher implements Wrappable {
 		super();
 		this.dbscr = dbscr;
 		qb=new AndQueryBuilder();
-	}	
+	}
 	private AndQueryBuilder qb;
 	public void each(Function iter) {
 		dbscr.loader.searchByQuery(qb.toQuery(), iter);
 	}
 	public Object template(final Function tmpl) {
-		Scriptable r=(Scriptable)DocumentLoader.curJsSesssion().eval("dbtmp", 
+		Scriptable r=(Scriptable)DocumentLoader.curJsSesssion().eval("dbtmp",
 				Resource.text(DBTemplate.class,".js"));
 		final Function add=(Function)ScriptableObject.getProperty(r, "add");
 		dbscr.loader.searchByQuery(qb.toQuery(), new BuiltinFunc() {
-			
+
 			@Override
 			public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 					Object[] args) {
@@ -48,7 +49,7 @@ public class AndDBSearcher implements Wrappable {
 		return ScriptableObject.getProperty(r, "node");
 	}
 	public AndDBSearcher q(String name, Object value) {
-		qb=qb.attr(name,value,AttrOperator.ge);		
+		qb=qb.attr(name,value,AttrOperator.ge);
 		return this;
 	}
 	public AndDBSearcher q(String name) {
@@ -65,7 +66,7 @@ public class AndDBSearcher implements Wrappable {
 		Query query = qb.toQuery();
 		Log.d(this, "Find1 : "+query);
 		dbscr.loader.searchByQuery(query, new BuiltinFunc() {
-			
+
 			@Override
 			public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 					Object[] args) {
@@ -74,11 +75,11 @@ public class AndDBSearcher implements Wrappable {
 				return true;
 			}
 		});
-		if (res.isSet()) return res.get();	
+		if (res.isSet()) return res.get();
 		return null;
 	}
-	public AndDBSearcher backlinks(Object value) {
-		qb.attr(IndexRecord.INDEX_REFERS, value, AttrOperator.exact);
+	public AndDBSearcher backlinks(String docId) {
+		qb.backlinks(docId);// attr(IndexRecord.INDEX_REFERS, value, AttrOperator.exact);
 		return this;
 	}
 	public AndDBSearcher is(String klassId) {

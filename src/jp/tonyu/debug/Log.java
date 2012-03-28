@@ -2,6 +2,7 @@ package jp.tonyu.debug;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.HashSet;
 
 
 
@@ -13,10 +14,16 @@ public class Log {
 		}
 		lw.setVisible(true);
 	}
+	static HashSet<String> whiteList=new HashSet<String>();
+	static {
+		String[] whiteLista=new String[] { "js.Debug"};
+		for (String s:whiteLista) {
+			whiteList.add(s);
+		}
+	}
 	public static void d(Object tag,Object content) {
 		//if ("ToValues".equals(tag) || "ClassIdx".equals(tag) ||"getSPClass".equals(tag)) {
-		if ("QueryMatched".equals(tag)) {
-		} else {
+		if (whiteList.contains(tag+"")) {
 			String cont = "["+tag+"]"+content;
 			System.out.println(cont);
 			if (lw!=null) lw.println(cont);
@@ -25,7 +32,7 @@ public class Log {
 
 	public static Object die(String string) {
 		throw new RuntimeException(string);
-		
+
 	}
 
 	public static void w(Object tag, Object content) {
