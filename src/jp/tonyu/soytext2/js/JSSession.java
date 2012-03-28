@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import jp.tonyu.debug.Log;
+import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.js.ContextRunnable;
 import jp.tonyu.js.Prototype;
 
@@ -78,9 +79,33 @@ public class JSSession {
 		ScriptableObject.putProperty(utils, "isJavaNative", HashLiteralConv.isJavaNative);
 		ScriptableObject.putProperty(utils, "isDocument", HashLiteralConv.isDocument);
 		ScriptableObject.putProperty(utils, "debug", new Debug());
+		ScriptableObject.putProperty(utils, "safeEval", safeEval);
 
 		Context.exit();
 	}
+	static BuiltinFunc safeEval=new BuiltinFunc() {
+
+		@Override
+		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
+				Object[] args) {
+			String source=null,sourceName="safeEval";
+			Scriptable sscope=null;
+			if (args.length>1 && args[0]!=null) {
+				source=args[0].toString();
+			}
+			if (args.length>2 && args[1] instanceof Scriptable) {
+				sscope=(Scriptable)args[1];
+			}
+			if (args.length>3 && args[2]!=null) {
+				sourceName=args[2].toString();
+			}
+			if (scope!=null && source!=null) {
+				Object res=cx.evaluateString(sscope, source, sourceName, 1, null);
+				return res;
+			}
+			return null;
+		}
+	};
 	Function objFactory,aryFactory;
 	Scriptable utils;
 
