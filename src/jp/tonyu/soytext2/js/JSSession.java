@@ -90,13 +90,13 @@ public class JSSession {
 				Object[] args) {
 			String source=null,sourceName="safeEval";
 			Scriptable sscope=null;
-			if (args.length>1 && args[0]!=null) {
+			if (args.length>=1 && args[0]!=null) {
 				source=args[0].toString();
 			}
-			if (args.length>2 && args[1] instanceof Scriptable) {
+			if (args.length>=2 && args[1] instanceof Scriptable) {
 				sscope=(Scriptable)args[1];
 			}
-			if (args.length>3 && args[2]!=null) {
+			if (args.length>=3 && args[2]!=null) {
 				sourceName=args[2].toString();
 			}
 			if (scope!=null && source!=null) {

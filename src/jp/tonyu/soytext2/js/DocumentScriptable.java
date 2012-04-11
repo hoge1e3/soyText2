@@ -14,10 +14,14 @@ import jp.tonyu.js.Scriptables;
 import jp.tonyu.js.StringPropAction;
 import jp.tonyu.soytext.Origin;
 import jp.tonyu.soytext2.document.DocumentRecord;
+import jp.tonyu.soytext2.document.DocumentSet;
 import jp.tonyu.soytext2.document.IndexRecord;
 import jp.tonyu.soytext2.document.PairSet;
+import jp.tonyu.soytext2.file.AttachedBinData;
+import jp.tonyu.soytext2.file.BinData;
 import jp.tonyu.soytext2.file.FileSyncer;
 import jp.tonyu.soytext2.servlet.HttpContext;
+import jp.tonyu.util.SFile;
 import jp.tonyu.util.SPrintf;
 
 import org.mozilla.javascript.Context;
@@ -99,14 +103,34 @@ public class DocumentScriptable implements Function {
 			return binds.containsKey(args[0]);
 		}
 	};
+	BuiltinFunc getBlobFunc= new BuiltinFunc() {
+
+		@Override
+		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
+				Object[] args) {
+			SFile f = FileSyncer.getBlobFile(loader.getDocumentSet(), DocumentScriptable.this);
+			return new AttachedBinData(f);
+		}
+	};
 	BuiltinFunc setBlobFunc= new BuiltinFunc() {
 
 		@Override
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 				Object[] args) {
 			if (args.length==0) return false;
+			InputStream  str=null;
 			if (args[0] instanceof InputStream) {
-				InputStream str = (InputStream) args[0];
+				str = (InputStream) args[0];
+			}
+			if (args[0] instanceof BinData) {
+				BinData b = (BinData) args[0];
+				try {
+					str= b.getInputStream();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			if (str!=null) {
 				try {
 					FileSyncer.setBlob(DocumentScriptable.this, str);
 				} catch (IOException e) {
@@ -177,6 +201,7 @@ public class DocumentScriptable implements Function {
 		//if ("compile".equals(key)) return compileFunc;
 		if ("hasOwnProperty".equals(key)) return hasOwnPropFunc;
 		if ("setBlob".equals(key)) return setBlobFunc;
+		if ("getBlob".equals(key)) return getBlobFunc;
 		if (SETCONTENTANDSAVE.equals(key)) return setContentAndSaveFunc;
 		if (GETCONTENT.equals(key)) return getContentFunc;
 		if (CALLSUPER.equals(key)) return callSuperFunc;
@@ -364,7 +389,7 @@ public class DocumentScriptable implements Function {
 	private PairSet<String,String> indexUpdateMap() {
 		PairSet<String,String> updatingIndex=new PairSet<String,String>();
 		updateIndex(updatingIndex);
-		Log.d(this, "save() - index set to "+updatingIndex);
+		Log.d("updateIndex", "save() - index set to "+updatingIndex);
 		return updatingIndex;
 	}
 	private void updateIndex(PairSet<String,String> idx) {
@@ -391,14 +416,14 @@ public class DocumentScriptable implements Function {
 	public String id() {
 		return getDocument().id;
 	}
-	private static void updateBackLinkIndex(Scriptable s, final PairSet<String,String> idx) {
+	private static void updateBackLinkIndex(final Scriptable s, final PairSet<String,String> idx) {
 		if (s instanceof NativeJavaObject) return;
 		Scriptables.each(s, new AllPropAction() {
 			@Override
 			public void run(Object key, Object value) {
-				Log.d("updateIndex", key+"="+value);
+				//Log.d("updateIndex", key+"="+value);
 				if (value instanceof DocumentScriptable) {
-					Log.d("updateIndex", "put "+key+"="+value);
+					Log.d("updateIndex", s+"put "+key+"="+value);
 					DocumentScriptable d = (DocumentScriptable) value;
 					idx.put(IndexRecord.INDEX_REFERS, d.getDocument().id);
 				} else 	if (value instanceof Scriptable) {

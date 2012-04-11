@@ -3,7 +3,7 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="lib" path="lib/servlet-api.jar"/>
-	<classpathentry kind="lib" path="lib/sqljet.1.0.3.b914.jar" sourcepath="C:/bin/Downloads/sqljet.1.0.4.b963/sqljet.1.0.4.b963.src.zip"/>
+	<classpathentry kind="lib" path="lib/sqljet.1.0.3.b914.jar" sourcepath="C:/bin/Downloads/dl_before20110531/sqljet.1.0.4.b963/sqljet.1.0.4.b963.src.zip"/>
 	<classpathentry kind="lib" path="lib/mail.jar"/>
 	<classpathentry kind="lib" path="lib/bnd.jar"/>
 	<classpathentry kind="lib" path="lib/dnsjava-2.1.2.jar"/>

@@ -501,6 +501,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 
 					@Override
 					public boolean run(DocumentRecord d) {
+						Log.d("rebuildIndex",d.id+" lastUpdate="+d.lastUpdate);
 						DocumentScriptable s=byId(d.id);
 						s.refreshIndex();
 						return false;

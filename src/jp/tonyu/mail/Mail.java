@@ -1,8 +1,10 @@
 package jp.tonyu.mail;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Properties;
+import java.util.Vector;
 
 import javax.mail.Message;
 import javax.mail.MessagingException;
@@ -13,12 +15,16 @@ import javax.mail.internet.MimeMessage;
 
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.Wrappable;
+import jp.tonyu.util.SFile;
 
 import org.xbill.DNS.MXRecord;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 // from http://www.tenj.jp/modules/smartsection/print.php?itemid=73
 
 public class Mail implements Wrappable {
-	String from; 
+	String from;
 	String to;
 	String subject;
 	String body;
@@ -78,7 +84,7 @@ public class Mail implements Wrappable {
 			objMsg.setText(body,"ISO-2022-JP");
 
 			// メール送信
-			Transport.send(objMsg); 
+			Transport.send(objMsg);
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		} catch (MessagingException e) {
@@ -88,7 +94,8 @@ public class Mail implements Wrappable {
 
 	private static String findMailServer(String to) throws UnknownHostException {
 		String []r =to.split("@");
-		DNSFinder d = new DNSFinder(new String[]{"8.8.8.8"});
+
+		DNSFinder d = new DNSFinder(getDNSServer());
 		for(MXRecord mr : d.findMXRecords(r[1])) {
 			return mr.getTarget().toString();
 		}
@@ -96,4 +103,25 @@ public class Mail implements Wrappable {
 		if (ip!=null) return r[1];
 		throw new UnknownHostException();
 	}
+
+	private static String[] getDNSServer() {
+		SFile f=new SFile("/etc/resolv.conf");
+		Pattern ns=Pattern.compile("nameserver\\s+([0-9\\.]+)");
+		try {
+			if (f.exists()) {
+				Vector<String> res=new Vector<String>();
+				for (String s:f.lines()) {
+					Matcher m = ns.matcher(s);
+					if (m.find()) {
+						res.add(m.group(1));
+					}
+				}
+				return res.toArray(new String[0]);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return new String[]{"8.8.8.8"};
+	}
+
 }

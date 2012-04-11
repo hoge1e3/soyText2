@@ -15,19 +15,34 @@ public class Log {
 		lw.setVisible(true);
 	}
 	static HashSet<String> whiteList=new HashSet<String>();
+	static HashSet<String> blackList=new HashSet<String>();
+	static boolean useWhiteList=false;
 	static {
-		String[] whiteLista=new String[] { "js.Debug"};
+		String[] whiteLista=new String[] { "updateIndex"};
+		String[] blackLista=new String[] {};
 		for (String s:whiteLista) {
 			whiteList.add(s);
+		}
+		for (String s:blackLista) {
+			blackList.add(s);
 		}
 	}
 	public static void d(Object tag,Object content) {
 		//if ("ToValues".equals(tag) || "ClassIdx".equals(tag) ||"getSPClass".equals(tag)) {
-		if (whiteList.contains(tag+"")) {
+		if ( tagMatch(tag) && wordMatch(content)) {
 			String cont = "["+tag+"]"+content;
 			System.out.println(cont);
 			if (lw!=null) lw.println(cont);
 		}
+	}
+
+	private static boolean wordMatch(Object content) {
+		return true;//(content+"").indexOf("root@")>=0;
+	}
+
+	private static boolean tagMatch(Object tag) {
+		return (useWhiteList && whiteList.contains(tag+"")) ||
+				(!useWhiteList && !blackList.contains(tag+""));
 	}
 
 	public static Object die(String string) {

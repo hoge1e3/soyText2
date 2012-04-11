@@ -25,6 +25,7 @@ import java.util.Vector;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -44,6 +45,8 @@ import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentSet;
 import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.document.backup.Importer;
+import jp.tonyu.soytext2.file.BinData;
+import jp.tonyu.soytext2.file.ZipMaker;
 import jp.tonyu.soytext2.js.ContentChecker;
 import jp.tonyu.soytext2.js.DocumentLoader;
 import jp.tonyu.soytext2.js.DocumentScriptable;
@@ -57,6 +60,7 @@ import jp.tonyu.util.MapAction;
 import jp.tonyu.util.Maps;
 import jp.tonyu.util.Ref;
 import jp.tonyu.util.Resource;
+import jp.tonyu.util.SFile;
 import jp.tonyu.util.SPrintf;
 import jp.tonyu.util.Util;
 
@@ -100,9 +104,6 @@ public class HttpContext implements Wrappable {
 	}
 	public String user() {
 		return documentLoader.user();
-		/*Object o=req.getSession().getAttribute(USERNAME);
-		String user=(o==null?"nobody":o.toString()); //  currentSession().userName();
-		return user;*/
 	}
 	public boolean assertRoot() {
 		if (isRoot()) return false;
@@ -112,31 +113,8 @@ public class HttpContext implements Wrappable {
 	void rebuildIndex() {
 		documentLoader.rebuildIndex();
 	}
-	/*Session currentSession=null;
-	public Session currentSession() {
-		if (currentSession!=null) return currentSession;
-		if (req.getCookies()!=null) {
-			for (Cookie c:req.getCookies()) {
-				Log.d("Curuser", c.getName()+" = "+c.getValue());
-			}
-			for (Cookie c:req.getCookies()) {
-				if (c.getName().equals(SESSION_NAME)) {
-					currentSession= SessionSet.get(c.getValue());
-					if (currentSession!=null) return currentSession;
-					break;
-				}
-			}
-		}
-		return currentSession=Session.NOBODY;
-	}*/
-	/*public ApplicationContext applicationContext() {
-		return currentSession().applicationContext();
-	}*/
 	public final DocumentLoader documentLoader;
 	public DocumentSet documentSet() {
-		/*Session s= currentSession();
-		if (s==null) return appCtx.documentSet;
-		return s.documentSet();*/
 		return documentLoader.getDocumentSet();
 	}
 	public HttpContext( DocumentLoader loader, HttpServletRequest req, HttpServletResponse res) {
@@ -301,7 +279,7 @@ public class HttpContext implements Wrappable {
 		}
     }
     public void procRom() throws IOException {
-    	if (assertRoot()) return;
+    	//if (assertRoot()) return;
 		String[] s=args();
         Log.d(this,"pathinfo = "+req.getPathInfo());
         Log.d(this,"qstr = "+req.getQueryString());
@@ -468,6 +446,7 @@ public class HttpContext implements Wrappable {
 		localSyncProf.save();
 
     }
+
     /* input param:
      *   remotesyncid=(remote's sync profile id)
      *   localsyncid=(this system's sync profile id)
@@ -649,15 +628,6 @@ public class HttpContext implements Wrappable {
 		return newRemoteLastSynced;
 	}
 	private void topPage() throws IOException {
-		/*Cursor s=query(Query.create("topPage:=true"));
-		Document d=null;
-		while (s.hasNext()) {
-			d=s.next().document();
-			documentProcessor(  d).execHtml();
-			break;
-		}
-		s.close();
-		if (d==null) all();*/
 		final Ref<Boolean> execed = Ref.create(false);
 		DocumentScriptable root=documentLoader.rootDocument();
 		if (root!=null) {
@@ -670,25 +640,11 @@ public class HttpContext implements Wrappable {
 		} else {
 			root=documentLoader.newDocument(documentLoader.rootDocumentId());
 			root.save();
-		}/* else {
-			documentLoader.searchByQuery(Query.create("topPage:true"),new BuiltinFunc( ) {
-
-				@Override
-				public Object call(Context cx, Scriptable scope, Scriptable thisObj,
-						Object[] args) {
-					exec((DocumentScriptable)args[0]);
-					execed.set(true);
-					return true;
-				}
-			});
-		}*/
+		}
 		if (!execed.get()){
 			all();
 		}
 	}
-	/*private String rootId() {
-		return "root@"+documentSet().getDBID();
-	}*/
 	private void view() throws IOException {
         String[] s=args();
 		String id = s[2];
@@ -712,21 +668,6 @@ public class HttpContext implements Wrappable {
 		final DocumentScriptable d= documentLoader.byId(id);
 
 		if (d!=null) {
-	        /*CompileResult o=JSSession.cur.get().compile(d);
-	        boolean execed=false;
-	        if (o instanceof SWebApplication) {
-				SWebApplication app = (SWebApplication) o;
-				app.run();
-				execed=true;
-			}*/
-			/*
-	        if (o!=null) {
-	        	SWebApplication app=o.value(SWebApplication.class);
-	        	if (app!=null) {
-	        		app.run();
-	        		execed=true;
-	        	}
-			}*/
 			boolean execed = exec(d);
 	        if (!execed) {
 	        	print(id+" is not executable :"+d);
@@ -787,12 +728,7 @@ public class HttpContext implements Wrappable {
 		Log.d("htpctx_jsses",jsSession);
 		return jsSession;
 	}
-	/*public Cursor query(Query q) {
-		Debug.syslog("Query starting "+q.toString());
-		Cursor cursor = documentSet().query(q);
-		Debug.syslog("Query started "+q.toString());
-		return cursor;
-	}*/
+
 	private void byName() throws IOException {
 		String name=req.getPathInfo().replaceAll("^/", "").replaceAll("/.*", "");
 		Query q=QueryBuilder.create("name:?").tmpl("name", name, AttrOperator.exact).toQuery();
@@ -854,8 +790,14 @@ public class HttpContext implements Wrappable {
 			content=params().get(ATTR_CONTENT);
 			String[] reqs = getRequires();
 			ContentChecker c=new ContentChecker(content,addedVars(),reqs);
+			String id=params().get("id");
 			if (c.check()) {
-				DocumentScriptable d = documentLoader.newDocument();
+				DocumentScriptable d;
+				if (id!=null) {
+					d = documentLoader.newDocument(id);
+				} else {
+					d = documentLoader.newDocument();
+				}
 				documentProcessor(d).proc();
 				return;
 			}
@@ -868,7 +810,8 @@ public class HttpContext implements Wrappable {
 				"<input name=%a /><br/-->\n"+
 				"Requires: <input name=requires><BR>"+
 				"Content: <br/>\n"+
-				"<textarea id=edit name=%a rows=25 cols=60>%t</textarea>"+
+				"<textarea id=edit name=%a rows=25 cols=60>%t</textarea><br/>"+
+				"ID(optional): <input name=id><br/>"+
 				"<input type=submit>"+
 				"</form>"+indentAdap()+"</body></html>",
 				 "./new", msg, ATTR_PRECONTENT, ATTR_CONTENT , content)
@@ -1232,10 +1175,6 @@ public class HttpContext implements Wrappable {
         return buf.toString();
 	}
 
-	/*public static String lastModifiedField(Document d)
-	{
-	    return TimeFormat.toRFC2822(d.lastUpdate());//TimeFormat.toUtcTicks(d.lastUpdate(), TimeZone.getDefault()));
-	}*/
 	public static String detectContentType(String fileName) {
 		return detectContentType(fileName, TEXT_PLAIN_CHARSET_UTF_8);
 	}
@@ -1293,64 +1232,10 @@ public class HttpContext implements Wrappable {
 	    String n = d.get("name")+"";
 	    Log.d("HTPCON", "Detecting "+d.getDocument().id+" - "+n);
 	    return detectContentType(n);
-	  /*  c = "text/plain; charset=utf-8";
-	    if (n != null)
-	    {
-	    	n=n.toLowerCase();
-	        if (n.endsWith(".js"))
-	        {
-	            c = "text/javascript; charset=utf-8";
-	        }
-	        if (n.endsWith(".css"))
-	        {
-	            c = "text/css; charset=utf-8";
-	        }
-	        if (n.endsWith(".html"))
-	        {
-	            c = "text/html; charset=utf-8";
-	        }
-	        if (n.endsWith(".gif"))
-	        {
-	            c = "image/gif";
-	        }
-	        if (n.endsWith(".png"))
-	        {
-	            c = "image/png";
-	        }
-	        if (n.endsWith(".jpg"))
-	        {
-	            c = "image/jpeg";
-	        }
-	    }
-	    return c.toString();*/
 	}
-	/*public Compiler evaluator() {
-		return currentSession().evaluator();
-	}*/
-	/*
-	public Doc2JS doc2js() {
-		return currentSession().doc2js();
-	}
-	public Doc2Dtl doc2dtl() {
-		return currentSession().doc2dtl();
-	}*/
 	public static String ajaxTag(String string) {
 		return "<!--"+AJAXTAG+string+"-->";
 	}
-	/*public FileDocumentSet fileDocumentSet() {
-		if (documentSet() instanceof FileDocumentSet) {
-			FileDocumentSet f = (FileDocumentSet) documentSet();
-			return f;
-		}
-		if (documentSet() instanceof MultiDocumentSet) {
-			MultiDocumentSet m = (MultiDocumentSet) documentSet();
-			if (m.primaryDocumentSet() instanceof FileDocumentSet) {
-				FileDocumentSet f = (FileDocumentSet) m.primaryDocumentSet();
-				return f;
-			}
-		}
-		return null;
-	}*/
 	public void importFromVer1() {
 		try {
 			URL u=new URL("http://localhost:3001/exec/110412_045800?after=1307074166184");
@@ -1376,5 +1261,16 @@ public class HttpContext implements Wrappable {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	public void write(BinData data) throws IOException {
+		write(data.getInputStream());
+	}
+	public void write(InputStream in) throws IOException {
+		SFile.redirect(in, res.getOutputStream());
+	}
+	public ZipMaker zipMaker() throws IOException {
+		ServletOutputStream out = res.getOutputStream();
+		ZipMaker z = new ZipMaker(out);
+		return z;
 	}
 }

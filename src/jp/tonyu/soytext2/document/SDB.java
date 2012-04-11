@@ -255,8 +255,10 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		// use in writetransaction
 		ISqlJetCursor cur= indexTable().scope("document", d.id, d.id);
 		while (!cur.eof()) {
+			indexRecord.fetch(cur);
+			Log.d("updateIndex", "Remove index of "+d.id+" id="+indexRecord.id);
 			cur.delete();
-			cur.next();
+			//cur.next();
 		}
 		cur.close();
 	}
@@ -325,6 +327,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	private void updateIndexInTransaction(final DocumentRecord d,
 			final PairSet<String,String> indexValues) throws SqlJetException {
 		if (useIndex()) {
+			Log.d("updateIndex", "updateIndexIntrans "+d+" with "+indexValues);
 			removeIndexValues(d);
 			for (Pair<String, String> e:indexValues) {
 				addIndexValue(d, e.key, e.value);

@@ -18,6 +18,36 @@ import jp.tonyu.js.Wrappable;
 
 public class Debug implements Wrappable {
 	public Object[] stackTrace(Object eo) {
+		String s = rawStackTrace(eo);
+		Vector<Object> res=new Vector<Object>();
+		for (String l : s.split("\n")) {
+			Matcher m = docscr.matcher(l);
+			if (m.find()) {
+				LineInfo li=new LineInfo();
+				li.id=m.group(1);
+				li.lineNo=Integer.parseInt(m.group(2));
+				res.add(li);
+			}
+		}
+		return res.toArray();
+	}
+	public String rawStackTrace(Object eo) {
+		Exception e = extractException(eo);
+		if (e==null) {
+			Log.d("js.Debug",eo+"("+eo.getClass()+") has no exception info");
+			return e+"";
+		}
+		StringWriter w=new StringWriter();
+		e.printStackTrace(new PrintWriter(w));
+		try {
+			w.close();
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		String s=w.getBuffer().toString();
+		return s;
+	}
+	public Exception extractException(Object eo) {
 		Exception e=null;
 		if (eo instanceof Exception) {
 			e = (Exception) eo;
@@ -45,29 +75,7 @@ public class Debug implements Wrappable {
 			}
 
 		}
-		if (e==null) {
-			Log.d("js.Debug",eo+"("+eo.getClass()+") has no exception info");
-			return new Object[0];
-		}
-		StringWriter w=new StringWriter();
-		e.printStackTrace(new PrintWriter(w));
-		try {
-			w.close();
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
-		Vector<Object> res=new Vector<Object>();
-		String s=w.getBuffer().toString();
-		for (String l : s.split("\n")) {
-			Matcher m = docscr.matcher(l);
-			if (m.find()) {
-				LineInfo li=new LineInfo();
-				li.id=m.group(1);
-				li.lineNo=Integer.parseInt(m.group(2));
-				res.add(li);
-			}
-		}
-		return res.toArray();
+		return e;
 	}
 	static Pattern docscr=Pattern.compile("Docscr ([^\\(\\)]+)[^:]*:(\\d+)");
 

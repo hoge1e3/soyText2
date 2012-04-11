@@ -75,7 +75,7 @@ public class SFile implements Iterable<SFile>{
 		else {
 			files=f.listFiles();
 		}
-		
+
 		return new Iterator<SFile>() {
 			int i=0;
 			@Override
@@ -91,9 +91,9 @@ public class SFile implements Iterable<SFile>{
 			@Override
 			public void remove() {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 		};
 	}
 	public String name() {
@@ -199,23 +199,21 @@ public class SFile implements Iterable<SFile>{
 		o.close();
 	}
 	public void writeTo(OutputStream out) throws IOException {
-		InputStream i = inputStream();
-		byte[] b=new byte[1024];
-		while (true) {
-			int r=i.read(b);
-			if (r<=0) break;
-			out.write(b,0,r);
-		}
-		i.close();
+		InputStream in = inputStream();
+		redirect(in,out);
+		in.close();
 	}
-	public void readFrom(InputStream str) throws IOException {
+	public void readFrom(InputStream in) throws IOException {
 		OutputStream out = outputStream();
+		redirect(in, out);
+		out.close();
+	}
+	public static void redirect(InputStream in, OutputStream out) throws IOException {
 		byte[] b=new byte[1024];
 		while (true) {
-			int r=str.read(b);
+			int r=in.read(b);
 			if (r<=0) break;
 			out.write(b,0,r);
 		}
-		out.close();
 	}
 }

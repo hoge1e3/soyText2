@@ -12,4 +12,12 @@ public class PairSet<K,V> implements Iterable<Pair<K,V>>{
 	public Iterator<Pair<K, V>> iterator() {
 		return h.iterator();
 	}
+	@Override
+	public String toString() {
+		StringBuilder b=new StringBuilder();
+		for (Pair<K,V> p:h) {
+			b.append(p+", ");
+		}
+		return "{"+b+"}";
+	}
 }

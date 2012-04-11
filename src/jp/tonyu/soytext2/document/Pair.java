@@ -23,4 +23,8 @@ public class Pair<K, V> {
 		}
 		return false;
 	}
+	@Override
+	public String toString() {
+		return key+": "+value;
+	}
 }
