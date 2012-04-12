@@ -34,7 +34,7 @@ import org.tmatesoft.sqljet.core.table.ISqlJetTable;
 import org.tmatesoft.sqljet.core.table.SqlJetDb;
 
 public class SDB extends SqlJetHelper implements DocumentSet {
-	public static final String PRIMARY_DBID_TXT = "primaryDbid.txt";
+	//public static final String PRIMARY_DBID_TXT = "primaryDbid.txt";
 
 	static final int version=3;
 	//public static final String UID_IMPORT = "77a729a1-5c5d-4d09-9141-72108ee9b634";
@@ -71,10 +71,10 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	private String getDBIDFromFile(SFile file) {
 		try {
 			SFile parent=file.parent();
-			SFile primaryDBID=parent.rel(PRIMARY_DBID_TXT);
+			/*SFile primaryDBID=parent.rel(PRIMARY_DBID_TXT);
 			if (primaryDBID.exists()) {
 				return primaryDBID.text();
-			}
+			}*/
 			Matcher m=dbidPat.matcher(parent.name());
 			if (m.lookingAt()) return parent.name();
 			parent=parent.parent();
@@ -97,7 +97,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		return q(documentRecord,logRecord,indexRecord);//, dbidRecord/*,indexRecord*/);
 	}
 	public String toString() {
-		return "(SDB dbid="+dbid+")";
+		return "(SDB dbid="+dbid+" home="+homeDir+")";
 	}
 	Map<String,DocumentRecord> cache=new HashMap<String, DocumentRecord>();
 	final private LogManager logManager;

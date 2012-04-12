@@ -61,7 +61,7 @@ public class SFile implements Iterable<SFile>{
 			e.printStackTrace();
 		}
 	}
-	private void mkdirs() {
+	public void mkdirs() {
 		File parentFile = f.getParentFile();
 		if (parentFile!=null) parentFile.mkdirs();
 	}

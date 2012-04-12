@@ -2,13 +2,9 @@ package jp.tonyu.soytext2.servlet;
 
 import java.awt.Desktop;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.StringReader;
+import java.io.InputStream;
 import java.net.URI;
-import java.net.URL;
-import java.util.Enumeration;
-import java.util.List;
 import java.util.Scanner;
 
 import javax.servlet.ServletException;
@@ -22,16 +18,13 @@ import jp.tonyu.nanoservlet.AutoRestart;
 import jp.tonyu.nanoservlet.NanoServlet;
 import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.js.DocumentLoader;
-import jp.tonyu.soytext2.js.JSSession;
 import jp.tonyu.util.Ref;
-import jp.tonyu.util.ResourceTraverser;
 import jp.tonyu.util.SFile;
 
-import java.io.InputStream;
 import org.tmatesoft.sqljet.core.SqlJetException;
 
 public class SMain extends HttpServlet {
-	public static final String DB_INIT_PATH = "jp/tonyu/soytext2/servlet/init/db";
+
 	private static final String KEY_DOCLOADER = "__Document_LOADER";
 	//JSSession j=new JSSession();
 	@Override
@@ -84,7 +77,7 @@ public class SMain extends HttpServlet {
 	SDB sdb;
 	String jarFile;
 	//DocumentLoader loader;
-	public  File getNewestDBFile() throws IOException {
+	/*public  File getNewestDBFile() throws IOException {
 		return getNewestPrimaryDBFile(dbDir());
 	}
 	public static File getNewestPrimaryDBFile(SFile dbDir) throws IOException {
@@ -102,9 +95,9 @@ public class SMain extends HttpServlet {
 				max=l;
 			}
 		}
-		/*if (res==null) {
-			return dbDir.rel("main.db").javaIOFile();
-		}*/
+		//if (res==null) {
+		//return dbDir.rel("main.db").javaIOFile();
+		//}
 		return res;
 	}
 	public static SFile getPrimaryDBDir(SFile dbDir) throws IOException {
@@ -116,11 +109,11 @@ public class SMain extends HttpServlet {
 			dir=dbDir;
 		}
 		return dir;
-	}
-	private SFile dbDir() {
+	}*/
+	/*private SFile dbDir() {
 		return workspaceDir.rel("db/");
-	}
-	String detectWorkSpace(String path) {
+	}*/
+	String detectPath(String path) {
 		String[] ws=path.split(";");
 		String res=null;
 		for (String c:ws) {
@@ -132,12 +125,13 @@ public class SMain extends HttpServlet {
 		}
 		throw new RuntimeException("No file in "+path);
 	}
-	String workspace;
-	SFile workspaceDir;
+	//String workspace;
+	//SFile workspaceDir;
+	Workspace workspace;
 	synchronized void setupApplicationContext() {
 		if (workspace==null) {
-			workspace=detectWorkSpace(  getServletContext().getInitParameter("workspace") );
-			workspaceDir=new SFile(workspace);
+			workspace=new Workspace( new SFile( detectPath(  getServletContext().getInitParameter("workspace") ) ));
+			//workspaceDir=new SFile(workspace);
 		}
 	}
 	boolean isServlet=false;
@@ -150,14 +144,15 @@ public class SMain extends HttpServlet {
 		servletInited=true;
 		setupApplicationContext();
 		String jarfileP = getServletContext().getInitParameter("jarFile");
-		if (jarfileP!=null) jarFile=detectWorkSpace(jarfileP  );
-		File newest = getNewestDBFile();
+		if (jarfileP!=null) jarFile=detectPath(jarfileP  );
+		/*File newest =  getNewestDBFile();
 		if (newest==null) Log.die("Error no db file exitst in "+dbDir());
-		System.out.println("Using "+newest+" as db.");
-		sdb=new SDB(newest);//, SDB.UID_EXISTENT_FILE);
+		System.out.println("Using "+newest+" as db.");*/
+		sdb= workspace.getPrimaryDB(); // new SDB(newest);//, SDB.UID_EXISTENT_FILE);
+		System.out.println("Using "+sdb+" as db.");
 		//loader=new DocumentLoader(sdb);
 	}
-	File setupDB() throws IOException {
+	/*File setupDB() throws IOException {
 		final SFile dbDir=dbDir();
 		ClassLoader cl=this.getClass().getClassLoader();
 		//SFile dbIdFile=dbDir.rel(SDB.PRIMARY_DBID_TXT);
@@ -175,46 +170,20 @@ public class SMain extends HttpServlet {
 			dbFile.readFrom(in);
 		}
 		return dbFile.javaIOFile();
-		/*ResourceTraverser r=new ResourceTraverser() {
-
-			@Override
-			protected void visitFile(String name) throws IOException {
-				String rel=name.substring(DB_INIT_PATH.length()+1);
-				SFile f=dbDir.rel(rel);
-				System.out.println(name + "->" + f);
-				InputStream in = getInputStream(name);
-				f.readFrom(in);
-				in.close();
-			}
-			@Override
-			protected boolean visitDir(String name, List<String> files)
-					throws IOException {
-				System.out.println("dir:"+name);
-				return false;
-			}
-			@Override
-			protected boolean isDir(String name) {
-				if (name.startsWith(DB_INIT_PATH) &&
-						(name.endsWith(".txt") || name.endsWith(".db"))) return false;
-				return super.isDir(name);
-			}
-		};*/
-		//r.traverse(".");//DB_INIT_PATH);
-		//r.traverse("jp/tonyu/db/DBAction.class");//DB_INIT_PATH);
-		//Log.die("Die");
-		//return getNewest();
-	}
+	}*/
 	// As Application
 	public SMain(int port) throws Exception{
-		workspaceDir=new SFile(new File("."));
-		File newest = getNewestDBFile();
-		if (newest==null) newest=setupDB();
-		System.out.println("Using "+newest+" as db.");
-		sdb=new SDB(newest);//, uid);
+		workspace=new Workspace(new SFile("soytext"));
+		//workspaceDir=new SFile(new File("."));
+		workspace.setupDB();
+		//File newest = getNewestDBFile();
+		//if (newest==null) newest=setupDB();
+		sdb=workspace.getPrimaryDB();//  new SDB(newest);//, uid);
+		System.out.println("Using "+sdb+" as db.");
 		jarFile="";
 		//loader=new DocumentLoader(sdb);
 		//int port = 3002;
-		AutoRestart auto = new AutoRestart(port, workspaceDir.rel("stop.lock").javaIOFile());
+		AutoRestart auto = new AutoRestart(port, workspace.home.rel("stop.lock").javaIOFile());
 		NanoServlet n=new NanoServlet(port, this, auto);
 		System.out.println("Listening on port "+port+". Go to "+auto.stopURL()+" to stop.\n" );
 		final Ref<Boolean> stop=Ref.create(false);

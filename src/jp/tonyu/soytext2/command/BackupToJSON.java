@@ -1,22 +1,19 @@
 package jp.tonyu.soytext2.command;
-import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.OutputStream;
-
-import net.arnx.jsonic.JSON;
-
-import org.tmatesoft.sqljet.core.SqlJetException;
 
 import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.servlet.SMain;
+import jp.tonyu.soytext2.servlet.Workspace;
 import jp.tonyu.util.SFile;
-import jp.tonyu.util.TDate;
+
+import org.tmatesoft.sqljet.core.SqlJetException;
 
 
-public class ExportTest3 {
+public class BackupToJSON {
 	public static void main(String[] args) throws SqlJetException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException, IOException {
-		SDB s=new SDB(SMain.getNewestPrimaryDBFile(new SFile("db")));
+		Workspace w=new Workspace(new SFile("."));
+		SDB s= args.length==0 ? s=w.getPrimaryDB() : w.getDB(args[0]) ;
+		//SDB s=new SDB(SMain.getNewestPrimaryDBFile(new SFile("db")));
 		/*Object b=s.backup();
 		JSON json = new JSON();
 		json.setPrettyPrint(true);

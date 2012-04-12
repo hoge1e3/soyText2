@@ -11,19 +11,23 @@ import net.arnx.jsonic.JSON;
 
 import org.tmatesoft.sqljet.core.SqlJetException;
 
+
 import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.servlet.SMain;
+import jp.tonyu.soytext2.servlet.Workspace;
 import jp.tonyu.util.SFile;
 
 
-public class ImportTest3 {
+public class RestoreFromJSON {
 	public static void main(String[] args) throws SqlJetException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException, IOException {
-		SFile dbDir=new SFile("db");
-		File dbFilef = SMain.getNewestPrimaryDBFile(dbDir);
+		Workspace workspace=new Workspace(new SFile("."));
+		//SFile dbDir=new SFile("db");
+		/*File dbFilef = SMain.getNewestPrimaryDBFile(dbDir);
 		if (dbFilef==null) {
 			dbFilef=SMain.getPrimaryDBDir(dbDir).rel("main.db").javaIOFile();
-		}
-		SFile dbFile = new SFile( dbFilef );
+		}*/
+		String dbid=(args.length==0?workspace.getPrimaryDBID():args[0]);
+		SFile dbFile = workspace.getDBFile(dbid);//  new SFile( dbFilef );
 		if (dbFile.exists()) {
 			boolean res=dbFile.moveAsBackup("backup"); // can not move to other dir
 			if (!res) {
@@ -35,7 +39,7 @@ public class ImportTest3 {
 		s.restoreFromNewestFile();
 		s.close();
 		/*
-		
+
 		SFile src=null;
 		for (SFile txt:dbDir) {
 			if (!txt.name().endsWith(".json")) continue;
@@ -44,11 +48,11 @@ public class ImportTest3 {
 			}
 		}
 		System.out.println("Import from "+src);
-		
+
 		InputStream in = src.inputStream();
 		Map b=(Map)JSON.decode(in);
 		in.close();*/
-		
+
 		//SDB s=new SDB(dbFile.javaIOFile());
 	}
 }
