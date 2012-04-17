@@ -71,7 +71,7 @@ public class SFile implements Iterable<SFile>{
 	@Override
 	public Iterator<SFile> iterator() {
 		final java.io.File[] files;
-		if (!isDir()) files=new java.io.File[0];
+		if (!exists() || !isDir()) files=new java.io.File[0];
 		else {
 			files=f.listFiles();
 		}

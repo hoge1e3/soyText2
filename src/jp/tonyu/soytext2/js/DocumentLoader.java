@@ -31,6 +31,7 @@ import jp.tonyu.soytext2.search.expr.AttrOperator;
 import jp.tonyu.soytext2.search.expr.BackLinkExpr;
 import jp.tonyu.soytext2.search.expr.InstanceofExpr;
 import jp.tonyu.soytext2.search.expr.QueryExpression;
+import jp.tonyu.soytext2.servlet.Auth;
 import jp.tonyu.soytext2.servlet.DocumentProcessor;
 import jp.tonyu.soytext2.servlet.HttpContext;
 
@@ -121,7 +122,6 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 	 */
 	public DocumentScriptable byId(String id) {
 		final DocumentRecord src=Log.notNull(getDocumentSet(),"gds").byId(id);
-
 		if (src==null) return null;
 		DocumentScriptable o=objs.get(id);
 		if (o!=null) return o;
@@ -139,7 +139,12 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 		}*/
 		//objs.put(id, o); moved to defDocscr
 		if (src.content!=null) {
-			loadFromContent(src.content, o);
+			if (DocumentScriptable.lazyLoad==false) {
+				ind.append(" ");
+				Log.d("DLoader.loadFromContent", ind+"["+src.id+"]");//"+src.content);
+				loadFromContent(src.content, o);
+				ind.delete(0, 1);
+			}
 		} else {
 			Log.d(this, src.id+".content is still null");
 			/*
@@ -179,14 +184,10 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 		objs.put(src.id, res);
 		return res;
 	}
+	static StringBuffer ind=new StringBuffer();
 	public void loadFromContent(final String newContent, DocumentScriptable dst) {
 		if (newContent==null) Log.die("New content is null!");
-		//BlankScriptableObject tools=new BlankScriptableObject(jsSession().root);
 		dst.clear();
-		//tools.put("$", this);
-		//tools.put("_", dst);
-		//BlankScriptableObject scope = new BlankScriptableObject(jsSession().root);
-		//scope.setPrototype(tools);
 		DocumentLoaderScriptable loaderScope = new DocumentLoaderScriptable(jsSession().root, this, dst);
 		try {
 			jsSession().eval(dst+"", newContent, loaderScope);
@@ -207,13 +208,13 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 	}
 	public DocumentScriptable newDocument(String id) {
 		DocumentRecord d = getDocumentSet().newDocument((String)id);
-		d.owner=user();
+		d.owner=Auth.cur.get().user();
 		final DocumentScriptable res=defaultDocumentScriptable(d);
 		return res;
 	}
 	public DocumentScriptable newDocument() {
 		DocumentRecord d = getDocumentSet().newDocument();
-		d.owner=user();
+		d.owner=Auth.cur.get().user();
 		final DocumentScriptable res=defaultDocumentScriptable(d);
 		return res;
 	}
@@ -511,18 +512,6 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 			}
 		});
 	}
-	private String user;
-	public boolean auth(String user, String pass) {
-		AuthenticatorList a=authenticator();
-		if (a!=null && a.check(user, pass)) {
-			this.user=user;
-			return true;
-		}
-		return false;
-	}
-	public String user() {
-		String user=(this.user==null?"nobody":this.user); //  currentSession().userName();
-		return user;
-	}
+
 
 }

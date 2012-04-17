@@ -25,6 +25,7 @@ import org.tmatesoft.sqljet.core.SqlJetException;
 
 public class SMain extends HttpServlet {
 
+	private static final String AUTH2 = "AUTH";
 	private static final String KEY_DOCLOADER = "__Document_LOADER";
 	//JSSession j=new JSSession();
 	@Override
@@ -32,8 +33,8 @@ public class SMain extends HttpServlet {
 			throws ServletException, IOException {
 		doIt(req,res);
 	}
+
 	private void doIt(final HttpServletRequest req2, final HttpServletResponse res2) {
-		final DocumentLoader docLoader;
 		final HttpServletRequest req=new WrappableRequest(req2);
 		final HttpServletResponse res=new WrappableResponse(res2);
 		try {
@@ -43,27 +44,44 @@ public class SMain extends HttpServlet {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		HttpSession s=req2.getSession();
+		//HttpSession s=req2.getSession();
+		/*For one docloader per session
+		final DocumentLoader docLoader;
 		Object jsl=s.getAttribute(KEY_DOCLOADER);
 		if (!(jsl instanceof DocumentLoader)) {
 			jsl=new DocumentLoader(sdb);
 			s.setAttribute(KEY_DOCLOADER, jsl);
 		}
-		docLoader=(DocumentLoader)jsl;
-		/*if (docLoader==null) {
+		docLoader=(DocumentLoader)jsl;*/
+		// For single docloader
+		if (docLoader==null) {
 			docLoader=new DocumentLoader(sdb);
-		}*/
-		JarDownloader.jarFile.enter(jarFile, new Runnable() {
+		}
+		HttpSession s = req2.getSession();
+		Object aa=s.getAttribute(AUTH2);
+		Auth auth;
+		if (aa instanceof Auth) {
+			auth=(Auth)aa;
+		} else {
+			auth=new Auth(docLoader.authenticator());
+			s.setAttribute(AUTH2, auth);
+		}
+		Auth.cur.enter(auth, new Runnable() {
 			@Override
 			public void run() {
-				DocumentLoader.cur.enter(docLoader, new Runnable() {
+				JarDownloader.jarFile.enter(jarFile, new Runnable() {
 					@Override
 					public void run() {
-						try {
-							new HttpContext(DocumentLoader.cur.get(), req, res).proc();
-						} catch (IOException e) {
-							e.printStackTrace();
-						}
+						DocumentLoader.cur.enter(docLoader, new Runnable() {
+							@Override
+							public void run() {
+								try {
+									new HttpContext(DocumentLoader.cur.get(), req, res).proc();
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
+							}
+						});
 					}
 				});
 			}
@@ -76,7 +94,7 @@ public class SMain extends HttpServlet {
 	}
 	SDB sdb;
 	String jarFile;
-	//DocumentLoader loader;
+	DocumentLoader docLoader;
 	/*public  File getNewestDBFile() throws IOException {
 		return getNewestPrimaryDBFile(dbDir());
 	}

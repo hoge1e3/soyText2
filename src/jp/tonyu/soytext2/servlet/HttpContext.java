@@ -103,7 +103,7 @@ public class HttpContext implements Wrappable {
 		return false;
 	}
 	public String user() {
-		return documentLoader.user();
+		return Auth.cur.get().user();
 	}
 	public boolean assertRoot() {
 		if (isRoot()) return false;
@@ -793,7 +793,7 @@ public class HttpContext implements Wrappable {
 			String id=params().get("id");
 			if (c.check()) {
 				DocumentScriptable d;
-				if (id!=null) {
+				if (id!=null && id.indexOf("@")>=0) {
 					d = documentLoader.newDocument(id);
 				} else {
 					d = documentLoader.newDocument();
@@ -966,7 +966,7 @@ public class HttpContext implements Wrappable {
 		boolean prompt=true;
 		if (/*"logout".equals(user) || */
 				(user!=null && user.length()>0 && pass!=null && pass.length()>0)) {
-			if (documentLoader.auth(user, pass)) {
+			if (Auth.cur.get().auth(user, pass)) {
 				prompt=false;
 	    		String after=params().get("after");
 	    		if (after!=null) {

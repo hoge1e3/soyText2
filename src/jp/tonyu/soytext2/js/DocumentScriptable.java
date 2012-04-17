@@ -33,6 +33,13 @@ import org.mozilla.javascript.UniqueTag;
 import org.omg.CosNaming.NamingContextPackage.NotFound;
 
 public class DocumentScriptable implements Function {
+	public static boolean lazyLoad=false;
+	boolean contentLoaded=!lazyLoad; // true iff loaded or loading
+	private void loadContent() {
+		if (contentLoaded) return;
+		contentLoaded=true;
+		reloadFromContent();
+	}
 	public static final String IS_INSTANCE_ON_MEMORY = "isInstanceOnMemory";
 	//public static final String PROTOTYPE = "prototype";
 	//public static final String CONSTRUCTOR = "constructor";
@@ -100,6 +107,7 @@ public class DocumentScriptable implements Function {
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 				Object[] args) {
 			if (args.length==0) return false;
+			loadContent();
 			return binds.containsKey(args[0]);
 		}
 	};
@@ -108,6 +116,7 @@ public class DocumentScriptable implements Function {
 		@Override
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 				Object[] args) {
+			loadContent();
 			SFile f = FileSyncer.getBlobFile(loader.getDocumentSet(), DocumentScriptable.this);
 			return new AttachedBinData(f);
 		}
@@ -118,6 +127,7 @@ public class DocumentScriptable implements Function {
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 				Object[] args) {
 			if (args.length==0) return false;
+			loadContent();
 			InputStream  str=null;
 			if (args[0] instanceof InputStream) {
 				str = (InputStream) args[0];
@@ -146,6 +156,7 @@ public class DocumentScriptable implements Function {
 		@Override
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 				Object[] args) {
+			loadContent();
 			if (args.length>0) {
 				int c=0;
 				String name=args[0]+"";
@@ -196,8 +207,9 @@ public class DocumentScriptable implements Function {
 		if (DocumentRecord.LASTUPDATE.equals(key)) return d.lastUpdate;
 		if (DocumentRecord.OWNER.equals(key)) return d.owner;
 		if ("summary".equals(key)) return d.summary;
-		if ("save".equals(key)) return saveFunc;
 		if ("identityHashCode".equals(key)) return System.identityHashCode(this);
+		loadContent();
+		if ("save".equals(key)) return saveFunc;
 		//if ("compile".equals(key)) return compileFunc;
 		if ("hasOwnProperty".equals(key)) return hasOwnPropFunc;
 		if ("setBlob".equals(key)) return setBlobFunc;
@@ -231,6 +243,7 @@ public class DocumentScriptable implements Function {
 			DocumentScriptable s = (DocumentScriptable) key;
 			binds.put(JSSession.idref(s, d.documentSet),value);
 		} else*/
+		loadContent();
 		if (key instanceof String || key instanceof Number) {
 			binds.put(key, value);
 		} else if (value==null){
@@ -241,16 +254,19 @@ public class DocumentScriptable implements Function {
 		return value;
 	}
 	public Set<Object> keySet() {
+		loadContent();
 		return binds.keySet();
 	}
 
 	@Override
 	public void delete(String name) {
+		loadContent();
 		binds.remove(name);
 	}
 
 	@Override
 	public void delete(int index) {
+		loadContent();
 		binds.remove(index);
 	}
 
@@ -277,6 +293,7 @@ public class DocumentScriptable implements Function {
 
 	@Override
 	public Object[] getIds() {
+		loadContent();
 		Set<Object> keys=binds.keySet();
 		Object[] res=new Object[keys.size()];
 		int i=0;

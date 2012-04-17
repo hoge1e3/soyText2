@@ -2,6 +2,7 @@ package jp.tonyu.soytext2.file;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -21,6 +22,13 @@ public class ZipMaker implements Wrappable {
 		zout.putNextEntry(zipEntry);
 		SFile.redirect(data.getInputStream(), zout);
 	}
+	public void add(String path, String data) throws IOException {
+		ZipEntry zipEntry = new ZipEntry(path);
+		zout.putNextEntry(zipEntry);
+		byte[] b=data.getBytes("utf-8");
+		zout.write(b);
+	}
+
 	public void close() throws IOException {
 		zout.close();
 	}

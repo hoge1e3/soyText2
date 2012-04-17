@@ -20,7 +20,7 @@ public class LogManager {
 		super();
 		this.sdb=sdb;
 		sdb.readTransaction(new DBAction() {
-			
+
 			@Override
 			public void run(SqlJetDb db) throws SqlJetException {
 				SqlJetTableHelper t = sdb.logTable();
@@ -28,7 +28,7 @@ public class LogManager {
 				lastNumber=0;
 				if (c.last()) {
 					lastNumber=(int) c.getInteger("id");
-				}			
+				}
 			}
 		},-1);
 	}
@@ -108,6 +108,9 @@ public class LogManager {
 		res.date=new Date().toString();
 		return res;
 	}
+	public void liftUpLastNumber(int n) {
+		if (n>lastNumber) setLastNumber(n);
+	}
 	public void setLastNumber(int n) {
 		lastNumber=n-1;
 		write("setLastNumber","");
@@ -121,7 +124,7 @@ public class LogManager {
 	}
 	public void save(final LogRecord log) {
 		sdb.reserveWriteTransaction(new DBAction() {
-			
+
 			@Override
 			public void run(SqlJetDb db) throws SqlJetException {
 				SqlJetTableHelper t = sdb.logTable();
@@ -138,6 +141,6 @@ public class LogManager {
 		});
 	}
 	public void importLog(LogRecord curlog) {
-		save(curlog);		
+		save(curlog);
 	}
 }

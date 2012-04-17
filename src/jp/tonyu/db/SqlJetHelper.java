@@ -49,7 +49,7 @@ public class SqlJetHelper {
 				}
 				SqlJetHelper.this.version=version;
 			}
-		},0);			
+		},0);
 
 		reservedTransactionThread.start();
 	}
@@ -69,7 +69,7 @@ public class SqlJetHelper {
 	}
 	final List<DBAction> reservedWriteTransaction= new Vector<DBAction>();
 	public void reserveWriteTransaction(DBAction action) {
-		reservedWriteTransaction.add(action); 			
+		reservedWriteTransaction.add(action);
 	}
 	public void waitForTransaction(SqlJetTransactionMode mode,int timeOut) throws SqlJetException  {
 		if (timeOut<0) timeOut=-1;
@@ -91,10 +91,10 @@ public class SqlJetHelper {
 			action.run(db);
 			readCount--;
 			if (readCount==0) commit();
-			
+
 		}
 		else {
-			readTransaction(action);	
+			readTransaction(action);
 		}
 	}*/
 	SqlJetTransactionMode mode;
@@ -111,7 +111,7 @@ public class SqlJetHelper {
 		}
 		return false;
 	}
-	
+
 	public void readTransaction(DBAction action, int timeOut) throws SqlJetException {
 		try {
 			waitForTransaction(SqlJetTransactionMode.READ_ONLY, timeOut);
@@ -137,7 +137,7 @@ public class SqlJetHelper {
 					Thread.sleep(100);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
-				}					
+				}
 			}
 		}
 	};
@@ -148,7 +148,7 @@ public class SqlJetHelper {
 		}
 		db.rollback();
 		mode=null;
-	}	
+	}
 	public synchronized void commit() throws SqlJetException {
 		if (mode==SqlJetTransactionMode.READ_ONLY) {
 			readCount--;
@@ -168,7 +168,7 @@ public class SqlJetHelper {
 	protected void onUpgrade(SqlJetDb db, int oldVersion, int newVersion) throws SqlJetException {
 		//System.out.println("Version "+oldVersion+" -> "+newVersion);
 	}
-	
+
 	protected void onCreate(final SqlJetDb db, int version) throws SqlJetException {
 		//System.out.println("Created");
 		for (SqlJetRecord r: tables(version)) {
@@ -216,7 +216,7 @@ public class SqlJetHelper {
 		SqlJetTableHelper t = table(record);
 		ISqlJetCursor cur = t.lookup(attrNames, values);
 		T res=null;
-		if (!cur.eof()) {	
+		if (!cur.eof()) {
 			res = record.dup(record);
 			res.fetch(cur);
 		}
@@ -236,7 +236,7 @@ public class SqlJetHelper {
 	public Map<String, List<Map<String,Object>>> backup() throws SqlJetException {
 		final Map<String, List<Map<String,Object>>> res=new HashMap<String, List<Map<String,Object>>>();
 		readTransaction(new DBAction() {
-			
+
 			@Override
 			public void run(SqlJetDb db) throws SqlJetException {
 				for (SqlJetRecord r:tables(version)) {
@@ -268,10 +268,11 @@ public class SqlJetHelper {
 		}
 		return res;
 	}
+	//                            table  record    field  value
 	public void restore(final Map<String, List<Map<String,Object>>> data) throws SqlJetException {
 		final Map<String, SqlJetRecord> tables=tablesAsMap(version);
 		writeTransaction(new DBAction() {
-			
+
 			@Override
 			public void run(SqlJetDb db) throws SqlJetException {
 				for (Map.Entry<String, List<Map<String,Object>>> e:data.entrySet()) {

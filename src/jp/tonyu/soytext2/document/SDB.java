@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -27,6 +28,7 @@ import jp.tonyu.util.SFile;
 import jp.tonyu.util.TDate;
 
 import net.arnx.jsonic.JSON;
+import net.arnx.jsonic.JSONException;
 
 import org.tmatesoft.sqljet.core.SqlJetException;
 import org.tmatesoft.sqljet.core.table.ISqlJetCursor;
@@ -45,6 +47,8 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	SFile blobDir;
 	SFile backupDir;
 	SFile homeDir;
+	public static Map<File,SDB> insts=new HashMap<File, SDB>();
+	public static int instc=0;
 	public SDB(File file /*, String uid*/) throws SqlJetException {
 		open(file, version);
 		dbFile=file;
@@ -62,6 +66,9 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		//Log.d(this, "DBID = "+getDBID());
 		dbid/*FromFile*/=getDBIDFromFile(new SFile(file.getAbsoluteFile()));
 		//Log.d(this, compareDBID());
+		instc++;
+		//if (instc>=2) Log.die("Dup!!!");
+		insts.put(file, this);
 	}
 	/*String dbidFromFile;
 	public String compareDBID() {
@@ -164,8 +171,18 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	}*/
 	@Override
 	public void save(final DocumentRecord d, final PairSet<String,String> indexValues) {
+		save(d,indexValues,true);
+	}
+	private void save(final DocumentRecord d, final PairSet<String,String> indexValues,boolean realtimeBackup) {
 	    LogRecord log=logManager.write("save",d.id);
 	    d.lastUpdate=log.id;
+	    if (realtimeBackup) {
+	    	try {
+	    		realtimeBackup(d);
+	    	} catch (Exception e) {
+	    		e.printStackTrace();
+	    	}
+	    }
 		reserveWriteTransaction(new DBAction() {
 			@Override
 			public void run(SqlJetDb db) throws SqlJetException {
@@ -186,6 +203,51 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 				updateIndexInTransaction(d, indexValues);
 			}
 		});
+	}
+	public boolean createdAtThisDB(DocumentRecord d) {
+		return dbid.equals(dbidPart(d));
+	}
+	public String dbidPart(DocumentRecord d) {
+		if (d==null || d.id==null) return null;
+		String [] s=d.id.split("@");
+		if (s.length<=1) return null;
+		return s[1];
+	}
+	public int serialPart(DocumentRecord d) {
+		if (d==null || d.id==null) return 0;
+		String [] s=d.id.split("@");
+		if (s.length<=0) return 0;
+		return Integer.parseInt(s[0]);
+	}
+
+	public void restoreFromRealtimeBackup(SFile src, Set<String> updated) throws SqlJetException, JSONException, FileNotFoundException, IOException {
+		DocumentRecord d=new DocumentRecord();
+		Map<String,Object> m=(Map)JSON.decode(src.inputStream());
+		d.copyFrom(m);
+		DocumentRecord dst=byId(d.id);
+		if (dst==null) {
+			dst=newDocument(d.id);
+		} else {
+			if (dst.lastUpdate==d.lastUpdate) return;
+		}
+		d.copyTo(dst);
+		save(dst, new PairSet<String, String>(),false);
+		updated.add(dst.id);
+		if (createdAtThisDB(dst)) {
+			logManager.liftUpLastNumber(serialPart(dst));
+		}
+	}
+	private void realtimeBackup(final DocumentRecord d)
+			throws FileNotFoundException, IOException, NoSuchFieldException,
+			IllegalAccessException {
+		OutputStream outputStream = realtimeBackupFile(d).outputStream();
+		JSON json = new JSON();
+		json.setPrettyPrint(true);
+		json.format( d.toMap() , outputStream  );
+		outputStream.close();
+	}
+	private SFile realtimeBackupFile(DocumentRecord d) {
+		return realtimeBackupDir().rel(d.id);
 	}
 	public int docCount() throws SqlJetException {
 		SqlJetTableHelper t=docTable();
@@ -395,15 +457,22 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		String d=new TDate().toString("yyyy_MMdd_hh_mm_ss");
 		return backupDir.rel("main.db."+d+".json");
 	}
-	public void backupToFile() throws SqlJetException, IOException {
-		Object b=backup();
+	public Set<String> backupToJSON() throws SqlJetException, IOException {
+		HashSet<String> backupedIDs=new HashSet<String>();
+		Map<String, List<Map<String,Object>>> b=backup();
+		List<Map<String,Object>> docs=b.get(documentRecord.tableName());
+		for (Map<String,Object> doch:docs) {
+			backupedIDs.add(doch.get("id")+"");
+		}
+
 		JSON json = new JSON();
 		json.setPrettyPrint(true);
 		OutputStream out = newBackupFile().outputStream();
 		json.format(b, out);
 		out.close();
+		return backupedIDs;
 	}
-	public void restoreFromNewestFile() throws IOException, SqlJetException {
+	public void restoreFromNewestJSON() throws IOException, SqlJetException {
 		SFile src=newestBackupFile();
 		InputStream in = src.inputStream();
 		Map b=(Map)JSON.decode(in);
@@ -492,5 +561,8 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	@Override
 	public boolean indexAvailable(String key) {
 		return "name".equals(key) || IndexRecord.INDEX_REFERS.equals(key);// || DocumentRecord.OWNER.equals(key);
+	}
+	public SFile realtimeBackupDir() {
+		return homeDir.rel("rtBack");
 	}
 }

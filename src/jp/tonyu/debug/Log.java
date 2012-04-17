@@ -18,7 +18,7 @@ public class Log {
 	static HashSet<String> blackList=new HashSet<String>();
 	static boolean useWhiteList=false;
 	static {
-		String[] whiteLista=new String[] { "updateIndex"};
+		String[] whiteLista=new String[] {"DLoader.loadFromContent"};
 		String[] blackLista=new String[] {};
 		for (String s:whiteLista) {
 			whiteList.add(s);

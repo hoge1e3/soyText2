@@ -40,7 +40,7 @@ public class Workspace {
 		return dbFromFile(f);*/
 		return getDB(getPrimaryDBID());
 	}
-	Map<File, SDB> cache=new HashMap<File, SDB>();
+	static Map<File, SDB> cache=new HashMap<File, SDB>();
 	private SDB dbFromFile(SFile f) throws SqlJetException {
 		File ff=f.javaIOFile();
 		SDB res=cache.get(ff);
@@ -78,10 +78,15 @@ public class Workspace {
 		return multiDBHome().rel(dbid);
 	}
 	public SFile getDBFile(String dbid) {
-		return getDBFile(dbid).rel(MAIN_DB);
+		return singleDBHome(dbid).rel(MAIN_DB);
 	}
 	private boolean isEmpty() {
 		return !multiDBHome().rel(PRIMARY_DBID_TXT).exists();
+	}
+	public void closeDB(String dbid) throws SqlJetException, IOException {
+		getDB(dbid).close();
+		cache.remove(getDBFile(dbid).javaIOFile());
+
 	}
 
 }
