@@ -11,17 +11,17 @@ import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentAction;
 import jp.tonyu.soytext2.document.SDB;
 
-
+// this is modified by brtest
 public class Test {
 	public static void main(String[] args) {
 		Context c;
 		c=Context.enter();
 		ScriptableObject root = c.initStandardObjects();
 		Context.exit();
-		
+
 		c=Context.enter();
 		c.setClassShutter(new ClassShutter() {
-			
+
 			@Override
 			public boolean visibleToScripts(String fullClassName) {
 				//if (fullClassName.indexOf("File")>=0) return false;
@@ -43,7 +43,7 @@ public class Test {
 		class Work extends Thread {
 			public void run() {
 				s.all(new DocumentAction() {
-					
+
 					@Override
 					public boolean run(DocumentRecord d) {
 						System.out.println(d.id+" "+d.lastUpdate+" "+d.content);
@@ -54,9 +54,9 @@ public class Test {
 						}
 						return false;
 					}
-				});				
+				});
 			}
-			
+
 		};
 		Work t1=new Work(),t2=new Work();
 		t1.start();
@@ -66,16 +66,16 @@ public class Test {
 			e.printStackTrace();
 		}
 		t2.start();
-		
+
 		try {
 			t1.join();
 			t2.join();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		
+
 		s.printLog();
-		
+
 		s.close();
 	}
 }
