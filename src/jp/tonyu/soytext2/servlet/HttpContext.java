@@ -97,7 +97,7 @@ public class HttpContext implements Wrappable {
 		if ("localhost".equals(addr) || "127.0.0.1".equals(addr) || "0:0:0:0:0:0:0:1".equals(addr)) {
 			return true;
 		}
-		if (addr !=null && addr.length()>0 && addr.indexOf(".")<0) return true; // like my_computer
+		//if (addr !=null && addr.length()>0 && addr.indexOf(".")<0) return true; // like my_computer
 		String user = user();
 		if (documentLoader.authenticator().isRootUser(user)) return true;
 		return false;
@@ -279,18 +279,22 @@ public class HttpContext implements Wrappable {
 		}
     }
     public void procRom() throws IOException {
-    	//if (assertRoot()) return;
+    	/*if (!isRoot()) {
+    		auth();
+    		return;
+    	}*/
 		String[] s=args();
         Log.d(this,"pathinfo = "+req.getPathInfo());
         Log.d(this,"qstr = "+req.getQueryString());
-        if (s.length>=2 && (s[1].equalsIgnoreCase("byid") || s[1].equalsIgnoreCase("view")) ) {
+        if (s.length == 2 && s[1].equalsIgnoreCase("auth")) {
+        	auth();
+        	return;
+        }
+        else if (s.length>=2 && (s[1].equalsIgnoreCase("byid") || s[1].equalsIgnoreCase("view")) ) {
             view();
         }
         else if (s.length >= 3 && s[1].equalsIgnoreCase("exec")) {
         	exec();
-        }
-        else if (s.length == 2 && s[1].equalsIgnoreCase("auth")) {
-        	auth();
         }
         else if (s.length == 2 && s[1].equalsIgnoreCase("new")) {
         	newDocument();
@@ -628,15 +632,18 @@ public class HttpContext implements Wrappable {
 		return newRemoteLastSynced;
 	}
 	private void topPage() throws IOException {
+		Log.d("htpcon", "home");
 		final Ref<Boolean> execed = Ref.create(false);
 		DocumentScriptable root=documentLoader.rootDocument();
 		if (root!=null) {
 			Object home=root.get("home");
+			Log.d("htpcon", "home is "+home);
 			if (home instanceof DocumentScriptable) {
 				DocumentScriptable homed = (DocumentScriptable) home;
 				exec(homed);
 				execed.set(true);
 			}
+			Log.d("htpcon", "execed = "+execed.get());
 		} else {
 			root=documentLoader.newDocument(documentLoader.rootDocumentId());
 			root.save();
@@ -1037,6 +1044,7 @@ public class HttpContext implements Wrappable {
     }
     public void redirect(String url) {
     	try {
+    		Log.d("htpcon", "Redirect to "+url);
     		res.sendRedirect(url);
 		} catch (IOException e) {
 			e.printStackTrace();

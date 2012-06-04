@@ -34,7 +34,7 @@ public class Exporter2 {
 	}*/
 	private void exportTable(SqlJetRecord uidRecord) throws Exception {
 		exportTable(uidRecord.tableName(), uidRecord);
-		
+
 	}
 	public <T extends SqlJetRecord> void  exportTable(String actTable, SqlJetRecord r) throws Exception {
 		SqlJetTableHelper table = db.table(actTable);
@@ -45,7 +45,7 @@ public class Exporter2 {
 			IllegalAccessException {
 		ISqlJetCursor cur = table.order();
 		while (!cur.eof()) {
-			r.fetch(cur);			
+			SqlJetRecord.fetch(r ,cur);
 			r.export(p);
 			cur.next();
 		}
@@ -55,7 +55,7 @@ public class Exporter2 {
 		p=new PrintWriter(out,"utf-8");
 		p.println("version=1");
 		db.readTransaction(new DBAction() {
-			
+
 			@Override
 			public void run(SqlJetDb db2) throws SqlJetException {
 				try {

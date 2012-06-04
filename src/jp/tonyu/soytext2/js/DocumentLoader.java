@@ -458,7 +458,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 	}
 	private void copyDocumentExceptDates(DocumentRecord src, DocumentRecord dst) throws SqlJetException {
 		long lu=dst.lastUpdate;
-		src.copyTo(dst);
+		src.copyTo( dst);
 		dst.lastUpdate=lu;
 	}
 	/**

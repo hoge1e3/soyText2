@@ -19,7 +19,7 @@ public class SqlJetRecordCursor<T extends SqlJetRecord> implements ISqlJetCursor
 	}
 	public T fetch() throws SqlJetException {
 		T res = record.dup(record);
-		res.fetch(cur);
+		SqlJetRecord.fetch(res,cur);
 		return res;
 	}
 	public void close() throws SqlJetException {
@@ -189,5 +189,5 @@ public class SqlJetRecordCursor<T extends SqlJetRecord> implements ISqlJetCursor
 	public SqlJetRecordCursor<T> reverseRecordCursor() throws SqlJetException {
 		return new SqlJetRecordCursor<T>(record, cur.reverse());
 	}
-	
+
 }

@@ -8,6 +8,7 @@ import java.util.Set;
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.js.ContextRunnable;
+import jp.tonyu.js.Jslint;
 import jp.tonyu.js.Prototype;
 
 import jp.tonyu.js.Wrappable;
@@ -49,6 +50,7 @@ public class JSSession {
 			}
 		}*/
 		cx.evaluateString(o, Resource.text(Prototype.class,	 ".js"), "<prototype>", 1, null);
+		cx.evaluateString(o, Resource.text(Jslint.class,	 ".js"), "<jslint>", 1, null);
 		cx.evaluateString(o, Resource.text(HashLiteralConv.class,	 ".js"), "<hashLiteral>", 1, null);
 		ScriptableObject.putProperty(o, "session", o);
 		return o;

@@ -317,7 +317,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		// use in writetransaction
 		ISqlJetCursor cur= indexTable().scope("document", d.id, d.id);
 		while (!cur.eof()) {
-			indexRecord.fetch(cur);
+			SqlJetRecord.fetch(indexRecord , cur);
 			Log.d("updateIndex", "Remove index of "+d.id+" id="+indexRecord.id);
 			cur.delete();
 			//cur.next();
@@ -479,11 +479,33 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		in.close();
 		restore(b);
 	}
-	public void cloneWithFilter(SDB dest, String[] ids) {
+	public void cloneWithFilter(final SDB dest, String[] ids) throws SqlJetException {
+		final Set<String> idss=new HashSet<String>();
 		for (String id:ids) {
 			DocumentRecord d=byId(id);
+			idss.add(id);
 			dest.save(d, new PairSet<String,String>());
 		}
+		readTransaction(new DBAction() {
+
+			@Override
+			public void run(SqlJetDb db) throws SqlJetException {
+				SqlJetTableHelper t = table(indexRecord);
+				ISqlJetCursor cur = t.order();
+				while (!cur.eof()) {
+					SqlJetRecord.fetch(indexRecord, cur);
+					if (idss.contains(indexRecord.id)) {
+						dest.reserveWriteTransaction(new DBAction() {
+							@Override
+							public void run(SqlJetDb db) throws SqlJetException {
+								dest.addIndexValue(byId(indexRecord.document), indexRecord.name, indexRecord.value);
+							}
+						});
+					}
+					cur.next();
+				}
+			}
+		}, -1);
 		dest.logManager.setLastNumber(logManager.lastNumber);
 	}
 	public File getFile() {

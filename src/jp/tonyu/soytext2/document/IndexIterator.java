@@ -2,6 +2,7 @@ package jp.tonyu.soytext2.document;
 
 import java.util.Iterator;
 
+import jp.tonyu.db.SqlJetRecord;
 import jp.tonyu.db.SqlJetTableHelper;
 import jp.tonyu.soytext2.js.DocumentScriptable;
 
@@ -31,7 +32,7 @@ public class IndexIterator implements DocumentRecordIterator {
 	}
 	@Override
 	public DocumentRecord next() throws SqlJetException{
-		sdb.indexRecord.fetch(cur);
+		SqlJetRecord.fetch( sdb.indexRecord, cur);
 		cur.next();
 		DocumentRecord d = sdb.byId(sdb.indexRecord.document);
 		return d;

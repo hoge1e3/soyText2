@@ -22,7 +22,7 @@ SoyText.generateContent=function (d) {
 	if (d.scope) {
 		for (var k in d.scope) {
 			var value=d.scope[k];
-			buf+="var "+k+"="+expr(value ,ctx)+"\n";
+			buf+="var "+k+"="+expr(value ,ctx)+";\n";
 			var id=isDocument(value);
 			if (id) ctx.d2sym[id]=k;
 		}

@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.HashSet;
 
 import jp.tonyu.db.DBAction;
+import jp.tonyu.db.SqlJetRecord;
 import jp.tonyu.db.SqlJetTableHelper;
 import jp.tonyu.soytext2.document.IndexRecord;
 import jp.tonyu.soytext2.document.SDB;
@@ -32,7 +33,7 @@ public class CheckDupIndex {
 				SqlJetTableHelper it = sdb.table(ir);
 				ISqlJetCursor cur = it.order();
 				while (!cur.eof()) {
-					ir.fetch(cur);
+					SqlJetRecord.fetch( ir , cur);
 					cur.next();
 
 					String nhd=(ir.document+"の"+ir.name+"は"+ir.value+"だ");

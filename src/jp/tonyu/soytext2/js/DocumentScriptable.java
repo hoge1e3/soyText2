@@ -33,7 +33,7 @@ import org.mozilla.javascript.UniqueTag;
 import org.omg.CosNaming.NamingContextPackage.NotFound;
 
 public class DocumentScriptable implements Function {
-	public static boolean lazyLoad=false;
+	public static boolean lazyLoad=true;
 	boolean contentLoaded=!lazyLoad; // true iff loaded or loading
 	private void loadContent() {
 		if (contentLoaded) return;
@@ -46,7 +46,7 @@ public class DocumentScriptable implements Function {
 	public static final String CALLSUPER="callSuper";
 	private static final Object GETTERKEY = "[[110414_051952@"+Origin.uid+"]]";
 	//Scriptable __proto__;
-	Map<Object, Object>binds=new HashMap<Object, Object>();
+	Map<Object, Object>_binds=new HashMap<Object, Object>();
 	final DocumentRecord d;
 	public final DocumentLoader loader;
 	public static final String ONAPPLY="onApply",APPLY="apply",CALL="call";
@@ -55,10 +55,15 @@ public class DocumentScriptable implements Function {
 	public DocumentRecord getDocument() {
 		return d;
 	}
+	private Map<Object, Object> binds() {
+		loadContent();
+		return _binds;
+	}
 	//static Map<String, DocumentScriptable> debugH=new HashMap<String, DocumentScriptable>();
 	public DocumentScriptable(final DocumentLoader loader,final DocumentRecord d) {
 		this.loader=loader;
 		this.d=d;
+		if (d.content==null) contentLoaded=true;
 		/*put("id",this , d.id );
 		put("lastUpdate",this, d.lastUpdate);
 		put("save",this, );*/
@@ -107,8 +112,7 @@ public class DocumentScriptable implements Function {
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 				Object[] args) {
 			if (args.length==0) return false;
-			loadContent();
-			return binds.containsKey(args[0]);
+			return binds().containsKey(args[0]);
 		}
 	};
 	BuiltinFunc getBlobFunc= new BuiltinFunc() {
@@ -208,7 +212,6 @@ public class DocumentScriptable implements Function {
 		if (DocumentRecord.OWNER.equals(key)) return d.owner;
 		if ("summary".equals(key)) return d.summary;
 		if ("identityHashCode".equals(key)) return System.identityHashCode(this);
-		loadContent();
 		if ("save".equals(key)) return saveFunc;
 		//if ("compile".equals(key)) return compileFunc;
 		if ("hasOwnProperty".equals(key)) return hasOwnPropFunc;
@@ -221,7 +224,7 @@ public class DocumentScriptable implements Function {
 			DocumentScriptable keyDoc = (DocumentScriptable) key;
 			key=JSSession.idref(keyDoc, d.documentSet);
 		}*/
-		Object res = binds.get(key);
+		Object res = binds().get(key);
 		if (res!=null) return res;
 		if (key instanceof DocumentScriptable) {
 			DocumentScriptable keyDoc = (DocumentScriptable) key;
@@ -243,31 +246,27 @@ public class DocumentScriptable implements Function {
 			DocumentScriptable s = (DocumentScriptable) key;
 			binds.put(JSSession.idref(s, d.documentSet),value);
 		} else*/
-		loadContent();
 		if (key instanceof String || key instanceof Number) {
-			binds.put(key, value);
+			binds().put(key, value);
 		} else if (value==null){
-			binds.remove(key);
+			binds().remove(key);
 		} else {
 			Log.die("Cannot put "+key);
 		}
 		return value;
 	}
 	public Set<Object> keySet() {
-		loadContent();
-		return binds.keySet();
+		return binds().keySet();
 	}
 
 	@Override
 	public void delete(String name) {
-		loadContent();
-		binds.remove(name);
+		binds().remove(name);
 	}
 
 	@Override
 	public void delete(int index) {
-		loadContent();
-		binds.remove(index);
+		binds().remove(index);
 	}
 
 	@Override
@@ -293,8 +292,7 @@ public class DocumentScriptable implements Function {
 
 	@Override
 	public Object[] getIds() {
-		loadContent();
-		Set<Object> keys=binds.keySet();
+		Set<Object> keys=binds().keySet();
 		Object[] res=new Object[keys.size()];
 		int i=0;
 		for (Object key:keys) {
@@ -326,7 +324,7 @@ public class DocumentScriptable implements Function {
 		return null;
 	}
 	public Scriptable getConstructor() {
-		Object cons = binds.get(Scriptables.CONSTRUCTOR);
+		Object cons = binds().get(Scriptables.CONSTRUCTOR);
 		if (cons instanceof Scriptable) {
 			Scriptable s = (Scriptable) cons;
 			return s;
@@ -347,12 +345,12 @@ public class DocumentScriptable implements Function {
 
 	@Override
 	public boolean has(String name, Scriptable start) {
-		return binds.containsKey(name);
+		return binds().containsKey(name);
 	}
 
 	@Override
 	public boolean has(int index, Scriptable start) {
-		return binds.containsKey(index);
+		return binds().containsKey(index);
 	}
 
 	@Override
@@ -491,7 +489,7 @@ public class DocumentScriptable implements Function {
 		return "(Docscr "+d.id+")";
 	}
 	public void clear() {
-		binds.clear();
+		binds().clear();
 	}
 	public void refreshSummary() {
 		d.summary=genSummary();

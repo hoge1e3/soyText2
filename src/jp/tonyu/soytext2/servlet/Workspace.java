@@ -50,8 +50,11 @@ public class Workspace {
 		return res;
 	}
 	public String getPrimaryDBID() throws IOException {
-		SFile id=multiDBHome().rel(PRIMARY_DBID_TXT);
+		SFile id=primaryDBFile();
 		return id.text();
+	}
+	private SFile primaryDBFile() {
+		return multiDBHome().rel(PRIMARY_DBID_TXT);
 	}
 	public static final String DB_INIT_PATH = "jp/tonyu/soytext2/servlet/init/db";
 	void setupDB() throws IOException {
@@ -65,6 +68,7 @@ public class Workspace {
 		String primaryDbid=s.nextLine();
 		s.close();
 
+		primaryDBFile().text(primaryDbid);
 		//dbIdFile.readFrom(in);
 		//String dbId=dbIdFile.text();
 		SFile dbDir_in=singleDBHome(primaryDbid); //dbDir.rel(dbid);
@@ -81,7 +85,7 @@ public class Workspace {
 		return singleDBHome(dbid).rel(MAIN_DB);
 	}
 	private boolean isEmpty() {
-		return !multiDBHome().rel(PRIMARY_DBID_TXT).exists();
+		return !primaryDBFile().exists();
 	}
 	public void closeDB(String dbid) throws SqlJetException, IOException {
 		getDB(dbid).close();

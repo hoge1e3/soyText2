@@ -173,7 +173,7 @@ public class SqlJetHelper {
 		//System.out.println("Created");
 		for (SqlJetRecord r: tables(version)) {
 			try {
-				r.createTableAndIndex(SqlJetHelper.this);
+				SqlJetRecord.createTableAndIndex(r, SqlJetHelper.this);
 			} catch (NoSuchFieldException e) {
 				//e.printStackTrace();
 				throw new SqlJetException(e);
@@ -218,7 +218,7 @@ public class SqlJetHelper {
 		T res=null;
 		if (!cur.eof()) {
 			res = record.dup(record);
-			res.fetch(cur);
+			SqlJetRecord.fetch(res, cur);
 		}
 		cur.close();
 		return res;

@@ -12,7 +12,7 @@ public class DocumentRecord extends SqlJetRecord /*implements Wrappable*/ {
 	/*public DocumentRecord(SqlJetHelper db) {
 		super(db);
 	}*/
-	
+
 	/*	db.createTable("CREATE TABLE "+DOCUMENT_1+"(\n"+
 			    "   id TEXT NOT NULL PRIMARY KEY,\n"+
 			    "   lastupdate INTEGER NOT NULL,\n"+
@@ -60,7 +60,64 @@ public class DocumentRecord extends SqlJetRecord /*implements Wrappable*/ {
 		documentSet.save(this);
 	}*/
 	public void insertTo(SqlJetTableHelper t) throws SqlJetException {
-		insertTo(t.table());
+		SqlJetRecord.insertTo(this, t.table());
 	}
-	
+
+
+	public String getId() {
+		return id;
+	}
+	public void setId(String id) {
+		this.id = id;
+	}
+	public long getLastUpdate() {
+		return lastUpdate;
+	}
+	public void setLastUpdate(long lastUpdate) {
+		this.lastUpdate = lastUpdate;
+	}
+	public long getCreateDate() {
+		return createDate;
+	}
+	public void setCreateDate(long createDate) {
+		this.createDate = createDate;
+	}
+	public long getLastAccessed() {
+		return lastAccessed;
+	}
+	public void setLastAccessed(long lastAccessed) {
+		this.lastAccessed = lastAccessed;
+	}
+	public String getSummary() {
+		return summary;
+	}
+	public void setSummary(String summary) {
+		this.summary = summary;
+	}
+	public String getContent() {
+		return content;
+	}
+	public void setContent(String content) {
+		this.content = content;
+	}
+	public String getOwner() {
+		return owner;
+	}
+	public void setOwner(String owner) {
+		this.owner = owner;
+	}
+	public String getGroup() {
+		return group;
+	}
+	public void setGroup(String group) {
+		this.group = group;
+	}
+	public String getPermission() {
+		return permission;
+	}
+	public void setPermission(String permission) {
+		this.permission = permission;
+	}
+
+
 }
