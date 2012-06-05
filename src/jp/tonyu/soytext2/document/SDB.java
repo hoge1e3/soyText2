@@ -5,6 +5,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -15,11 +18,11 @@ import java.util.regex.Pattern;
 
 
 import jp.tonyu.db.DBAction;
+import jp.tonyu.db.JDBCHelper;
+import jp.tonyu.db.JDBCRecord;
+import jp.tonyu.db.JDBCTable;
 import jp.tonyu.db.PrimaryKeySequence;
-import jp.tonyu.db.SqlJetHelper;
-import jp.tonyu.db.SqlJetRecord;
-import jp.tonyu.db.SqlJetRecordCursor;
-import jp.tonyu.db.SqlJetTableHelper;
+
 import jp.tonyu.debug.Log;
 import jp.tonyu.util.MapAction;
 import jp.tonyu.util.Maps;
@@ -30,14 +33,10 @@ import jp.tonyu.util.TDate;
 import net.arnx.jsonic.JSON;
 import net.arnx.jsonic.JSONException;
 
-import org.tmatesoft.sqljet.core.SqlJetException;
-import org.tmatesoft.sqljet.core.table.ISqlJetCursor;
-import org.tmatesoft.sqljet.core.table.ISqlJetTable;
-import org.tmatesoft.sqljet.core.table.SqlJetDb;
 
-public class SDB extends SqlJetHelper implements DocumentSet {
+public class SDB  implements DocumentSet {
 	//public static final String PRIMARY_DBID_TXT = "primaryDbid.txt";
-
+	JDBCHelper helper;
 	static final int version=3;
 	//public static final String UID_IMPORT = "77a729a1-5c5d-4d09-9141-72108ee9b634";
 	//public static final String UID_EXISTENT_FILE = "86e08ee0-0bd5-4d1f-a7f5-66c2251e60ad";
@@ -49,8 +48,19 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	SFile homeDir;
 	public static Map<File,SDB> insts=new HashMap<File, SDB>();
 	public static int instc=0;
-	public SDB(File file /*, String uid*/) throws SqlJetException {
-		open(file, version);
+
+	public SDB(File file /*, String uid*/) throws SQLException {
+ 	    Class.forName("org.sqlite.JDBC");
+	    Connection conn =
+	                DriverManager.getConnection("jdbc:sqlite:"+file);
+	    helper=new JDBCHelper(conn,version) {
+
+			@Override
+			public Class<? extends JDBCRecord>[] tables(int version) {
+				return q(DocumentRecord.class, IndexRecord.class, LogRecord.class);
+			}
+		};
+		//open(file, version);
 		dbFile=file;
 		homeDir=new SFile(file).parent();
 		blobDir=homeDir.rel("blob");
@@ -99,10 +109,12 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	//DBIDRecord dbidRecord=new DBIDRecord();
 	IndexRecord indexRecord=new IndexRecord();
 
-	@Override
+
+	/*@Override
 	public SqlJetRecord[] tables(int version) {
-		return q(documentRecord,logRecord,indexRecord);//, dbidRecord/*,indexRecord*/);
-	}
+		return q(documentRecord,logRecord,indexRecord);//
+	}*/
+
 	public String toString() {
 		return "(SDB dbid="+dbid+" home="+homeDir+")";
 	}
@@ -118,7 +130,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		try {
 			readTransaction(new DBAction() {
 				@Override
-				public void run(SqlJetDb db) throws SqlJetException {
+				public void run(SqlJetDb db) throws SQLException {
 					//SqlJetTableHelper t = docTable();
 					SqlJetRecordCursor<DocumentRecord> cur;
 					if (fromNewest) cur=reverseOrder(documentRecord,"lastUpdate");
@@ -134,7 +146,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 					cur.close();
 				}
 			},-1);
-		} catch (SqlJetException e) {
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
@@ -145,7 +157,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 				try {
 					readTransaction(new DBAction() {
 						@Override
-						public void run(SqlJetDb db) throws SqlJetException {
+						public void run(SqlJetDb db) throws SQLException {
 							DocumentRecord d=find1(documentRecord, null, id);
 							if (d!=null) {
 								cache.put(id, d);
@@ -157,7 +169,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 							}*/
 						}
 					},-1);
-				} catch (SqlJetException e) {
+				} catch (SQLException e) {
 					e.printStackTrace();
 				}
 			}
@@ -185,7 +197,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	    }
 		reserveWriteTransaction(new DBAction() {
 			@Override
-			public void run(SqlJetDb db) throws SqlJetException {
+			public void run(SqlJetDb db) throws SQLException {
 			    SqlJetTableHelper t = docTable();
 			    ISqlJetCursor cur = t.lookup(null, d.id);
 			    Log.d("SAVE", d);
@@ -220,7 +232,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		return Integer.parseInt(s[0]);
 	}
 
-	public void restoreFromRealtimeBackup(SFile src, Set<String> updated) throws SqlJetException, JSONException, FileNotFoundException, IOException {
+	public void restoreFromRealtimeBackup(SFile src, Set<String> updated) throws SQLException, JSONException, FileNotFoundException, IOException {
 		DocumentRecord d=new DocumentRecord();
 		Map<String,Object> m=(Map)JSON.decode(src.inputStream());
 		d.copyFrom(m);
@@ -249,21 +261,21 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	private SFile realtimeBackupFile(DocumentRecord d) {
 		return realtimeBackupDir().rel(d.id);
 	}
-	public int docCount() throws SqlJetException {
+	public int docCount() throws SQLException {
 		SqlJetTableHelper t=docTable();
 		ISqlJetCursor cur2= t.order();
 		int res=(int) cur2.getRowCount();
 	    cur2.close();
 	    return res;
 	}
-	/*public SqlJetTableHelper uidTable() throws SqlJetException {
+	/*public SqlJetTableHelper uidTable() throws SQLException {
 		return table(dbidRecord);
 	}*/
-	public SqlJetTableHelper docTable() throws SqlJetException {
+	public SqlJetTableHelper docTable() throws SQLException {
 		return table(documentRecord);
 	}
-	public SqlJetTableHelper logTable() throws SqlJetException {
-		return table(logRecord);
+	public JDBCTable<LogRecord> logTable() throws SQLException {
+		return table(LogRecord.class);
 	}
 	public SqlJetTableHelper indexTable() {
 		return table(indexRecord);
@@ -303,7 +315,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		LogRecord l=logManager.write(action, target);
 		return l.id;
 	}
-	private void addIndexValue(DocumentRecord d,String name, String value) throws SqlJetException {
+	private void addIndexValue(DocumentRecord d,String name, String value) throws SQLException {
 		// use in writetransaction
 		IndexRecord i = new IndexRecord();
 		i.id=idxSeq.next();
@@ -313,7 +325,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		i.lastUpdate=-d.lastUpdate;
 		i.insertTo(indexTable());
 	}
-	private void removeIndexValues(final DocumentRecord d) throws SqlJetException {
+	private void removeIndexValues(final DocumentRecord d) throws SQLException {
 		// use in writetransaction
 		ISqlJetCursor cur= indexTable().scope("document", d.id, d.id);
 		while (!cur.eof()) {
@@ -324,11 +336,11 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		}
 		cur.close();
 	}
-	/*public void byIndex(final String name,final String value,final DocumentAction action) throws SqlJetException {
+	/*public void byIndex(final String name,final String value,final DocumentAction action) throws SQLException {
 		readTransaction(new DBAction() {
 
 			@Override
-			public void run(SqlJetDb db) throws SqlJetException {
+			public void run(SqlJetDb db) throws SQLException {
 				ISqlJetCursor _cur = indexTable().scope("name,value,lastUpdate",
 						q(name,value,Long.MIN_VALUE), q(name,value,Long.MAX_VALUE)).reverse();
 				SqlJetRecordCursor<DocumentRecord> cur=new SqlJetRecordCursor<DocumentRecord>(documentRecord,_cur);
@@ -344,11 +356,11 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 			}
 		},-1);
 	}*/
-	/*public void resetIndex() throws SqlJetException {
+	/*public void resetIndex() throws SQLException {
 		writeTransaction(new DBAction() {
 
 			@Override
-			public void run(SqlJetDb db) throws SqlJetException {
+			public void run(SqlJetDb db) throws SQLException {
 				ISqlJetCursor cur = indexTable().order();
 				while (!cur.eof()) {
 					cur.delete();
@@ -365,7 +377,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	}*/
 	private DocumentRecord fetchDocumentFromCursorOrCache(
 			SqlJetRecordCursor<DocumentRecord> cur, String id)
-			throws SqlJetException {
+			throws SQLException {
 		DocumentRecord d=null;
 		synchronized (cache) {
 			d=cache.get(id);
@@ -381,13 +393,13 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 			final PairSet<String,String> indexValues) {
 		reserveWriteTransaction(new DBAction() {
 			@Override
-			public void run(SqlJetDb db) throws SqlJetException {
+			public void run(SqlJetDb db) throws SQLException {
 				updateIndexInTransaction(d, indexValues);
 			}
 		});
 	}
 	private void updateIndexInTransaction(final DocumentRecord d,
-			final PairSet<String,String> indexValues) throws SqlJetException {
+			final PairSet<String,String> indexValues) throws SQLException {
 		if (useIndex()) {
 			Log.d("updateIndex", "updateIndexIntrans "+d+" with "+indexValues);
 			removeIndexValues(d);
@@ -403,13 +415,13 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	}
 	public static final String MIN_STRING="",MAX_STRING=new String(new char[]{65535,65535,65535});
 	/*
-	public void addIndexName(final String name) throws SqlJetException {
+	public void addIndexName(final String name) throws SQLException {
 		Set<String> s = indexNames();
 		if (s.contains(name)) return;
 		reserveWriteTransaction(new DBAction() {
 
 			@Override
-			public void run(SqlJetDb db) throws SqlJetException {
+			public void run(SqlJetDb db) throws SQLException {
 				IndexRecord i = new IndexRecord();
 				i.name= IndexRecord.DEFINED_INDEX_NAMES;
 				i.value=name;
@@ -420,13 +432,13 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	}
 	HashSet<String> indexNames = new HashSet<String>();
 
-	public Set<String> indexNames() throws SqlJetException {
+	public Set<String> indexNames() throws SQLException {
 		if (indexNames!=null) return indexNames;
 		indexNames = new HashSet<String>();
 		readTransaction(new DBAction() {
 
 			@Override
-			public void run(SqlJetDb db) throws SqlJetException {
+			public void run(SqlJetDb db) throws SQLException {
 				ISqlJetCursor cur = indexTable().scope("name,value,lastUpdate",
 						new Object[]{IndexRecord.DEFINED_INDEX_NAMES, MIN_STRING},
 						new Object[]{IndexRecord.DEFINED_INDEX_NAMES, MAX_STRING});
@@ -457,7 +469,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		String d=new TDate().toString("yyyy_MMdd_hh_mm_ss");
 		return backupDir.rel("main.db."+d+".json");
 	}
-	public Set<String> backupToJSON() throws SqlJetException, IOException {
+	public Set<String> backupToJSON() throws SQLException, IOException {
 		HashSet<String> backupedIDs=new HashSet<String>();
 		Map<String, List<Map<String,Object>>> b=backup();
 		List<Map<String,Object>> docs=b.get(documentRecord.tableName());
@@ -472,14 +484,14 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		out.close();
 		return backupedIDs;
 	}
-	public void restoreFromNewestJSON() throws IOException, SqlJetException {
+	public void restoreFromNewestJSON() throws IOException, SQLException {
 		SFile src=newestBackupFile();
 		InputStream in = src.inputStream();
 		Map b=(Map)JSON.decode(in);
 		in.close();
 		restore(b);
 	}
-	public void cloneWithFilter(final SDB dest, String[] ids) throws SqlJetException {
+	public void cloneWithFilter(final SDB dest, String[] ids) throws SQLException {
 		final Set<String> idss=new HashSet<String>();
 		for (String id:ids) {
 			DocumentRecord d=byId(id);
@@ -489,7 +501,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		readTransaction(new DBAction() {
 
 			@Override
-			public void run(SqlJetDb db) throws SqlJetException {
+			public void run(SqlJetDb db) throws SQLException {
 				SqlJetTableHelper t = table(indexRecord);
 				ISqlJetCursor cur = t.order();
 				while (!cur.eof()) {
@@ -497,7 +509,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 					if (idss.contains(indexRecord.id)) {
 						dest.reserveWriteTransaction(new DBAction() {
 							@Override
-							public void run(SqlJetDb db) throws SqlJetException {
+							public void run(SqlJetDb db) throws SQLException {
 								dest.addIndexValue(byId(indexRecord.document), indexRecord.name, indexRecord.value);
 							}
 						});
@@ -524,7 +536,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 		try {
 			readTransaction(new DBAction() {
 				@Override
-				public void run(SqlJetDb db) throws SqlJetException {
+				public void run(SqlJetDb db) throws SQLException {
 					final IntersectDocumentRecordIterator it=new IntersectDocumentRecordIterator();
 					for (String key:keyValues.keySet()) {
 						String value=keyValues.get(key);
@@ -542,7 +554,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 					it.close();
 				}
 			},-1);
-		} catch (SqlJetException e) {
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
@@ -552,7 +564,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 			Log.d("SearchByIndex", "["+key+"]=["+value+"]");
 			readTransaction(new DBAction() {
 				@Override
-				public void run(SqlJetDb db) throws SqlJetException {
+				public void run(SqlJetDb db) throws SQLException {
 					DocumentRecordIterator it=new IndexIterator(SDB.this, key, value);
 					while (it.hasNext()) {
 						DocumentRecord d = it.next();
@@ -576,7 +588,7 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 
 				}
 			}, -1);
-		} catch (SqlJetException e) {
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
@@ -586,5 +598,11 @@ public class SDB extends SqlJetHelper implements DocumentSet {
 	}
 	public SFile realtimeBackupDir() {
 		return homeDir.rel("rtBack");
+	}
+	public <T extends JDBCRecord> JDBCTable<T> table(Class<T> class1) throws SQLException {
+		return helper.table(class1);
+	}
+	public void readTransaction(DBAction dbAction, int i) throws SQLException {
+		helper.readTransaction(dbAction, i);
 	}
 }

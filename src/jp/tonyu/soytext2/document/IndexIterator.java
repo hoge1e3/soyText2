@@ -1,29 +1,25 @@
 package jp.tonyu.soytext2.document;
 
-import java.util.Iterator;
+import java.sql.SQLException;
 
-import jp.tonyu.db.SqlJetRecord;
-import jp.tonyu.db.SqlJetTableHelper;
-import jp.tonyu.soytext2.js.DocumentScriptable;
-
-import org.tmatesoft.sqljet.core.SqlJetException;
-import org.tmatesoft.sqljet.core.table.ISqlJetCursor;
+import jp.tonyu.db.JDBCRecordCursor;
+import jp.tonyu.db.JDBCTable;
 
 public class IndexIterator implements DocumentRecordIterator {
-	ISqlJetCursor  cur;
+	JDBCRecordCursor<IndexRecord>  cur;
 	SDB sdb;
 	String key,value;
-	public IndexIterator(SDB sdb, String key, String value) throws SqlJetException {
+	public IndexIterator(SDB sdb, String key, String value) throws SQLException {
 		this.sdb=sdb;
-		SqlJetTableHelper t = sdb.table(sdb.indexRecord);
+		JDBCTable<IndexRecord> t = sdb.table(IndexRecord.class);
 		String value2=value+(char)32767;
 		cur = t.scope(IndexRecord.NAME_VALUE_LAST_UPDATE, new Object[]{key,value,Long.MIN_VALUE},new Object[]{key,value2,Long.MIN_VALUE});
 		this.key=key;
 		this.value=value;
 	}
 	@Override
-	public boolean hasNext() throws SqlJetException{
-		return !cur.eof();
+	public boolean hasNext() throws SQLException{
+		return cur.next();
 	}
 
 	@Override
@@ -31,14 +27,15 @@ public class IndexIterator implements DocumentRecordIterator {
 		return "(IndexIterator "+key+"="+value+")";
 	}
 	@Override
-	public DocumentRecord next() throws SqlJetException{
-		SqlJetRecord.fetch( sdb.indexRecord, cur);
-		cur.next();
-		DocumentRecord d = sdb.byId(sdb.indexRecord.document);
+	public DocumentRecord next() throws SQLException{
+		IndexRecord r=cur.fetch();
+		//SqlJetRecord.fetch( sdb.indexRecord, cur);
+		//cur.next();
+		DocumentRecord d = sdb.byId(r.document);
 		return d;
 	}
 	@Override
-	public void close() throws SqlJetException {
+	public void close() throws SQLException {
 		cur.close();
 	}
 

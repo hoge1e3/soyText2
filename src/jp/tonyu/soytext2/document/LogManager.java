@@ -4,67 +4,53 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.tmatesoft.sqljet.core.SqlJetException;
-import org.tmatesoft.sqljet.core.table.ISqlJetCursor;
-import org.tmatesoft.sqljet.core.table.ISqlJetTable;
-import org.tmatesoft.sqljet.core.table.SqlJetDb;
 
 import jp.tonyu.db.DBAction;
-import jp.tonyu.db.SqlJetTableHelper;
+import jp.tonyu.db.JDBCHelper;
+import jp.tonyu.db.JDBCRecordCursor;
+import jp.tonyu.db.PrimaryKeySequence;
 import jp.tonyu.debug.Log;
+import java.sql.SQLException;
 
 public class LogManager {
 	int lastNumber;
 	SDB sdb;
-	public LogManager(final SDB sdb) throws SqlJetException {
+	public LogManager(final SDB sdb) throws SQLException {
 		super();
 		this.sdb=sdb;
-		sdb.readTransaction(new DBAction() {
-
-			@Override
-			public void run(SqlJetDb db) throws SqlJetException {
-				SqlJetTableHelper t = sdb.logTable();
-				ISqlJetCursor c = t.order(null);
-				lastNumber=0;
-				if (c.last()) {
-					lastNumber=(int) c.getInteger("id");
-				}
-			}
-		},-1);
+		lastNumber=PrimaryKeySequence.create(sdb.logTable()).current();
 	}
 	public void printAll() {
 		try {
 			sdb.readTransaction(new DBAction () {
 				@Override
-				public void run(SqlJetDb db) throws SqlJetException {
-					SqlJetTableHelper t = sdb.logTable();
-					ISqlJetCursor c = t.order(null);
-					while (!c.eof()) {
-						Log.d("LOG", c.getValue("id")+","+c.getValue("date")+","+c.getValue("action")+","+c.getValue("target") );
+				public void run(JDBCHelper db) throws SQLException {
+					JDBCRecordCursor<LogRecord> c = sdb.logTable().all();
+					while (!c.next()) 	{
+						LogRecord r = c.fetch();
+						Log.d("LOG", r);
 						c.next();
 					}
 					c.close();
 				}
 			}, -1);
-		} catch (SqlJetException e) {
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
 	Map<Integer, LogRecord> cache=new HashMap<Integer, LogRecord>(); //TODO:Cache
-	public LogRecord byId(final int id) throws SqlJetException {
+	public LogRecord byId(final int id) throws SQLException {
 		if (!cache.containsKey(id)) {
 			sdb.readTransaction(new DBAction() {
 
 				@Override
-				public void run(SqlJetDb db) throws SqlJetException {
-					SqlJetTableHelper t = sdb.logTable();
-					ISqlJetCursor cur = t.lookup(null, id);
-					LogRecord res=LogRecord.create(id,sdb);
-					if (!cur.eof()) {
+				public void run(JDBCHelper db) throws SQLException {
+					JDBCRecordCursor<LogRecord> cur = sdb.logTable().lookup("id", id);
+					if (cur.next()) {
+						LogRecord res = cur.fetch();
 						cache.put(id, res);
-						fromCursor(cur, res);
 					}
-
+					cur.close();
 				}
 			},-1);
 		}
@@ -75,36 +61,29 @@ public class LogManager {
 			sdb.readTransaction(new DBAction() {
 
 				@Override
-				public void run(SqlJetDb db) throws SqlJetException {
-					SqlJetTableHelper t = sdb.logTable();
-					ISqlJetCursor c = t.order(null);
-					while (!c.eof()) {
-						long id=c.getInteger("id");
-						LogRecord l=cache.get(id); //TODO: cache
-						if (l==null) {
-							l=LogRecord.create((int) id,sdb);
-							fromCursor(c, l);
-						}
+				public void run(JDBCHelper db) throws SQLException {
+					JDBCRecordCursor<LogRecord> c = sdb.logTable().all();
+					while (c.next()) {
+						LogRecord l = c.fetch();
 						if (action.run(l)) break;
-						c.next();
 					}
 					c.close();
 
 				}
 			},-1);
-		} catch (SqlJetException e) {
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 	}
-	private void fromCursor(ISqlJetCursor cur, LogRecord res) throws SqlJetException {
+	/*private void fromCursor(ISqlJetCursor cur, LogRecord res) throws SQLException {
 		res.action=cur.getString("action");
 		res.date=cur.getString("date");
 		res.target=cur.getString("target");
 		res.option=cur.getString("option");
-	}
+	}*/
 	public synchronized LogRecord create() {
 		lastNumber++;
-		LogRecord res=LogRecord.create(lastNumber,sdb);
+		LogRecord res=LogRecord.create(lastNumber);
 		res.date=new Date().toString();
 		return res;
 	}
@@ -123,10 +102,10 @@ public class LogManager {
 		return l;
 	}
 	public void save(final LogRecord log) {
-		sdb.reserveWriteTransaction(new DBAction() {
+		sdb.writeTransaction(new DBAction() {
 
 			@Override
-			public void run(SqlJetDb db) throws SqlJetException {
+			public void run(JDBCHelper db) throws SQLException {
 				SqlJetTableHelper t = sdb.logTable();
 				ISqlJetCursor cur = t.lookup(null, log.id);
 

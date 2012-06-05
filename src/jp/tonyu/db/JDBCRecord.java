@@ -6,22 +6,15 @@ import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Scanner;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import jp.tonyu.debug.Log;
-import jp.tonyu.soytext2.document.backup.Importer;
 import jp.tonyu.util.Literal;
 import jp.tonyu.util.MapAction;
 import jp.tonyu.util.Maps;
 import jp.tonyu.util.Util;
 
-import org.tmatesoft.sqljet.core.SqlJetException;
-import org.tmatesoft.sqljet.core.table.ISqlJetCursor;
-import org.tmatesoft.sqljet.core.table.ISqlJetTable;
 
 /**
  * SqlJetRecord represents both "definition of a table" and "a record belonging the table".<BR>
@@ -33,15 +26,13 @@ import org.tmatesoft.sqljet.core.table.ISqlJetTable;
  * @author hoge1e3
  *
  */
-public abstract class SqlJetRecord {
-	/*private SqlJetHelper db;
-	public SqlJetRecord(SqlJetHelper db) {
-		this.db=db;
+public abstract class JDBCRecord implements Cloneable {
+
+
+	/*public boolean exists(JDBCHelper h) {
+		return h.table(this).exists();
 	}*/
-	public SqlJetRecord newInstance() {
-		return newInstance(getClass());
-	}
-	public  <T extends SqlJetRecord> void copyTo(T dst)  {
+	public  <T extends JDBCRecord> void copyTo(T dst)  {
 
 		try {
 			for (String fname:columnOrder()) {
@@ -56,25 +47,16 @@ public abstract class SqlJetRecord {
 			Log.die(e);
 		}
 	}
-	public <T extends SqlJetRecord> T dup(T thiz)  {
+	public <T extends JDBCRecord> T dup(T thiz)  {
 		if (thiz!=this) Log.die("thiz must be equal to this");
 		try {
-			T res=(T)newInstance();
-			for (String fname:columnOrder()) {
-				Field f=getField(fname);
-				f.set(res, f.get(this));
-			}
-			return res;
-		} catch (NoSuchFieldException e) {
-			Log.die(e);
-		} catch (IllegalArgumentException e) {
-			Log.die(e);
-		} catch (IllegalAccessException e) {
-			Log.die(e);
+			return (T)clone();
+		} catch (CloneNotSupportedException e) {
+			e.printStackTrace();
 		}
 		return null;
 	}
-	public <T extends SqlJetRecord> T newInstance(Class<T> src) {
+	public static <T extends JDBCRecord> T newInstance(Class<T> src) {
 		try {
 			return src.newInstance();
 		} catch (SecurityException e) {
@@ -89,54 +71,34 @@ public abstract class SqlJetRecord {
 		return null;
 
 	}
-	public static void createTableAndIndex(SqlJetRecord r,SqlJetHelper db) throws SqlJetException, NoSuchFieldException {
-		SqlJetTableHelper tbl=db.table(r);
-		createTable(r,tbl);
-		createIndex(r,tbl);
-	}
-	public static void createIndex(SqlJetRecord r, SqlJetTableHelper tbl) throws SqlJetException {
-		for (String iname:r.indexNames()) {
-			tbl.createIndex(iname);
-		}
-	}
 	public abstract String tableName();/* {
-		return getClass().getName().replaceAll("\\.", "_");
-	}*/
-	/**
+	return getClass().getName().replaceAll("\\.", "_");
+}*/
+	/*
 	 * Creates table according to the table definition of this record object.
-	 * It will be called automatically by SqlJetHelper, users need not to call.
+	 * It will be called automatically by JDBCHelper, users need not to call.
 	 * @param tbl
 	 * @throws NoSuchFieldException
-	 * @throws SqlJetException
+	 * @throws SQLException
 	 */
-	public static void createTable(SqlJetRecord r,SqlJetTableHelper tbl) throws NoSuchFieldException, SqlJetException {
-		for (String fname:r.columnOrder()) {
-			Field f=r.getField(fname);
-			String type="TEXT";
-			Class ftype=f.getType();
-			if (ftype.equals(Long.TYPE) || ftype.equals(Integer.TYPE)) {
-				type="INTEGER";
-			}
-			if (fname.equals(r.primaryKeyName())) {
-				type+=" PRIMARY KEY";
-			}
-			tbl=tbl.a(fname, type);
-		}
+	/*public static void createTable(JDBCRecord r,JDBCTable tbl) throws SQLException {
 		tbl.create();
-	}
+	}*/
 	public String primaryKeyName() {
 		return "id";
 	}
 	/**
-	 * Subclasses should override if indice are required.<BR>
-	 * Each string may have two or more field names separated by comma.<BR>
+	 * Subclasses should override if index are required.<BR>
+	 * The return values is a string array. Each string represents "index spec".
+	 * Index spec consists of field name(s) separated by comma.<BR>
+	 * If the name begins with '-', it indicates descendant order
 	 * <BR>
-	 * example: <code>return q("name","age","name,age");</code><BR>
+	 * example: <code>return q("name","age","name,age","name,-occupation");</code><BR>
 	 * Note: These names are not the actual index names. They will be converted to
 	 * the name like "Tablename_name1_name2..."
-	 * @return array of index names
+	 * @return array of index specs
 	 */
-	public String[] indexNames() {
+	public String[] indexSpecs() {
 		return q();
 	}
 	/**
@@ -164,12 +126,16 @@ public abstract class SqlJetRecord {
 		return res;
 	}
 	public Object[] toValues() {
+		return toValues(false);
+	}
+	public Object[] toValues(boolean noPrimaryKeyValue) {
 		try {
 			String[] fo = columnOrder();
-			Object[] values=new Object[fo.length];
+			Object[] values=new Object[fo.length-(noPrimaryKeyValue?1:0)];
 			int i=0;
 			for (String fn:fo) {
 				Field f = getField(fn);
+				if (noPrimaryKeyValue && fn.equals(primaryKeyName())) continue;
 				values[i]=f.get(this);
 				i++;
 			}
@@ -184,46 +150,14 @@ public abstract class SqlJetRecord {
 		}
 		return null;
 	}
-	/**
+	/*
 	 * inserts this record into t
 	 * @param t  A table to which be inserted. get with DBHelper::table(this)
-	 * @throws SqlJetException
-	 */
-	public static void insertTo(SqlJetRecord r,ISqlJetTable t) throws SqlJetException {
+	 * @throws SQLException
+	 *
+	public static void insertTo(JDBCRecord r, JDBCTable t) throws SQLException {
 		t.insert(r.toValues());
-	}
-	public static void fetch(SqlJetRecord rec,ISqlJetCursor cur) throws SqlJetException {
-		int i=0;
-		for (String fname:rec.columnOrder()) {
-			try {
-				Field f = rec.getField(fname);
-				Class t=f.getType();
-				if (t.equals(Long.TYPE)) {
-					long r=cur.getInteger(i);
-					f.set(rec, r);
-				} else if (t.equals(Integer.TYPE)) {
-					int r=(int)cur.getInteger(i);
-					f.set(rec, r);
-				} else if (String.class.isAssignableFrom(t)) {
-					String r=cur.getString(i);
-					f.set(rec, r);
-				} else {
-					Log.die(t+" cannot be assigned");
-				}
-				i++;
-			} catch (NoSuchFieldException e) {
-				throw new SqlJetException(e);
-			} catch (IllegalArgumentException e) {
-				throw new SqlJetException(e);
-			} catch (IllegalAccessException e) {
-				throw new SqlJetException(e);
-			}
-
-		}
-	}
-	public void update(ISqlJetCursor cur) throws SqlJetException {
-		cur.update(toValues());
-	}
+	}*/
 	public void export(PrintWriter p) {
 		p.printf("[%s]\n", tableName());
 		for (String fname:columnOrder()) {
@@ -245,7 +179,7 @@ public abstract class SqlJetRecord {
 			e.printStackTrace();
 		}
 	}
-	public static String firstTableName(Scanner s) {
+	/*public static String firstTableName(Scanner s) {
 		while (s.hasNextLine()) {
 			String line=s.nextLine();
 			Matcher m=Importer.table.matcher(line);
@@ -255,10 +189,10 @@ public abstract class SqlJetRecord {
 			}
 		}
 		return null;
-	}
-	private static final Pattern table=Pattern.compile("\\[([\\d\\w]+)\\]");
+	}*/
+	/*private static final Pattern table=Pattern.compile("\\[([\\d\\w]+)\\]");
 	private static final Pattern field=Pattern.compile("([\\d\\w]+)=(.*)");
-	public String importRecord(Scanner s) throws SqlJetException {
+	public String importRecord(Scanner s) throws SQLException {
 		try {
 			while (s.hasNextLine()) {
 				String line=s.nextLine();
@@ -288,22 +222,22 @@ public abstract class SqlJetRecord {
 			}
 			return null;
 		}catch(NoSuchFieldException e) {
-			throw new SqlJetException(e);
+			throw new SQLException(e);
 		} catch (IllegalArgumentException e) {
-			throw new SqlJetException(e);
+			throw new SQLException(e);
 		} catch (IllegalAccessException e) {
-			throw new SqlJetException(e);
+			throw new SQLException(e);
 		}
-	}
+	}*/
 	public Field getField(String fname) throws NoSuchFieldException {
 		return getClass().getField(fname);
 	}
 	public static <T> T[] q(T... ts) {
 		return ts;
 	}
-	public void insertTo(SqlJetTableHelper curTbl) throws SqlJetException {
-		insertTo(this, curTbl.table());
-	}
+	/*public void insertTo(JDBCTable curTbl) throws SQLException {
+		insertTo(this, curTbl);
+	}*/
 	public Map<String,Object> toMap() throws NoSuchFieldException, IllegalArgumentException, IllegalAccessException {
 		HashMap<String, Object> res = new HashMap<String, Object>();
 		for (String fn:columnOrder()) {
@@ -339,7 +273,7 @@ public abstract class SqlJetRecord {
 							}
 						}
 					}
-					f.set(SqlJetRecord.this, value);
+					f.set(JDBCRecord.this, value);
 				} catch (NoSuchFieldException e) {
 				} catch (IllegalArgumentException e) {
 					e.printStackTrace();

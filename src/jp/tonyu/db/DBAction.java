@@ -1,12 +1,12 @@
 package jp.tonyu.db;
 
-import org.tmatesoft.sqljet.core.SqlJetException;
-import org.tmatesoft.sqljet.core.table.SqlJetDb;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 public abstract class DBAction {
-	public abstract void run(SqlJetDb db) throws SqlJetException;
-	public void afterCommit(SqlJetDb db){
+	public abstract void run(JDBCHelper db) throws SQLException;
+	public void afterCommit(JDBCHelper db){
 	}
-	public void afterRollback(SqlJetDb db) {
+	public void afterRollback(JDBCHelper db) {
 	}
 }

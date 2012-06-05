@@ -1,11 +1,10 @@
 package jp.tonyu.soytext2.document;
 
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Vector;
 
 import jp.tonyu.debug.Log;
-
-import org.tmatesoft.sqljet.core.SqlJetException;
 
 public class IntersectDocumentRecordIterator implements DocumentRecordIterator{
 	List<DocumentRecordIterator> iters=new Vector<DocumentRecordIterator>();
@@ -14,7 +13,7 @@ public class IntersectDocumentRecordIterator implements DocumentRecordIterator{
 		iters.add(it);
 	}
 	@Override
-	public boolean hasNext() throws SqlJetException {
+	public boolean hasNext() throws SQLException {
 		//DocumentRecord[] lasts=new DocumentRecord[iters.size()];
 		DocumentRecord oldest=null;
 		//boolean allNoNext=false;
@@ -55,7 +54,7 @@ public class IntersectDocumentRecordIterator implements DocumentRecordIterator{
 	}
 
 	@Override
-	public DocumentRecord next() throws SqlJetException {
+	public DocumentRecord next() throws SQLException {
 		if (next==null && !hasNext()) Log.die("Next is null");
 		DocumentRecord res = next;
 		next=null;
@@ -63,7 +62,7 @@ public class IntersectDocumentRecordIterator implements DocumentRecordIterator{
 	}
 
 	@Override
-	public void close() throws SqlJetException {
+	public void close() throws SQLException {
 		for (DocumentRecordIterator it:iters) {
 			it.close();
 		}

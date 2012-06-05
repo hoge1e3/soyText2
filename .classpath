@@ -3,7 +3,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="lib" path="lib/servlet-api.jar"/>
-	<classpathentry kind="lib" path="lib/sqljet.1.0.3.b914.jar" sourcepath="C:/bin/Downloads/dl_before20110531/sqljet.1.0.4.b963/sqljet.1.0.4.b963.src.zip"/>
 	<classpathentry kind="lib" path="lib/ldap.jar"/>
 	<classpathentry kind="lib" path="lib/rhino_patched.jar" sourcepath="/Rhino_debug/src"/>
 	<classpathentry kind="lib" path="lib/commons-fileupload-1.2.2.jar"/>

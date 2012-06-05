@@ -1,14 +1,9 @@
 package jp.tonyu.soytext2.document;
 
-import org.tmatesoft.sqljet.core.SqlJetException;
-
-import jp.tonyu.db.SqlJetHelper;
-import jp.tonyu.db.SqlJetRecord;
-import jp.tonyu.db.SqlJetTableHelper;
-import jp.tonyu.util.Ref;
+import jp.tonyu.db.JDBCRecord;
 
 
-public class DocumentRecord extends SqlJetRecord /*implements Wrappable*/ {
+public class DocumentRecord extends JDBCRecord /*implements Wrappable*/ {
 	/*public DocumentRecord(SqlJetHelper db) {
 		super(db);
 	}*/
@@ -43,7 +38,7 @@ public class DocumentRecord extends SqlJetRecord /*implements Wrappable*/ {
 	public String summary,content,preContent;
 	public String language="javascript";
 	public String owner="",group="",permission="";
-	public static final String OWNER="owner",LASTUPDATE="lastUpdate";
+	public static final String OWNER="owner",LASTUPDATE="lastUpdate",LASTUPDATE_DESC="-lastUpdate";
 	/*public DocumentRecord(String id) {
 		//this.documentSet=documentSet;
 		this.id=id;
@@ -53,15 +48,10 @@ public class DocumentRecord extends SqlJetRecord /*implements Wrappable*/ {
 		return "(Document "+id+")";
 	}
 	@Override
-	public String[] indexNames() {
-		return q(LASTUPDATE,"lastAccessed",OWNER+","+LASTUPDATE);
+	public String[] indexSpecs() {
+		return q(LASTUPDATE_DESC,"lastAccessed",OWNER+","+LASTUPDATE_DESC);
 	}
-	/*public void save() {
-		documentSet.save(this);
-	}*/
-	public void insertTo(SqlJetTableHelper t) throws SqlJetException {
-		SqlJetRecord.insertTo(this, t.table());
-	}
+
 
 
 	public String getId() {

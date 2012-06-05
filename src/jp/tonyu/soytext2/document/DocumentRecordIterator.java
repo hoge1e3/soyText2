@@ -1,6 +1,6 @@
 package jp.tonyu.soytext2.document;
 
-import org.tmatesoft.sqljet.core.SqlJetException;
+import java.sql.SQLException;
 
 /**
  * DocumentRecords must be iterated in order newer->older (lastUpdate desc)
@@ -9,7 +9,7 @@ import org.tmatesoft.sqljet.core.SqlJetException;
  *
  */
 public interface DocumentRecordIterator {
-	public boolean hasNext() throws SqlJetException;
-	public DocumentRecord next() throws SqlJetException;
-	public void close() throws SqlJetException;
+	public boolean hasNext() throws SQLException;
+	public DocumentRecord next() throws SQLException;
+	public void close() throws SQLException;
 }
