@@ -1,14 +1,7 @@
 package jp.tonyu.soytext2.file;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.nio.charset.Charset;
 
 import jp.tonyu.js.BlankScriptableObject;
 import jp.tonyu.js.ContextRunnable;
@@ -24,13 +17,8 @@ import jp.tonyu.util.SFile;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
-import org.mozilla.javascript.Script;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
-import org.mozilla.javascript.UniqueTag;
-
-import com.sun.mail.util.BASE64DecoderStream;
-import com.sun.mail.util.BASE64EncoderStream;
 
 public class FileSyncer implements Wrappable {
 	private static final String USE_BLOB_DIR = "useBlobDir";
@@ -97,15 +85,14 @@ public class FileSyncer implements Wrappable {
 				ScriptableObject.deleteProperty(fileScr, BASE64BODY);
 				ScriptableObject.putProperty(fileScr, HttpContext.ATTR_BODY, file.text());
 			} else {
-				/*ByteArrayOutputStream out=new ByteArrayOutputStream();
-				BASE64EncoderStream enc=new BASE64EncoderStream(out);
-				file.writeTo(enc);
-				enc.close();*/
-				byte[] b=file.bytes();
+
+			    /*byte[] b=file.bytes();
 				byte[] b64=BASE64EncoderStream.encode(b);
 				String str=new String(b64, "utf-8");
 				ScriptableObject.putProperty(fileScr, BASE64BODY, str );
-				ScriptableObject.deleteProperty(fileScr, HttpContext.ATTR_BODY);
+				ScriptableObject.deleteProperty(fileScr, HttpContext.ATTR_BODY);*/
+
+
 			}
 		}
 		if (fileScr instanceof DocumentScriptable) {
@@ -129,7 +116,7 @@ public class FileSyncer implements Wrappable {
 		});
 		return res;
 	}
-	public static void writeBase64(OutputStream w, String base64Data) throws IOException {
+	/*public static void writeBase64(OutputStream w, String base64Data) throws IOException {
 		byte[] dec=BASE64DecoderStream.decode(base64Data.getBytes("utf-8"));
 		w.write(dec);
 	}
@@ -139,7 +126,7 @@ public class FileSyncer implements Wrappable {
 			String sp = (String) property;
 			writeBase64(w, sp);
 		}
-	}
+	}*/
 	public static SFile getBlobFile(DocumentSet ds,Scriptable file) {
 		// finds from  workspace/blob/id.ext
 		String blobExt=Scriptables.getAsString(file, "blobExt", "");
@@ -173,8 +160,8 @@ public class FileSyncer implements Wrappable {
 		SFile f=getBlobFile(ds,file);
 		if (f!=null && f.exists()) {
 			f.writeTo(ctx.getRes().getOutputStream());
-		} else 	if (file.has(BASE64BODY, file)){
-			writeBase64(ctx.getRes().getOutputStream(),file);
+		/*} else 	if (file.has(BASE64BODY, file)){
+			writeBase64(ctx.getRes().getOutputStream(),file);*/
 		} else {
 			ctx.getRes().getWriter().print(Scriptables.getAsString(file, HttpContext.ATTR_BODY,""));
 		}

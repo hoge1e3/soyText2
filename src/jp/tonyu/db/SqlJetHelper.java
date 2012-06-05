@@ -15,7 +15,6 @@ import org.tmatesoft.sqljet.core.SqlJetException;
 import org.tmatesoft.sqljet.core.SqlJetTransactionMode;
 import org.tmatesoft.sqljet.core.table.ISqlJetCursor;
 import org.tmatesoft.sqljet.core.table.SqlJetDb;
-import org.xbill.DNS.Lookup;
 
 /**
  * The helper class which provides some useful routine (transaction, versioning etc.)
