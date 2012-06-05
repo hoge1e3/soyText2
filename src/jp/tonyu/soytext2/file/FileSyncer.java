@@ -1,14 +1,8 @@
 package jp.tonyu.soytext2.file;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.nio.charset.Charset;
 
 import jp.tonyu.js.BlankScriptableObject;
 import jp.tonyu.js.ContextRunnable;
@@ -24,10 +18,8 @@ import jp.tonyu.util.SFile;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
-import org.mozilla.javascript.Script;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
-import org.mozilla.javascript.UniqueTag;
 
 import com.sun.mail.util.BASE64DecoderStream;
 import com.sun.mail.util.BASE64EncoderStream;

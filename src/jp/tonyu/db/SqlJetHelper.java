@@ -1,21 +1,17 @@
 package jp.tonyu.db;
 
 import java.io.File;
-import java.io.Writer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
 
 import jp.tonyu.debug.Log;
-import jp.tonyu.util.MapAction;
-import jp.tonyu.util.Maps;
 
 import org.tmatesoft.sqljet.core.SqlJetException;
 import org.tmatesoft.sqljet.core.SqlJetTransactionMode;
 import org.tmatesoft.sqljet.core.table.ISqlJetCursor;
 import org.tmatesoft.sqljet.core.table.SqlJetDb;
-import org.xbill.DNS.Lookup;
 
 /**
  * The helper class which provides some useful routine (transaction, versioning etc.)
