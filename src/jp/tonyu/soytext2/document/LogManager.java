@@ -8,6 +8,7 @@ import java.util.Map;
 import jp.tonyu.db.DBAction;
 import jp.tonyu.db.JDBCHelper;
 import jp.tonyu.db.JDBCRecordCursor;
+import jp.tonyu.db.JDBCTable;
 import jp.tonyu.db.PrimaryKeySequence;
 import jp.tonyu.debug.Log;
 import java.sql.SQLException;
@@ -18,7 +19,7 @@ public class LogManager {
 	public LogManager(final SDB sdb) throws SQLException {
 		super();
 		this.sdb=sdb;
-		lastNumber=PrimaryKeySequence.create(sdb.logTable()).current();
+		lastNumber=new PrimaryKeySequence(sdb.logTable()).current();
 	}
 	public void printAll() {
 		try {
@@ -87,39 +88,37 @@ public class LogManager {
 		res.date=new Date().toString();
 		return res;
 	}
-	public void liftUpLastNumber(int n) {
+	public void liftUpLastNumber(int n) throws SQLException {
 		if (n>lastNumber) setLastNumber(n);
 	}
-	public void setLastNumber(int n) {
+	public void setLastNumber(int n) throws SQLException {
 		lastNumber=n-1;
 		write("setLastNumber","");
 	}
-	public LogRecord write(String action, String target) {
+	public LogRecord write(String action, String target) throws SQLException {
 		LogRecord l=create();
 		l.action=action;
 		l.target=target;
 		save(l);
 		return l;
 	}
-	public void save(final LogRecord log) {
+	public void save(final LogRecord log) throws SQLException {
 		sdb.writeTransaction(new DBAction() {
 
 			@Override
 			public void run(JDBCHelper db) throws SQLException {
-				SqlJetTableHelper t = sdb.logTable();
-				ISqlJetCursor cur = t.lookup(null, log.id);
-
-				if (!cur.eof()) {
-					log.update(cur);
-					//cur.update(log.id,log.date,log.action,log.target,log.option);
-			    } else {
-			    	log.insertTo(t);
-			    	//t.insert(log.id,log.date,log.action,log.target,log.option);
+				JDBCTable<LogRecord> t=sdb.logTable();
+				JDBCRecordCursor<LogRecord> cur=t.lookup("id", log.id);
+				if (cur.next()) {
+				    t.update(log);
+				} else {
+			    	t.insert(log);
 			    }
+                cur.close();
 			}
-		});
+		},-1);
 	}
-	public void importLog(LogRecord curlog) {
+	public void importLog(LogRecord curlog) throws SQLException {
 		save(curlog);
 	}
 }

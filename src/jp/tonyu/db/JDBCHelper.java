@@ -185,7 +185,7 @@ public abstract class JDBCHelper {
         table(r).update(r);
     }
 
-    public <T extends JDBCRecord> T find1(T record, String columnSpec, Object... values) throws SQLException {
+    /*public <T extends JDBCRecord> T find1(T record, String columnSpec, Object... values) throws SQLException {
         JDBCTable<T> t = table(record);
         ResultSet cur = t.lookup(columnSpec, values);
         T res=null;
@@ -195,7 +195,7 @@ public abstract class JDBCHelper {
         }
         cur.close();
         return res;
-    }
+    }*/
     public static void fetch(JDBCRecord rec, ResultSet cur) throws SQLException {
         int i=0;
         for (String fname:rec.columnOrder()) {

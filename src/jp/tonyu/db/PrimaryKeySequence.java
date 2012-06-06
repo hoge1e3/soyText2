@@ -3,15 +3,13 @@ package jp.tonyu.db;
 import java.sql.SQLException;
 
 
-public class PrimaryKeySequence<T extends JDBCRecord> {
+public class PrimaryKeySequence {
 	int lastNumber;
-	public static <T extends JDBCRecord> PrimaryKeySequence<T> create(JDBCTable<T> tbl) throws SQLException {
-		return new PrimaryKeySequence<T>(tbl);
-	}
-	public PrimaryKeySequence(final JDBCTable<T> tbl) throws SQLException {
+	public PrimaryKeySequence(final JDBCTable<? extends JDBCRecord> tbl) throws SQLException {
 		super();
-		JDBCHelper db = tbl.getDB();
-		db.readTransaction(new DBAction() {
+		//JDBCHelper db = tbl.getDB();
+		lastNumber=tbl.max(tbl.primaryKeyName());
+		/*db.readTransaction(new DBAction() {
 
 			@Override
 			public void run(JDBCHelper db) throws SQLException {
@@ -36,7 +34,7 @@ public class PrimaryKeySequence<T extends JDBCRecord> {
 					}
 				}
 			}
-		},-1);
+		},-1);*/
 	}
 	public int next() {
 		lastNumber++;

@@ -1,18 +1,6 @@
 package jp.tonyu.soytext2.command;
-import java.io.File;
-
-import org.mozilla.javascript.Context;
-import org.mozilla.javascript.Scriptable;
-import org.mozilla.javascript.ScriptableObject;
-import org.tmatesoft.sqljet.core.SqlJetException;
-
-import jp.tonyu.js.BlankScriptableObject;
-import jp.tonyu.js.BuiltinFunc;
-import jp.tonyu.js.Scriptables;
-import jp.tonyu.soytext.Origin;
 import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.js.DocumentLoader;
-import jp.tonyu.soytext2.js.JSSession;
 
 
 public class JSTest {

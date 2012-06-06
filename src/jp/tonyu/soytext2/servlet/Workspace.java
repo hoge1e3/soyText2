@@ -3,11 +3,10 @@ package jp.tonyu.soytext2.servlet;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
-
-import org.tmatesoft.sqljet.core.SqlJetException;
 
 import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.util.SFile;
@@ -28,20 +27,20 @@ public class Workspace {
 		return res;
 	}
 	// if directory not exists returns null, if directory exists and main.db does not exist, main.db is created
-	public SDB getDB(String dbid) throws SqlJetException,IOException {
+	public SDB getDB(String dbid) throws SQLException,IOException, ClassNotFoundException {
 		//if (getPrimaryDBID().equals(dbid)) return getPrimaryDB();
 		SFile db=singleDBHome(dbid);
 		if (!db.exists()) return null;
 		SFile f=db.rel(MAIN_DB);
 		return dbFromFile(f);
 	}
-	public SDB getPrimaryDB() throws SqlJetException,IOException {
+	public SDB getPrimaryDB() throws SQLException,IOException, ClassNotFoundException {
 		/*SFile f=dbHome().rel(getPrimaryDBID());
 		return dbFromFile(f);*/
 		return getDB(getPrimaryDBID());
 	}
 	static Map<File, SDB> cache=new HashMap<File, SDB>();
-	private SDB dbFromFile(SFile f) throws SqlJetException {
+	private SDB dbFromFile(SFile f) throws SQLException, ClassNotFoundException {
 		File ff=f.javaIOFile();
 		SDB res=cache.get(ff);
 		if (res!=null) return res;
@@ -87,7 +86,7 @@ public class Workspace {
 	private boolean isEmpty() {
 		return !primaryDBFile().exists();
 	}
-	public void closeDB(String dbid) throws SqlJetException, IOException {
+	public void closeDB(String dbid) throws SQLException, IOException, ClassNotFoundException {
 		getDB(dbid).close();
 		cache.remove(getDBFile(dbid).javaIOFile());
 

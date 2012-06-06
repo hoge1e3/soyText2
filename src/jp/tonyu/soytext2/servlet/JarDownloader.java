@@ -3,8 +3,7 @@ package jp.tonyu.soytext2.servlet;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-
-import org.tmatesoft.sqljet.core.SqlJetException;
+import java.sql.SQLException;
 
 import jp.tonyu.debug.Log;
 import jp.tonyu.soytext2.document.SDB;
@@ -13,7 +12,7 @@ import jp.tonyu.util.SFile;
 
 public class JarDownloader {
 	public static final Context<String> jarFile=new Context<String>();
-	public static void startDownload(HttpContext ctx, String dbid,SDB src, String[] ids) throws IOException, SqlJetException {
+	public static void startDownload(HttpContext ctx, String dbid,SDB src, String[] ids) throws IOException, SQLException, ClassNotFoundException {
 		if (jarFile.get().length()==0) Log.die("jar file not set");
 		SFile inputJarFile=new SFile(jarFile.get());
 		File outDbF=File.createTempFile("main.tmp",".db");
@@ -36,7 +35,7 @@ public class JarDownloader {
 
 $.extend(_,{
 scope: {
-    
+
 },
 remoteLastSynced: 16842,
 _sendSyncUrl: "http://localhost:8080/soytext2/sendsync?localsyncid=2.2010.tonyu.jp@1.2010.tonyu.jp&remotesyncid=1.2010.tonyu.jp@2.2010.tonyu.jp",
@@ -53,7 +52,7 @@ constructor: $.byId("1265@1.2010.tonyu.jp")
 
 $.extend(_,{
     scope: {
-        
+
     },
     remoteLastSynced: 16479,
     name: "1@2",

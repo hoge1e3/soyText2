@@ -3,30 +3,19 @@ package jp.tonyu.soytext2.servlet;
 import static jp.tonyu.util.Literal.toLiteral;
 import static jp.tonyu.util.SPrintf.sprintf;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
-import java.net.URL;
 import java.net.URLEncoder;
-import java.util.Collections;
-import java.util.Date;
+import java.sql.SQLException;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
-import java.util.Set;
-import java.util.Vector;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.servlet.ServletOutputStream;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -36,15 +25,10 @@ import jp.tonyu.js.Args;
 import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.js.ContextRunnable;
 import jp.tonyu.js.Wrappable;
-import jp.tonyu.soytext2.auth.Authenticator;
-import jp.tonyu.soytext2.auth.AuthenticatorList;
-//import jp.tonyu.soytext2.auth.Session;
-//import jp.tonyu.soytext2.auth.SessionSet;
 import jp.tonyu.soytext2.browserjs.IndentAdaptor;
 import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentSet;
 import jp.tonyu.soytext2.document.SDB;
-import jp.tonyu.soytext2.document.backup.Importer;
 import jp.tonyu.soytext2.file.BinData;
 import jp.tonyu.soytext2.file.ZipMaker;
 import jp.tonyu.soytext2.js.ContentChecker;
@@ -54,7 +38,6 @@ import jp.tonyu.soytext2.js.JSSession;
 import jp.tonyu.soytext2.search.Query;
 import jp.tonyu.soytext2.search.QueryBuilder;
 import jp.tonyu.soytext2.search.expr.AttrOperator;
-import jp.tonyu.util.HttpPost;
 import jp.tonyu.util.Literal;
 import jp.tonyu.util.MapAction;
 import jp.tonyu.util.Maps;
@@ -66,10 +49,8 @@ import jp.tonyu.util.Util;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
-import org.mozilla.javascript.ScriptRuntime;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
-import org.tmatesoft.sqljet.core.SqlJetException;
 
 public class HttpContext implements Wrappable {
 	public static final String CONTENT_TYPE = "Content-Type";
@@ -171,7 +152,7 @@ public class HttpContext implements Wrappable {
 		_params=res;
 		return res;
 	}
-    public void downloadJar(String dbid, String []ids) throws IOException, SqlJetException {
+    public void downloadJar(String dbid, String []ids) throws IOException, SQLException, ClassNotFoundException {
     	JarDownloader.startDownload(this, dbid, (SDB)documentSet(), ids);
     }
 
@@ -314,9 +295,9 @@ public class HttpContext implements Wrappable {
         else if (s.length==2 && s[1].equalsIgnoreCase("rebuildindex")) {
         	rebuildIndex();
         }
-        else if (s.length>=2 && s[1].equalsIgnoreCase("upload")) {
+        /*else if (s.length>=2 && s[1].equalsIgnoreCase("upload")) {
         	upload();
-        }
+        }*/
         else if (s.length>=2 && s[1].equalsIgnoreCase("fileupload")) {
         	fileUpload();
         }
@@ -329,18 +310,18 @@ public class HttpContext implements Wrappable {
         else if (s.length>=2 && s[1].equalsIgnoreCase("search")) {
         	search();
         }
-        else if (s.length>=2 && s[1].equalsIgnoreCase("sendsync")) {
+        /*else if (s.length>=2 && s[1].equalsIgnoreCase("sendsync")) {
         	sendSync();
-        }
-        else if (s.length>=2 && s[1].equalsIgnoreCase("recvsync")) {
+        }*/
+        /*else if (s.length>=2 && s[1].equalsIgnoreCase("recvsync")) {
         	recvSync();
-        }
+        }*/
         else if (s.length>=2 && s[1].equalsIgnoreCase("browserjs")) {
         	browserjs();
         }
-        else if (s.length>=2 && s[1].equals("import1")) {
+        /*else if (s.length>=2 && s[1].equals("import1")) {
         	importFromVer1();
-        }
+        }*/
         else if (s.length>=2 && s[1].equals("errorlog")) {
         	errorLog();
         }
@@ -415,7 +396,7 @@ public class HttpContext implements Wrappable {
      *   this.syncProf.localLastSynced    -> generated log id
      *   this.syncProf.remoteLastSynced   -> max (input DocumentRecord.lastUpdate)
     */
-    private void recvSync() throws IOException {
+    /*private void recvSync() throws IOException {
     	DocumentScriptable localSyncProf = getSyncProf(LOCAL_SYNCID);
 
     	// download
@@ -449,7 +430,7 @@ public class HttpContext implements Wrappable {
 
 		localSyncProf.save();
 
-    }
+    }*/
 
     /* input param:
      *   remotesyncid=(remote's sync profile id)
@@ -466,7 +447,7 @@ public class HttpContext implements Wrappable {
      *   this.syncProf.localLastSynced  -> generated log id
      *   this.syncProf.remoteLastSynced -> max (received DocumentRecord.lastUpdate)
      */
-    private void sendSync() throws IOException {
+    /*private void sendSync() throws IOException {
 		res.setContentType(TEXT_HTML_CHARSET_UTF_8);
 		PrintWriter w=res.getWriter();
 
@@ -525,7 +506,7 @@ public class HttpContext implements Wrappable {
     		w.println(Html.p("<HR><a href=%a>戻る</a>",rootPath()+after));
     	}
 
-    }
+    }*/
 	private void download() throws IOException {
 		//input param:
 		//  dbid=(client's DBID)
@@ -568,7 +549,7 @@ public class HttpContext implements Wrappable {
 			}
 		});
 	}
-	private void upload() throws IOException {
+	/*private void upload() throws IOException {
 		//input params:
 		//  syncid=(this server's syncProfile id)
 		//  credential=(client's user name or something)
@@ -598,11 +579,11 @@ public class HttpContext implements Wrappable {
 			Scanner sc=new Scanner(rd);
 			importDocuments(sc,null,null);
 		}
-	}
+	}*/
 	public boolean isOfflineMode() {
 		return JarDownloader.jarFile.get().length()==0;
 	}
-	private long importDocuments(Scanner sc, List<String> importedIds, Set<String> excludes) {
+	/*private long importDocuments(Scanner sc, List<String> importedIds, Set<String> excludes) {
 		long newRemoteLastSynced=0;
 		try {
 			List<DocumentRecord> loaded=new Vector<DocumentRecord>();
@@ -626,11 +607,11 @@ public class HttpContext implements Wrappable {
 			if (SETLASTUPDATE.equals(nextCl)) {
 				newRemoteLastSynced=sc.nextLong();
 			}
-		} catch (SqlJetException e) {
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return newRemoteLastSynced;
-	}
+	}*/
 	private void topPage() throws IOException {
 		Log.d("htpcon", "home");
 		final Ref<Boolean> execed = Ref.create(false);
@@ -1244,7 +1225,7 @@ public class HttpContext implements Wrappable {
 	public static String ajaxTag(String string) {
 		return "<!--"+AJAXTAG+string+"-->";
 	}
-	public void importFromVer1() {
+	/*public void importFromVer1() {
 		try {
 			URL u=new URL("http://localhost:3001/exec/110412_045800?after=1307074166184");
 			InputStream in=(InputStream)u.getContent();
@@ -1269,7 +1250,7 @@ public class HttpContext implements Wrappable {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
+	}*/
 	public void write(BinData data) throws IOException {
 		write(data.getInputStream());
 	}

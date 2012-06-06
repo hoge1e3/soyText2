@@ -1,18 +1,15 @@
 package jp.tonyu.soytext2.command;
 
-import java.io.File;
 import java.io.IOException;
+import java.sql.SQLException;
 
 import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.js.DocumentLoader;
-import jp.tonyu.soytext2.servlet.SMain;
 import jp.tonyu.soytext2.servlet.Workspace;
 import jp.tonyu.util.SFile;
 
-import org.tmatesoft.sqljet.core.SqlJetException;
-
 public class RebuildIndex {
-	public static void main(String[] args) throws SqlJetException, IllegalArgumentException, NoSuchFieldException, IllegalAccessException, IOException {
+	public static void main(String[] args) throws Exception {
 		Workspace workspace=new Workspace(new SFile("."));
 		String dbid=(args.length==0?workspace.getPrimaryDBID():args[0]);
 

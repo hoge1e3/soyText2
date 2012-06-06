@@ -1,15 +1,13 @@
 package jp.tonyu.soytext2.command;
 import java.io.File;
 
+import jp.tonyu.soytext2.document.DocumentAction;
+import jp.tonyu.soytext2.document.DocumentRecord;
+import jp.tonyu.soytext2.document.SDB;
+
 import org.mozilla.javascript.ClassShutter;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.ScriptableObject;
-import org.tmatesoft.sqljet.core.SqlJetException;
-
-import jp.tonyu.soytext.Origin;
-import jp.tonyu.soytext2.document.DocumentRecord;
-import jp.tonyu.soytext2.document.DocumentAction;
-import jp.tonyu.soytext2.document.SDB;
 
 // this is modified by brtest
 public class Test {
@@ -35,7 +33,7 @@ public class Test {
 		System.out.println(r);
 		Context.exit();
 	}
-	public static void main2(String[] args) throws SqlJetException {
+	public static void main2(String[] args) throws Exception {
 		final SDB s=new SDB(new File("test.db"));//, Origin.uid);
 		/*Document d=s.newDocument();
 		d.content="test"+d.id;

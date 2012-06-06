@@ -1,5 +1,6 @@
 package jp.tonyu.soytext2.js;
 
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -20,7 +21,6 @@ import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentSet;
 import jp.tonyu.soytext2.document.IndexRecord;
 import jp.tonyu.soytext2.document.PairSet;
-import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.search.Query;
 import jp.tonyu.soytext2.search.QueryBuilder;
 import jp.tonyu.soytext2.search.QueryResult;
@@ -38,7 +38,6 @@ import jp.tonyu.soytext2.servlet.HttpContext;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
-import org.tmatesoft.sqljet.core.SqlJetException;
 
 
 public class DocumentLoader implements Wrappable, IDocumentLoader {
@@ -456,7 +455,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 		});*/
 		return auth;
 	}
-	private void copyDocumentExceptDates(DocumentRecord src, DocumentRecord dst) throws SqlJetException {
+	private void copyDocumentExceptDates(DocumentRecord src, DocumentRecord dst) throws SQLException {
 		long lu=dst.lastUpdate;
 		src.copyTo( dst);
 		dst.lastUpdate=lu;
@@ -465,9 +464,9 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 	 *
 	 * @param dr DocumentRecord to be imported
 	 * @return true if DocumentScriptable having id equals to dr.id in objs(cache)
-	 * @throws SqlJetException
+	 * @throws SQLException
 	 */
-	public void importDocuments(Collection<DocumentRecord> drs) throws SqlJetException {
+	public void importDocuments(Collection<DocumentRecord> drs) throws SQLException {
 		Set<DocumentScriptable> willReload=new HashSet<DocumentScriptable>();
 		Set<String> willUpdateIndex=new HashSet<String>();
 		for (DocumentRecord dr:drs) {
@@ -486,12 +485,12 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 		for (DocumentScriptable ds:willReload) {
 			ds.reloadFromContent();
 		}
-		if (((SDB)documentSet).useIndex()) {
+		//if (((SDB)documentSet).useIndex()) {
 			for (String id: willUpdateIndex) {
 				DocumentScriptable s=byId(id);
 				s.refreshIndex();
 			}
-		}
+		//}
 	}
 	public void rebuildIndex() {
 		JSSession.withContext(new ContextRunnable() {

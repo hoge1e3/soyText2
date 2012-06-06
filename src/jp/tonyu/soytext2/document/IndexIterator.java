@@ -1,6 +1,7 @@
 package jp.tonyu.soytext2.document;
 
 import java.sql.SQLException;
+import java.util.NoSuchElementException;
 
 import jp.tonyu.db.JDBCRecordCursor;
 import jp.tonyu.db.JDBCTable;
@@ -9,6 +10,8 @@ public class IndexIterator implements DocumentRecordIterator {
 	JDBCRecordCursor<IndexRecord>  cur;
 	SDB sdb;
 	String key,value;
+
+	boolean hasNexted=false, lastHasNext;
 	public IndexIterator(SDB sdb, String key, String value) throws SQLException {
 		this.sdb=sdb;
 		JDBCTable<IndexRecord> t = sdb.table(IndexRecord.class);
@@ -19,7 +22,9 @@ public class IndexIterator implements DocumentRecordIterator {
 	}
 	@Override
 	public boolean hasNext() throws SQLException{
-		return cur.next();
+	    if (hasNexted) return lastHasNext;
+	    hasNexted=true;
+		return lastHasNext=cur.next();
 	}
 
 	@Override
@@ -28,9 +33,11 @@ public class IndexIterator implements DocumentRecordIterator {
 	}
 	@Override
 	public DocumentRecord next() throws SQLException{
+	    if (!hasNexted) {
+	        if (!hasNext()) throw new NoSuchElementException();
+	    }
+        hasNexted=false;
 		IndexRecord r=cur.fetch();
-		//SqlJetRecord.fetch( sdb.indexRecord, cur);
-		//cur.next();
 		DocumentRecord d = sdb.byId(r.document);
 		return d;
 	}

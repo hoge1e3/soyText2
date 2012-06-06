@@ -1,13 +1,12 @@
 package jp.tonyu.soytext2.command;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 import jp.tonyu.soytext2.document.SDB;
 
-import org.tmatesoft.sqljet.core.SqlJetException;
-
 public class Restore {
-	public static void main(String[] args) throws IOException, SqlJetException {
+	public static void main(String[] args) throws Exception {
 		Common.parseArgs(args);
 		Common.backupDB();
 		SDB sdb = Common.getDB();

@@ -1,10 +1,9 @@
 package jp.tonyu.soytext2.servlet;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
-
-import org.tmatesoft.sqljet.core.SqlJetException;
 
 import jp.tonyu.soytext2.js.DocumentLoader;
 
@@ -15,7 +14,7 @@ public class DocumentLoaderMap {
 		super();
 		this.workspace = workspace;
 	}
-	public DocumentLoader getDocumentLoader(String dbid) throws SqlJetException, IOException {
+	public DocumentLoader getDocumentLoader(String dbid) throws SQLException, IOException, ClassNotFoundException {
 		DocumentLoader res = h.get(dbid);
 		if (res!=null) return res;
 		res=new DocumentLoader(workspace.getDB(dbid));

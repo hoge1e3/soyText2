@@ -3,9 +3,8 @@ package jp.tonyu.soytext2.servlet;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
-import java.util.Scanner;
+import java.sql.SQLException;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -20,8 +19,6 @@ import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.js.DocumentLoader;
 import jp.tonyu.util.Ref;
 import jp.tonyu.util.SFile;
-
-import org.tmatesoft.sqljet.core.SqlJetException;
 
 public class SMain extends HttpServlet {
 
@@ -39,11 +36,13 @@ public class SMain extends HttpServlet {
 		final HttpServletResponse res=new WrappableResponse(res2);
 		try {
 			initServlet();
-		} catch (SqlJetException e1) {
+		} catch (SQLException e1) {
 			e1.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
+		} catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
 		//HttpSession s=req2.getSession();
 		/*For one docloader per session
 		final DocumentLoader docLoader;
@@ -157,7 +156,7 @@ public class SMain extends HttpServlet {
 	public static int insts=0;
 	// As Servlet
 	public SMain() {insts++; isServlet=true;}
-	public void initServlet() throws SqlJetException,IOException {
+	public void initServlet() throws SQLException,IOException, ClassNotFoundException {
 		if (!isServlet || servletInited) return;
 		servletInited=true;
 		setupApplicationContext();
