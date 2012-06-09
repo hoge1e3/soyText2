@@ -16,8 +16,9 @@ import jp.tonyu.js.Scriptables;
 import jp.tonyu.js.StringPropAction;
 import jp.tonyu.js.Wrappable;
 import jp.tonyu.soytext2.auth.AuthenticatorList;
-import jp.tonyu.soytext2.document.DocumentAction;
+import jp.tonyu.soytext2.document.IndexAction;
 import jp.tonyu.soytext2.document.DocumentRecord;
+import jp.tonyu.soytext2.document.DocumentAction;
 import jp.tonyu.soytext2.document.DocumentSet;
 import jp.tonyu.soytext2.document.IndexRecord;
 import jp.tonyu.soytext2.document.PairSet;
@@ -277,12 +278,12 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 		//QueryExpression idx =
 		extractIndexExpr(idxs, e);
 		Log.d(this, "Search with index "+idxs);
-		DocumentAction docAct = new DocumentAction() {
+		IndexAction docAct = new IndexAction() {
 
 			@Override
-			public boolean run(DocumentRecord d) {
-				Log.d("QueryMatched", d);
-				DocumentScriptable s=(DocumentScriptable) byId(d.id);
+			public boolean run(IndexRecord i) {
+				Log.d("QueryMatched", i.document);
+				DocumentScriptable s=(DocumentScriptable) byId(i.document);
 				QueryResult r = q.matches(s);
 				if (r.filterMatched) {
 					Object brk=jsSession().call(iter, iter, new Object[]{s});
@@ -501,7 +502,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 
 					@Override
 					public boolean run(DocumentRecord d) {
-						Log.d("rebuildIndex",d.id+" lastUpdate="+d.lastUpdate);
+						Log.d("rebuildIndex",d.id);//+" lastUpdate="+d.lastUpdate);
 						DocumentScriptable s=byId(d.id);
 						s.refreshIndex();
 						return false;

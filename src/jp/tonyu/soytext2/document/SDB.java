@@ -18,23 +18,15 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.management.RuntimeErrorException;
-
-
 import jp.tonyu.db.DBAction;
 import jp.tonyu.db.JDBCHelper;
 import jp.tonyu.db.JDBCRecord;
 import jp.tonyu.db.JDBCRecordCursor;
 import jp.tonyu.db.JDBCTable;
 import jp.tonyu.db.PrimaryKeySequence;
-
 import jp.tonyu.debug.Log;
-import jp.tonyu.util.MapAction;
-import jp.tonyu.util.Maps;
-import jp.tonyu.util.Ref;
 import jp.tonyu.util.SFile;
 import jp.tonyu.util.TDate;
-
 import net.arnx.jsonic.JSON;
 import net.arnx.jsonic.JSONException;
 
@@ -43,10 +35,14 @@ public class SDB  implements DocumentSet {
 	//public static final String PRIMARY_DBID_TXT = "primaryDbid.txt";
 	JDBCHelper helper;
 	static final int version=3;
+
 	//public static final String UID_IMPORT = "77a729a1-5c5d-4d09-9141-72108ee9b634";
 	//public static final String UID_EXISTENT_FILE = "86e08ee0-0bd5-4d1f-a7f5-66c2251e60ad";
 
-	String dbid;
+	public JDBCHelper getHelper() {
+        return helper;
+    }
+    String dbid;
 	final File dbFile;
 	SFile blobDir;
 	SFile backupDir;
@@ -335,7 +331,7 @@ public class SDB  implements DocumentSet {
 		i.document=d.id;
 		i.name=name;
 		i.value=value;
-		i.lastUpdate=-d.lastUpdate;
+		i.lastUpdate=d.lastUpdate;
 		indexTable().insert(i);
 	}
 	private void removeIndexValues(final DocumentRecord d) throws SQLException {
@@ -545,25 +541,22 @@ public class SDB  implements DocumentSet {
 		return dbid;
 	}
 	@Override
-	public void searchByIndex(final Map<String,String> keyValues, final DocumentAction a) {
-		if (keyValues.isEmpty()) {
+	public void searchByIndex(final Map<String,String> keyValues, final IndexAction a) {
+		/*if (keyValues.isEmpty()) {
 			all(a);
 			return;
-		}
+		}*/
 		try {
 			readTransaction(new DBAction() {
 				@Override
 				public void run(JDBCHelper db) throws SQLException {
-					final IntersectDocumentRecordIterator it=new IntersectDocumentRecordIterator();
+					final IntersectIndexIterator it=new IntersectIndexIterator();
 					for (String key:keyValues.keySet()) {
 						String value=keyValues.get(key);
-						/*if ("owner".equals(value)) {
-							it.add(new )
-						}*/
-						it.add(new IndexIterator(SDB.this, key, value));
+						it.add(new SingleIndexIterator(SDB.this, key, value));
 					}
 					while (it.hasNext()) {
-						DocumentRecord d = it.next();
+						IndexRecord d = it.next();
 						if (a.run(d)) {
 							break;
 						}
@@ -576,15 +569,15 @@ public class SDB  implements DocumentSet {
 		}
 	}
 	@Override
-	public void searchByIndex(final String key, final String value, final DocumentAction a) {
+	public void searchByIndex(final String key, final String value, final IndexAction a) {
 		try {
 			Log.d("SearchByIndex", "["+key+"]=["+value+"]");
 			readTransaction(new DBAction() {
 				@Override
 				public void run(JDBCHelper db) throws SQLException {
-					DocumentRecordIterator it=new IndexIterator(SDB.this, key, value);
+					IndexIterator it=new SingleIndexIterator(SDB.this, key, value);
 					while (it.hasNext()) {
-						DocumentRecord d = it.next();
+						IndexRecord d = it.next();
 						if (a.run(d)) {
 							break;
 						}

@@ -32,6 +32,7 @@ public abstract class JDBCHelper {
     private int version;
     public JDBCHelper(Connection db, final int version) throws SQLException {
         this.db=db;
+        db.setAutoCommit(true);
         if (version<=0) {
             throw new RuntimeException("Version must be >0");
         }
@@ -82,10 +83,12 @@ public abstract class JDBCHelper {
     //SqlJetTransactionMode transaction=null;
     public void writeTransaction(DBAction action, int timeOut) throws SQLException {
         try {
+            Log.d("JDBC","Trans Start");
             db.setAutoCommit(false);
             action.run(this);
             db.commit();
             db.setAutoCommit(true);
+            Log.d("JDBC","Trans End");
             action.afterCommit(this);
         } catch(SQLException e) {
             e.printStackTrace();
@@ -100,11 +103,13 @@ public abstract class JDBCHelper {
 
     public void readTransaction(DBAction action, int timeOut) throws SQLException {
         try {
-            db.setAutoCommit(false);
+            Log.d("JDBC", "Read trans start");
+            //db.setAutoCommit(false);
             action.run(this);
-            db.commit();
+            //db.commit();
+            Log.d("JDBC", "Read trans end");
         } finally {
-            db.setAutoCommit(true);
+            //db.setAutoCommit(true);
             action.afterCommit(this);
         }
     }

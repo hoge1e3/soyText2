@@ -1,49 +1,15 @@
 package jp.tonyu.soytext2.document;
 
 import java.sql.SQLException;
-import java.util.NoSuchElementException;
 
-import jp.tonyu.db.JDBCRecordCursor;
-import jp.tonyu.db.JDBCTable;
-
-public class IndexIterator implements DocumentRecordIterator {
-	JDBCRecordCursor<IndexRecord>  cur;
-	SDB sdb;
-	String key,value;
-
-	boolean hasNexted=false, lastHasNext;
-	public IndexIterator(SDB sdb, String key, String value) throws SQLException {
-		this.sdb=sdb;
-		JDBCTable<IndexRecord> t = sdb.table(IndexRecord.class);
-		String value2=value+(char)32767;
-		cur = t.scope(IndexRecord.NAME_VALUE_LAST_UPDATE, new Object[]{key,value,Long.MIN_VALUE},new Object[]{key,value2,Long.MIN_VALUE});
-		this.key=key;
-		this.value=value;
-	}
-	@Override
-	public boolean hasNext() throws SQLException{
-	    if (hasNexted) return lastHasNext;
-	    hasNexted=true;
-		return lastHasNext=cur.next();
-	}
-
-	@Override
-	public String toString() {
-		return "(IndexIterator "+key+"="+value+")";
-	}
-	@Override
-	public DocumentRecord next() throws SQLException{
-	    if (!hasNexted) {
-	        if (!hasNext()) throw new NoSuchElementException();
-	    }
-        hasNexted=false;
-		IndexRecord r=cur.fetch();
-		DocumentRecord d = sdb.byId(r.document);
-		return d;
-	}
-	@Override
-	public void close() throws SQLException {
-		cur.close();
-	}
-
+/**
+ * DocumentRecords must be iterated in order newer->older (lastUpdate desc)
+ * Except  name index ...
+ * @author shinya
+ *
+ */
+public interface IndexIterator {
+	public boolean hasNext() throws SQLException;
+	public IndexRecord next() throws SQLException;
+	public void close() throws SQLException;
 }

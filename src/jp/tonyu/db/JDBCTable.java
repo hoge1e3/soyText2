@@ -154,11 +154,10 @@ public class JDBCTable<T extends JDBCRecord> {
         return new JDBCRecordCursor<T>(rec, db.execQuery(selectFrom()+" where "
                 +w.buf+" order by "+ord+";", w.values));
     }
-    public JDBCRecordCursor<T> delete(OrderBy ord, Object[] from, Object[] to)
+    public int delete(OrderBy ord, Object[] from, Object[] to)
             throws SQLException {
         Where w=where(ord, from, to);
-        return new JDBCRecordCursor<T>(rec, db.execQuery(deleteFrom()+" where "
-                +w.buf+";"));
+        return db.execUpdate(deleteFrom()+" where "+w.buf+";", w.values);
     }
     private Where where(OrderBy ord, Object[] from, Object[] to) {
         StringBuilder buf=new StringBuilder();
