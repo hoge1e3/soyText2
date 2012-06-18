@@ -121,11 +121,20 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 	 * @see jp.tonyu.soytext2.js.IDocumentLoader#byId(java.lang.String)
 	 */
 	public DocumentScriptable byId(String id) {
-		final DocumentRecord src=Log.notNull(getDocumentSet(),"gds").byId(id);
-		if (src==null) return null;
 		DocumentScriptable o=objs.get(id);
 		if (o!=null) return o;
-		//if (src.preContent==null || src.preContent.trim().length()==0) {
+        final DocumentRecord src=Log.notNull(getDocumentSet(),"gds").byId(id);
+        if (src==null) return null;
+		return byRecord(src);
+	}
+    private DocumentScriptable byRecordOrCache(final DocumentRecord src) {
+        DocumentScriptable o=objs.get(src.id);
+        if (o!=null) return o;
+        return byRecord(src);
+    }
+    private DocumentScriptable byRecord(final DocumentRecord src) {
+        DocumentScriptable o;
+        //if (src.preContent==null || src.preContent.trim().length()==0) {
 			o=defaultDocumentScriptable(src);
 		/*} else {
 			try {
@@ -162,8 +171,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 			 */
 		}
 		return o;
-
-	}
+    }
 	public DocumentScriptable reload(String id) {
 		DocumentScriptable res=objs.get(id);
 		if (res==null) return byId(id);
@@ -498,16 +506,20 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
 
 			@Override
 			public Object run(Context cx) {
-				documentSet.all(new DocumentAction() {
-
-					@Override
-					public boolean run(DocumentRecord d) {
-						Log.d("rebuildIndex",d.id);//+" lastUpdate="+d.lastUpdate);
-						DocumentScriptable s=byId(d.id);
-						s.refreshIndex();
-						return false;
-					}
-				});
+			    documentSet.transaction("write", new Runnable() {
+                    @Override
+                    public void run() {
+                        documentSet.all(new DocumentAction() {
+                            @Override
+                            public boolean run(DocumentRecord d) {
+                                Log.d("rebuildIndex",d.id);//+" lastUpdate="+d.lastUpdate);
+                                DocumentScriptable s=byRecordOrCache(d);
+                                s.refreshIndex();
+                                return false;
+                            }
+                        });
+                    }
+                });
 				return null;
 			}
 		});

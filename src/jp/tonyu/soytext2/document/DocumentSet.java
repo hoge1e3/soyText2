@@ -9,6 +9,7 @@ public interface DocumentSet {
 	public void updateIndex(DocumentRecord d,PairSet<String,String> h);
 	public DocumentRecord byId(String id);
 	public void all(DocumentAction a);
+	public void transaction(Object mode, Runnable action);
 	public int log( String date, String action, String target, String option);
 	public String getDBID();
 	public void searchByIndex(String key, String value, IndexAction a);

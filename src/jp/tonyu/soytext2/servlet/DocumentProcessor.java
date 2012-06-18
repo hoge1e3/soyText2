@@ -302,11 +302,7 @@ public class DocumentProcessor {
 			*/
 			if ("json".equals(query)) {
 				feedJSON();
-			} else if ("metaheadbody".equals(query) || "metaheadbody".equals(format)) // meta: id, lastupdate
-			{
-				feedMetaHeadBody();
-			}
-			else
+			} else
 			{
 				feedBody();
 			}
@@ -369,27 +365,4 @@ public class DocumentProcessor {
 	public static final Pattern idpat=Pattern.compile("[0-9]+(_[0-9]+)+(@[0-9_a-zA-Z]+)?");
 	public static final Pattern idpatWiki=Pattern.compile("\\[\\[([^\\]]+)\\]\\]");
 
-	@Deprecated
-	public static Object parseValue(String value,DocumentSet viewPoint) {
-		if (value==null) return  null;
-		Matcher ma=Literal.DQ.matcher(value);
-		if (ma.lookingAt()) {
-			return Literal.fromQuoteStrippedLiteral(ma.group(1));
-		}
-		ma=idpat.matcher(value);
-		DocumentRecord dr=null;
-		if (ma.lookingAt()) {
-			try {
-				dr=viewPoint.byId(value);
-			}catch(Exception e){}
-		}
-		ma=idpatWiki.matcher(value);
-		if (ma.lookingAt()) {
-			dr=viewPoint.byId(ma.group(1));
-		}
-		if (dr!=null) {
-			return (dr);
-		}
-		return value;
-	}
 }
