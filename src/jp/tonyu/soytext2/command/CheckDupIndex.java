@@ -7,16 +7,18 @@ import java.util.HashSet;
 import jp.tonyu.db.DBAction;
 import jp.tonyu.db.JDBCHelper;
 import jp.tonyu.db.JDBCRecordCursor;
+import jp.tonyu.db.NotInReadTransactionException;
+import jp.tonyu.db.ReadAction;
 import jp.tonyu.soytext2.document.IndexRecord;
 import jp.tonyu.soytext2.document.SDB;
 
 public class CheckDupIndex {
-	public static void main(String[] args) throws SQLException, ClassNotFoundException {
+	public static void main(String[] args) throws SQLException, ClassNotFoundException, NotInReadTransactionException {
 		final SDB sdb=new SDB(new File(args[0]));
 		final HashSet<String> chk=new HashSet<String>();
-		sdb.readTransaction(new DBAction() {
+		sdb.readTransaction(new ReadAction() {
 			@Override
-			public void run(JDBCHelper db) throws SQLException {
+			public void run(JDBCHelper db) throws SQLException, NotInReadTransactionException {
 
 				JDBCRecordCursor<IndexRecord> cur=sdb.indexTable().order();
 				while (cur.next()) {
@@ -31,7 +33,7 @@ public class CheckDupIndex {
 				cur.close();
 
 			}
-		}, -1);
+		});
 		sdb.close();
 	}
 }

@@ -8,7 +8,6 @@ import jp.tonyu.js.ContextRunnable;
 import jp.tonyu.js.Scriptables;
 import jp.tonyu.js.Wrappable;
 import jp.tonyu.soytext2.document.DocumentSet;
-import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.js.DBHelper;
 import jp.tonyu.soytext2.js.DocumentScriptable;
 import jp.tonyu.soytext2.js.JSSession;
@@ -131,12 +130,13 @@ public class FileSyncer implements Wrappable {
 		// finds from  workspace/blob/id.ext
 		String blobExt=Scriptables.getAsString(file, "blobExt", "");
 		String fileId=Scriptables.getAsString(file, "id", null);
-		if (ds instanceof SDB && fileId!=null) {
+		/*if (ds instanceof SDB && fileId!=null) {
 			SDB s=(SDB)ds;
 			SFile f = s.getBlobDir().rel(fileId+blobExt);
 			return f;
 		}
-		return null;
+		return null;*/
+		return new SFile( ds.getBlob(fileId) );
 	}
 	public static void setBlob(DocumentScriptable file , InputStream str) throws IOException {
 		DocumentSet ds = file.loader.getDocumentSet();

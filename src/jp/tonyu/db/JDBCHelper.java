@@ -37,14 +37,20 @@ public abstract class JDBCHelper {
             throw new RuntimeException("Version must be >0");
         }
         initTable(VersionRecord.class);
-        int oldVer=getOldVersion();
-        initTables();
-        if (oldVer==0) {
-            create(version);
-        } else if (oldVer!=version) {
-            upgrade(oldVer,version);
-        }
-        this.version=version;
+        writeTransaction(new WriteAction() {
+            @Override
+            public void run(JDBCHelper jdbcHelper)
+                    throws NotInWriteTransactionException, SQLException {
+                int oldVer=getOldVersion();
+                initTables();
+                if (oldVer==0) {
+                    create(version);
+                } else if (oldVer!=version) {
+                    upgrade(oldVer,version);
+                }
+                JDBCHelper.this.version=version;
+            }
+        });
     }
 
     private void initTables() throws SQLException {
@@ -63,7 +69,7 @@ public abstract class JDBCHelper {
         tables.put(recInstance(t).tableName(), jdbcTable);
     }
 
-    private int getOldVersion() throws SQLException {
+    private int getOldVersion() throws SQLException, NotInReadTransactionException {
         int res=0;
         if (!exists(VersionRecord.class)) return res;
         JDBCRecordCursor<VersionRecord> r = table(VersionRecord.class).all();
@@ -81,11 +87,15 @@ public abstract class JDBCHelper {
 
     int readCount=0;
     //SqlJetTransactionMode transaction=null;
-    public void writeTransaction(DBAction action, int timeOut) throws SQLException {
+    public void writeTransaction(WriteAction action) throws SQLException {
         try {
             Log.d("JDBC","Trans Start");
             db.setAutoCommit(false);
-            action.run(this);
+            try {
+                action.run(this);
+            } catch (NotInWriteTransactionException e) {
+                e.printStackTrace();
+            }
             db.commit();
             db.setAutoCommit(true);
             Log.d("JDBC","Trans End");
@@ -96,17 +106,21 @@ public abstract class JDBCHelper {
             action.afterRollback(this);
         }
     }
-    public void reserveWriteTransaction(DBAction action) throws SQLException {
-        writeTransaction(action,-1);
-    }
+    /*public void reserveWriteTransaction(WriteAction action) throws SQLException {
+        writeTransaction(action);
+    }*/
 
 
-    public void readTransaction(DBAction action, int timeOut) throws SQLException {
+    public void readTransaction(ReadAction action) throws SQLException {
         try {
             Log.d("JDBC", "Read trans start");
-            //db.setAutoCommit(false);
-            action.run(this);
-            //db.commit();
+            db.setAutoCommit(false);
+            try {
+                action.run(this);
+            } catch (NotInReadTransactionException e) {
+                e.printStackTrace();
+            }
+            db.commit();
             Log.d("JDBC", "Read trans end");
         } finally {
             //db.setAutoCommit(true);
@@ -114,11 +128,11 @@ public abstract class JDBCHelper {
         }
     }
 
-    private void create(int newVersion) throws SQLException {
+    private void create(int newVersion) throws SQLException, NotInWriteTransactionException {
         onCreate(db,newVersion);
         setVersion(newVersion);
     }
-    private void setVersion(int newVersion) throws SQLException {
+    private void setVersion(int newVersion) throws SQLException, NotInWriteTransactionException {
         JDBCTable<VersionRecord> table = table(vr);
         if (!table.exists()) {
             createTableAndIndex(VersionRecord.class);
@@ -128,7 +142,7 @@ public abstract class JDBCHelper {
         table.insert(vr);
     }
 
-    private void upgrade(int oldVersion, int newVersion) throws SQLException {
+    private void upgrade(int oldVersion, int newVersion) throws SQLException, NotInWriteTransactionException {
         onUpgrade(db,oldVersion,newVersion);
         setVersion(newVersion);
     }
@@ -186,7 +200,7 @@ public abstract class JDBCHelper {
     public static <T> T[] q(T...ts) {
         return ts;
     }
-    public void update(JDBCRecord r) throws SQLException, IllegalArgumentException, IllegalAccessException, NoSuchFieldException {
+    public void update(JDBCRecord r) throws SQLException, IllegalArgumentException, IllegalAccessException, NoSuchFieldException, NotInWriteTransactionException {
         table(r).update(r);
     }
 
@@ -248,10 +262,10 @@ public abstract class JDBCHelper {
 	}*/
     public Map<String, List<Map<String,Object>>> backup() throws SQLException {
         final Map<String, List<Map<String,Object>>> res=new HashMap<String, List<Map<String,Object>>>();
-        readTransaction(new DBAction() {
+        readTransaction(new ReadAction() {
 
             @Override
-            public void run(JDBCHelper db) throws SQLException {
+            public void run(JDBCHelper db) throws SQLException, NotInReadTransactionException {
                 for (Class<? extends JDBCRecord> tclass: tables(version)) {
                     JDBCTable<? extends JDBCRecord> t=table(tclass);
                     if (!t.exists()) continue;
@@ -272,7 +286,7 @@ public abstract class JDBCHelper {
                     cur.close();
                 }
             }
-        }, -1);
+        });
         return res;
     }
     public Map<String, JDBCRecord> tablesAsMap(int version) {
@@ -300,19 +314,23 @@ public abstract class JDBCHelper {
         return db.createStatement();
     }
     public void exec(String q) throws SQLException {
-        Log.d("query", q);
+        debugQuery(q);
         Statement st = createStatement();
         st.execute(q);
         st.close();
     }
-    public ResultSet execQuery(String q) throws SQLException {
+
+    private void debugQuery(String q) {
         Log.d("query", q);
+    }
+    public ResultSet execQuery(String q) throws SQLException, NotInReadTransactionException {
+        debugQuery(q);
         Statement st = createStatement();
         ResultSet r = st.executeQuery(q);
         return new JDBCCursor(st,r);
     }
-    public ResultSet execQuery(String q,Object... args) throws SQLException {
-        Log.d("query", q);
+    public ResultSet execQuery(String q,Object... args) throws SQLException, NotInReadTransactionException {
+        debugQuery(q);
         PreparedStatement st = prepareStatement(q, args);
         ResultSet r = st.executeQuery();
         return new JDBCCursor(st,r);
@@ -340,8 +358,8 @@ public abstract class JDBCHelper {
         return st;
     }
     public int version() {return version;}
-    public int execUpdate(String q,Object... args) throws SQLException {
-        Log.d("query", q);
+    public int execUpdate(String q,Object... args) throws SQLException, NotInWriteTransactionException {
+        debugQuery(q);
         PreparedStatement st = prepareStatement(q, args);
         return st.executeUpdate();
     }
@@ -349,10 +367,10 @@ public abstract class JDBCHelper {
     //                            table  record    field  value
     public void restore(final Map<String, List<Map<String,Object>>> data) throws SQLException {
         final Map<String, JDBCRecord> tables=tablesAsMap(version);
-        writeTransaction(new DBAction() {
+        writeTransaction(new WriteAction() {
 
             @Override
-            public void run(JDBCHelper db) throws SQLException {
+            public void run(JDBCHelper db) throws SQLException, NotInWriteTransactionException {
                 for (Map.Entry<String, List<Map<String,Object>>> e:data.entrySet()) {
                     String key=e.getKey();
                     List<Map<String,Object>> value=e.getValue();
@@ -369,6 +387,10 @@ public abstract class JDBCHelper {
                     }
                 }
             }
-        }, -1);
+        });
+    }
+
+    public void commit() throws SQLException {
+        db.commit();
     }
 }

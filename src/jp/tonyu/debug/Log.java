@@ -18,7 +18,7 @@ public class Log {
 	static HashSet<String> blackList=new HashSet<String>();
 	static boolean useWhiteList=false;
 	static {
-		String[] whiteLista=new String[] {"DLoader.loadFromContent"};
+		String[] whiteLista=new String[] {"query","query-prep","JDBC","jp.tonyu.soytext2.document.SDB"};
 		String[] blackLista=new String[] {};
 		for (String s:whiteLista) {
 			whiteList.add(s);
@@ -29,14 +29,28 @@ public class Log {
 	}
 	public static void d(Object tag,Object content) {
 		//if ("ToValues".equals(tag) || "ClassIdx".equals(tag) ||"getSPClass".equals(tag)) {
-		if ( tagMatch(tag) && wordMatch(content)) {
+		tag=convTag(tag);
+	    if ( tagMatch(tag) && wordMatch(content)) {
 			String cont = "["+tag+"]"+content;
 			System.out.println(cont);
 			if (lw!=null) lw.println(cont);
 		}
 	}
 
-	private static boolean wordMatch(Object content) {
+	private static Object convTag(Object tag) {
+	    if (tag==null) return "null";
+	    if (tag instanceof String) {
+            String s=(String) tag;
+            return s;
+        }
+	    if (tag instanceof Class) {
+            Class<?> cl=(Class<?>) tag;
+            return cl.getName();
+        }
+        return tag.getClass().getName();
+    }
+
+    private static boolean wordMatch(Object content) {
 		return true;//(content+"").indexOf("root@")>=0;
 	}
 

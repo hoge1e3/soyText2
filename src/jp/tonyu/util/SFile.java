@@ -36,20 +36,23 @@ public class SFile implements Iterable<SFile>{
 	public boolean exists() {
 		return f.exists();
 	}
-	public String text() throws IOException {
-		if (!exists()) return null;
-		BufferedReader rd=new BufferedReader(new InputStreamReader(new FileInputStream(f),"utf-8"));// FileReader(f));
-		StringBuffer buf=new StringBuffer();
-		String sep="";
-		while (true) {
-			String line=rd.readLine();
-			if (line==null) break;
-			buf.append(sep+line);
-			sep="\n";
-		}
-		rd.close();
-		return buf.toString();
-	}
+    public String text() throws IOException {
+        return textEnc("utf-8");
+    }
+    public String textEnc(String enc) throws IOException {
+        if (!exists()) return null;
+        BufferedReader rd=new BufferedReader(new InputStreamReader(new FileInputStream(f),enc));// FileReader(f));
+        StringBuffer buf=new StringBuffer();
+        String sep="";
+        while (true) {
+            String line=rd.readLine();
+            if (line==null) break;
+            buf.append(sep+line);
+            sep="\n";
+        }
+        rd.close();
+        return buf.toString();
+    }
 	public void text(String content) throws FileNotFoundException {
 		PrintWriter p;
 		try {
@@ -216,4 +219,8 @@ public class SFile implements Iterable<SFile>{
 			out.write(b,0,r);
 		}
 	}
+    public void delete() {
+        if (f.exists()) f.delete();
+    }
+
 }

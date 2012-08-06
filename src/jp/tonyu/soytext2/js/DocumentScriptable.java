@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
+import jp.tonyu.db.NotInWriteTransactionException;
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.AllPropAction;
 import jp.tonyu.js.BlankScriptableObject;
@@ -580,7 +581,7 @@ public class DocumentScriptable implements Function {
 		//}
 		return d;
 	}
-	public void refreshIndex() {
+	public void refreshIndex() throws NotInWriteTransactionException {
 		PairSet<String,String> h = indexUpdateMap();
 		loader.getDocumentSet().updateIndex(getDocument(), h);
 	}

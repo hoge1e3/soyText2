@@ -5,7 +5,7 @@ import java.sql.SQLException;
 
 public class PrimaryKeySequence {
 	int lastNumber;
-	public PrimaryKeySequence(final JDBCTable<? extends JDBCRecord> tbl) throws SQLException {
+	public PrimaryKeySequence(final JDBCTable<? extends JDBCRecord> tbl) throws SQLException, NotInReadTransactionException {
 		super();
 		//JDBCHelper db = tbl.getDB();
 		lastNumber=tbl.max(tbl.primaryKeyName());

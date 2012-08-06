@@ -3,6 +3,10 @@ import jp.tonyu.soytext2.document.SDB;
 
 
 public class RestoreFromJSON {
+    // usage: java RestoreFromJSON [DBID]
+    //   restores from newest ./db/DBID/backup/*.json into ./db/DBID/main.db
+    //   default value of DBID is set in ./db/primaryDBID.txt
+
 	public static void main(String[] args) throws Exception {
 		/*Workspace workspace=new Workspace(new SFile("."));
 		String dbid=(args.length==0?workspace.getPrimaryDBID():args[0]);

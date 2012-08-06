@@ -5,6 +5,7 @@ import java.util.NoSuchElementException;
 
 import jp.tonyu.db.JDBCRecordCursor;
 import jp.tonyu.db.JDBCTable;
+import jp.tonyu.db.NotInReadTransactionException;
 
 public class SingleIndexIterator implements IndexIterator {
 	JDBCRecordCursor<IndexRecord>  cur;
@@ -12,7 +13,7 @@ public class SingleIndexIterator implements IndexIterator {
 	String key,value;
 
 	boolean hasNexted=false, lastHasNext;
-	public SingleIndexIterator(SDB sdb, String key, String value) throws SQLException {
+	public SingleIndexIterator(SDB sdb, String key, String value) throws SQLException, NotInReadTransactionException {
 		this.sdb=sdb;
 		JDBCTable<IndexRecord> t = sdb.table(IndexRecord.class);
 		String value2=value+(char)32767;

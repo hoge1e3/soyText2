@@ -1,19 +1,14 @@
 package jp.tonyu.soytext2.servlet;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentSet;
-import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.js.DocumentScriptable;
-import jp.tonyu.util.Literal;
 import jp.tonyu.util.SFile;
 
 
@@ -142,11 +137,11 @@ public class DocumentProcessor {
 			for (int i=0 ; i<args2.length ; i++) {
 				args2[i]=args[i+PATHSTART];
 			}
-			if (documentSet() instanceof SDB) {
-				SDB s=(SDB)documentSet();
-				SFile f = s.getBlobDir().rel(this.id());
+			//if (documentSet() instanceof SDB) {
+			//	SDB s=(SDB)documentSet();
+				SFile f = new SFile(documentSet().getBlob(id()));//  s.getBlobDir().rel(this.id());
 				feedDir(f,args2);
-			}
+		//}
 		} else {
 	   // String lastup = HttpContext.lastModifiedField(d);
 	   // res.setHeader( "Last-Modified" ,  lastup);

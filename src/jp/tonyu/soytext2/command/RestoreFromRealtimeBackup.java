@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.HashSet;
 import java.util.Set;
 
+import jp.tonyu.db.NotInWriteTransactionException;
 import jp.tonyu.debug.Log;
 import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.SDB;
@@ -22,7 +23,7 @@ public class RestoreFromRealtimeBackup {
 		s.close();
 	}
 	// Why this is a method of SDB? because it creates a DocumentLoader.
-	public static void restore(SDB s) throws SQLException {
+	public static void restore(SDB s) throws SQLException, NotInWriteTransactionException {
 		SFile rd=s.realtimeBackupDir();
 		DocumentRecord d=new DocumentRecord();
 		Set<String> updated=new HashSet<String>();

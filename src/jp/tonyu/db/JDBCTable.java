@@ -71,14 +71,14 @@ public class JDBCTable<T extends JDBCRecord> {
     private String deleteFrom() {
         return "delete from "+nameSym();
     }
-    public JDBCRecordCursor<T> order() throws SQLException {
+    public JDBCRecordCursor<T> order() throws SQLException, NotInReadTransactionException {
         ResultSet cur=db.execQuery(selectFrom()+";");
         return new JDBCRecordCursor<T>(rec, cur);
     }
-    public JDBCRecordCursor<T> order(String orderSpec) throws SQLException {
+    public JDBCRecordCursor<T> order(String orderSpec) throws SQLException, NotInReadTransactionException {
         return order(OrderBy.parse(orderSpec));
     }
-    public JDBCRecordCursor<T> order(OrderBy ord) throws SQLException {
+    public JDBCRecordCursor<T> order(OrderBy ord) throws SQLException, NotInReadTransactionException {
         ResultSet c=db.execQuery(selectFrom()+" order by "+ord+";");
         return new JDBCRecordCursor<T>(rec, c);
     }
@@ -130,11 +130,11 @@ public class JDBCTable<T extends JDBCRecord> {
         }
     }
     public JDBCRecordCursor<T> lookup(String columnSpec, Object... objects)
-            throws SQLException {
+            throws SQLException, NotInReadTransactionException {
         return lookup(OrderBy.parse(columnSpec), objects);
     }
     public JDBCRecordCursor<T> lookup(OrderBy ord, Object... objects)
-            throws SQLException {
+            throws SQLException, NotInReadTransactionException {
         StringBuilder buf=new StringBuilder();
         String cmd="";
         for (OrderByElem o : ord) {
@@ -145,17 +145,17 @@ public class JDBCTable<T extends JDBCRecord> {
                 +buf+" order by "+ord+";", objects));
     }
     public JDBCRecordCursor<T> scope(String columnSpec, Object[] from,
-            Object[] to) throws SQLException {
+            Object[] to) throws SQLException, NotInReadTransactionException {
         return scope(OrderBy.parse(columnSpec), from, to);
     }
     public JDBCRecordCursor<T> scope(OrderBy ord, Object[] from, Object[] to)
-            throws SQLException {
+            throws SQLException, NotInReadTransactionException {
         Where w=where(ord, from, to);
         return new JDBCRecordCursor<T>(rec, db.execQuery(selectFrom()+" where "
                 +w.buf+" order by "+ord+";", w.values));
     }
     public int delete(OrderBy ord, Object[] from, Object[] to)
-            throws SQLException {
+            throws SQLException, NotInWriteTransactionException {
         Where w=where(ord, from, to);
         return db.execUpdate(deleteFrom()+" where "+w.buf+";", w.values);
     }
@@ -176,19 +176,19 @@ public class JDBCTable<T extends JDBCRecord> {
         return w;
     }
     public JDBCRecordCursor<T> scope(String singleColumnSpec, Object from,
-            Object to) throws SQLException {
+            Object to) throws SQLException, NotInReadTransactionException {
         return scope(OrderBy.parse(singleColumnSpec),q(from),q(to));
     }
-    public int insertValues(Object... values) throws SQLException {
+    public int insertValues(Object... values) throws SQLException, NotInWriteTransactionException {
         return db.execUpdate("insert into "+nameSym()+"("
                 +columnNameList(columns.toArray(new Column[0]))+") values ("
                 +questions(values.length)+");", values);
     }
-    public int insert(JDBCRecord r) throws SQLException {
+    public int insert(JDBCRecord r) throws SQLException, NotInWriteTransactionException {
         return insertValues(r.toValues());
     }
     public int updateValues(Object primaryKeyValue, Object... values)
-            throws SQLException {
+            throws SQLException, NotInWriteTransactionException {
         Object[] values_prim=new Object[values.length+1];
         for (int i=0; i<values.length; i++) {
             values_prim[i]=values[i];
@@ -200,7 +200,7 @@ public class JDBCTable<T extends JDBCRecord> {
     public String primaryKeyName() {
         return rec.primaryKeyName();
     }
-    public void update(JDBCRecord r) throws SQLException {
+    public void update(JDBCRecord r) throws SQLException, NotInWriteTransactionException {
         try {
             updateValues(r.getField(r.primaryKeyName()).get(this),
                     r.toValues(true));
@@ -212,7 +212,7 @@ public class JDBCTable<T extends JDBCRecord> {
             throw new SQLException(e);
         }
     }
-    public T find1(String columnSpec, Object... values) throws SQLException {
+    public T find1(String columnSpec, Object... values) throws SQLException, NotInReadTransactionException {
         JDBCRecordCursor<T> c=lookup(columnSpec, values);
         T res=null;
         while (c.next()) {
@@ -247,13 +247,13 @@ public class JDBCTable<T extends JDBCRecord> {
     private String nameSym() {
         return symbol(name());
     }
-    public JDBCRecordCursor<T> all() throws SQLException {
+    public JDBCRecordCursor<T> all() throws SQLException, NotInReadTransactionException {
         return order();
     }
     public JDBCHelper getDB() {
         return db;
     }
-    public int max(String columnName) throws SQLException {
+    public int max(String columnName) throws SQLException, NotInReadTransactionException {
         ResultSet r=db.execQuery("select max("+symbol(columnName)+") from "
                 +nameSym()+";");
         int res=0;
@@ -263,7 +263,7 @@ public class JDBCTable<T extends JDBCRecord> {
         r.close();
         return res;
     }
-    public int rowCount() throws SQLException {
+    public int rowCount() throws SQLException, NotInReadTransactionException {
         ResultSet r=db.execQuery("select count("+symbol(primaryKeyName())
                 +") from "+nameSym()+";");
         int res=0;
@@ -273,7 +273,7 @@ public class JDBCTable<T extends JDBCRecord> {
         r.close();
         return res;
     }
-    public void delete(String columnSpec, String from, String to) throws SQLException {
+    public void delete(String columnSpec, String from, String to) throws SQLException, NotInWriteTransactionException {
         delete(OrderBy.parse(columnSpec), q(from),q(to));
     }
 }

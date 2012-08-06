@@ -91,6 +91,7 @@ public class JDBCRecordCursor<T extends JDBCRecord> implements ResultSet,Iterabl
 		cur.clearWarnings();
 	}
 	public void close() throws SQLException {
+	    Log.d(this, "Query closed!");
 		cur.close();
 	}
 	public void deleteRow() throws SQLException {
