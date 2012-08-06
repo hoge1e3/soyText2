@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Vector;
 import static jp.tonyu.db.JDBCRecord.q;
 import jp.tonyu.debug.Log;
+import jp.tonyu.util.Util;
 
 public class JDBCTable<T extends JDBCRecord> {
     JDBCHelper db;
@@ -194,16 +195,19 @@ public class JDBCTable<T extends JDBCRecord> {
             values_prim[i]=values[i];
         }
         values_prim[values_prim.length-1]=primaryKeyValue;
-        return db.execUpdate("update "+nameSym()+" set "+set()+" where "
-                +symbol(primaryKeyName())+"=?", values_prim);
+        String str="update "+nameSym()+" set "+set()+" where "
+                +symbol(primaryKeyName())+"=?";
+        Log.d(this, "update str="+str);
+        return db.execUpdate(str, values_prim);
     }
     public String primaryKeyName() {
         return rec.primaryKeyName();
     }
     public void update(JDBCRecord r) throws SQLException, NotInWriteTransactionException {
         try {
-            updateValues(r.getField(r.primaryKeyName()).get(this),
-                    r.toValues(true));
+            Object[] values=r.toValues(true);
+            Log.d(this, "update - "+Util.join(", ", values));
+            updateValues(r.getField(r.primaryKeyName()).get(r),values);
         } catch (IllegalArgumentException e) {
             throw new SQLException(e);
         } catch (IllegalAccessException e) {
