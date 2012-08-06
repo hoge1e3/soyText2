@@ -1,4 +1,7 @@
 package jp.tonyu.soytext2.command;
+import java.io.IOException;
+import java.sql.SQLException;
+
 import jp.tonyu.soytext2.document.SDB;
 
 
@@ -7,7 +10,7 @@ public class RestoreFromJSON {
     //   restores from newest ./db/DBID/backup/*.json into ./db/DBID/main.db
     //   default value of DBID is set in ./db/primaryDBID.txt
 
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) throws IOException, SQLException, ClassNotFoundException {
 		/*Workspace workspace=new Workspace(new SFile("."));
 		String dbid=(args.length==0?workspace.getPrimaryDBID():args[0]);
 

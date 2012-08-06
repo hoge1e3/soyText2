@@ -361,7 +361,9 @@ public abstract class JDBCHelper {
     public int execUpdate(String q,Object... args) throws SQLException, NotInWriteTransactionException {
         debugQuery(q);
         PreparedStatement st = prepareStatement(q, args);
-        return st.executeUpdate();
+        int res= st.executeUpdate();
+        st.close();
+        return res;
     }
 
     //                            table  record    field  value

@@ -25,7 +25,7 @@ public class Common {
 		dbid=(args.length==0?workspace.getPrimaryDBID():args[0]);
 	}
 	static private SDB _sdb;
-	static SDB getDB() throws SQLException, IOException, ClassNotFoundException, NotInReadTransactionException {
+	static SDB getDB() throws SQLException, IOException, ClassNotFoundException {
 		if (_sdb!=null) return _sdb;
 		return _sdb=workspace.getDB(dbid);
 	}
