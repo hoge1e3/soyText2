@@ -14,7 +14,7 @@ import jp.tonyu.soytext2.js.Debug;
 import jp.tonyu.db.ReadAction;
 
 public class LooseTransaction {
-    enum Action {enter,nop,/*lazy,*/join};
+    enum Action {enter,nop,/*lazy,join*/};
     DocumentSet documentSet;
     public LooseTransaction(DocumentSet documentSet) {
         super();
@@ -40,10 +40,13 @@ public class LooseTransaction {
         try {
             assert entering.contains(Thread.currentThread());
             r.run();
+            if (a!=Action.nop ) commit();
         } catch (NotInReadTransactionException e) {
             e.printStackTrace();
-        } finally {
-            if (a!=Action.nop )commit();
+        } catch (Exception e){
+            e.printStackTrace();
+            if (a!=Action.nop ) rollback();
+            Log.die(e);
         }
     }
     /*
@@ -51,7 +54,7 @@ public class LooseTransaction {
      * n      n     1.enter
      * n      r     2.nop
      * n      w     3.nop
-     * r      n     4.join
+     * r      n     4.join -> 6.wait (120816)
      * r      r     5.nop
      * r      w     N/A
      * w      n     6.wait
@@ -87,11 +90,17 @@ public class LooseTransaction {
                 assert !entering.contains(th);
                 if (TransactionMode.READ.equals(mode)) {
                     assert (TransactionMode.READ.equals(o) && t==null);
-                    // join  4.
-                    assert !entering.contains(th);
+                    // 6. wait
+                    try {
+                        wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    // join  4. -> obsolate 120816
+                    /*assert !entering.contains(th);
                     entering.add(th);
                     Log.d(this, th+" added for join read ");
-                    return Action.join;
+                    return Action.join;*/
                 } else if (TransactionMode.WRITE.equals(mode)) {
                     assert (TransactionMode.WRITE.equals(o) && t==null);
                     // 6. wait
@@ -169,14 +178,29 @@ public class LooseTransaction {
             assert entering.contains(Thread.currentThread());
             try {
                 r.run();
+                if (a!=Action.nop) commit();
             } catch (NotInWriteTransactionException e) {
                 e.printStackTrace();
-            } finally {
-                if (a!=Action.nop) commit();
+            } catch (Exception e) {
+                e.printStackTrace();
+                if (a!=Action.nop )rollback();
+                Log.die(e);
             }
         /*} else {
             reserveWrite(r);
         }*/
+    }
+    private void rollback() {
+        synchronized (this) {
+            Thread th=Thread.currentThread();
+            assert entering.contains(th);
+            entering.remove(th);
+            if (entering.isEmpty()) {
+                documentSet.rollback();
+                mode=null;
+            }
+            notifyAll();
+        }
     }
     /*List<LooseWriteAction> reserved= new Vector<LooseWriteAction>();
     private void reserveWrite(LooseWriteAction r) {

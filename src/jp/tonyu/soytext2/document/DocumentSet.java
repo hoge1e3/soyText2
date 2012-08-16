@@ -17,6 +17,7 @@ public interface DocumentSet {
     //public Object transactionMode();//, Runnable action);
 	public File getBlob(String id);
     public void commit();
+    public void rollback();
 	public int log( String date, String action, String target, String option)  throws NotInWriteTransactionException;
 	public String getDBID();
 

@@ -354,8 +354,16 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
     private boolean callDocIter(DocumentScriptable s, final Query q, final Function iter) {
         QueryResult r=q.matches(s);
         if (r.filterMatched) {
-            Log.d(this, "Filter matched "+s);
-            Object brk=jsSession().call(iter, iter, new Object[] { s });
+            Log.d(this, "Filter matched1 "+s);
+            Object brk=null;
+            //try {
+                brk=jsSession().call(iter, iter, new Object[] { s });
+            /*} catch(Throwable e) {
+                Log.d(this, "Error!?");
+                e.printStackTrace();
+                throw new RuntimeException(e);
+            }*/
+            Log.d(this, "Filter matched2 "+s);
             if (brk instanceof Boolean) {
                 Boolean b=(Boolean) brk;
                 if (b.booleanValue())

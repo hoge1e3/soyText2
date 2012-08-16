@@ -1,22 +1,19 @@
 package jp.tonyu.db;
 
-import java.io.File;
-import java.io.Writer;
 import java.lang.reflect.Field;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
 import jp.tonyu.debug.Log;
-import jp.tonyu.util.MapAction;
-import jp.tonyu.util.Maps;
 import jp.tonyu.util.Util;
 
 /**
@@ -32,7 +29,7 @@ public abstract class JDBCHelper {
     private int version;
     public JDBCHelper(Connection db, final int version) throws SQLException {
         this.db=db;
-        db.setAutoCommit(true);
+        //db.setAutoCommit(false);
         if (version<=0) {
             throw new RuntimeException("Version must be >0");
         }
@@ -90,14 +87,14 @@ public abstract class JDBCHelper {
     public void writeTransaction(WriteAction action) throws SQLException {
         try {
             Log.d("JDBC","Trans Start");
-            db.setAutoCommit(false);
+            //db.setAutoCommit(false);
             try {
                 action.run(this);
             } catch (NotInWriteTransactionException e) {
                 e.printStackTrace();
             }
             db.commit();
-            db.setAutoCommit(true);
+            //db.setAutoCommit(true);
             Log.d("JDBC","Trans End");
             action.afterCommit(this);
         } catch(SQLException e) {
@@ -114,7 +111,7 @@ public abstract class JDBCHelper {
     public void readTransaction(ReadAction action) throws SQLException {
         try {
             Log.d("JDBC", "Read trans start");
-            db.setAutoCommit(false);
+            //db.setAutoCommit(false);
             try {
                 action.run(this);
             } catch (NotInReadTransactionException e) {
@@ -323,17 +320,17 @@ public abstract class JDBCHelper {
     private void debugQuery(String q) {
         Log.d("query", q);
     }
-    public ResultSet execQuery(String q) throws SQLException, NotInReadTransactionException {
+    public JDBCCursor execQuery(String q) throws SQLException, NotInReadTransactionException {
         debugQuery(q);
         Statement st = createStatement();
         ResultSet r = st.executeQuery(q);
-        return new JDBCCursor(st,r);
+        return new JDBCCursor(this,st,r);
     }
-    public ResultSet execQuery(String q,Object... args) throws SQLException, NotInReadTransactionException {
+    public JDBCCursor execQuery(String q,Object... args) throws SQLException, NotInReadTransactionException {
         debugQuery(q);
         PreparedStatement st = prepareStatement(q, args);
         ResultSet r = st.executeQuery();
-        return new JDBCCursor(st,r);
+        return new JDBCCursor(this,st,r);
     }
     private PreparedStatement prepareStatement(String q, Object... args)
             throws SQLException {
@@ -393,6 +390,32 @@ public abstract class JDBCHelper {
     }
 
     public void commit() throws SQLException {
+        assert cursors.size()==0;
+        closeAllCursor();
         db.commit();
     }
+
+    private void closeAllCursor() throws SQLException {
+        for (JDBCCursor c:cursors) {
+            c.close();
+        }
+    }
+
+    public void rollback() throws SQLException {
+        closeAllCursor();
+        db.rollback();
+    }
+    Set<JDBCCursor> cursors=new HashSet<JDBCCursor>();
+    public void addCursor(JDBCCursor jdbcCursor) {
+        cursors.add(jdbcCursor);
+    }
+
+    public void removeCursor(JDBCCursor jdbcCursor) {
+        cursors.remove(jdbcCursor);
+    }
+
+    public int cursorCount() {
+        return cursors.size();
+    }
+
 }

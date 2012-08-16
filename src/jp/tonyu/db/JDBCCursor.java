@@ -22,15 +22,24 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.Map;
 
+import jp.tonyu.debug.Log;
+
 public class JDBCCursor implements ResultSet {
     Statement st;
     ResultSet res;
+    JDBCHelper helper;
+    public static int nobeCursors=0;
     public void close() throws SQLException {
         res.close();
         st.close();
+        helper.removeCursor(this);
     }
-    public JDBCCursor(Statement st, ResultSet res) {
+    public JDBCCursor(JDBCHelper helper, Statement st, ResultSet res) {
         super();
+        helper.addCursor(this);
+        this.helper=helper;
+        nobeCursors++;
+        Log.d(this, "New "+helper.cursorCount()+" th cursor. nobe="+nobeCursors);
         this.st = st;
         this.res = res;
     }

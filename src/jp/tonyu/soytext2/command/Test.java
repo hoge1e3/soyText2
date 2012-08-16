@@ -56,7 +56,15 @@ public class Test {
         }
 
     }
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws SQLException, ClassNotFoundException, NotInReadTransactionException {
+        final SDB s=new SDB(new File("C:/Users/shinya/Dropbox/workspace/stStorage/db/1.2010.tonyu.jp/main.db"));
+        JDBCHelper db=s.getHelper();
+        ResultSet cur=db.execQuery("select * from DocumentRecord;");
+        //cur.close();
+        db.rollback();
+
+    }
+    public static void main234(String[] args) throws InterruptedException {
         final String s="abc";
         synchronized (s) {
             long l=System.currentTimeMillis();

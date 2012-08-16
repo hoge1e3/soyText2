@@ -32,7 +32,8 @@ public class Log {
 		tag=convTag(tag);
 	    if ( tagMatch(tag) && wordMatch(content)) {
 			String cont = "["+tag+"]"+content;
-			System.out.println(cont);
+			System.out.println(System.currentTimeMillis()+":"+cont);
+			System.out.flush();
 			if (lw!=null) lw.println(cont);
 		}
 	}

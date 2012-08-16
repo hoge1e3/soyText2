@@ -353,12 +353,15 @@ public class DocumentScriptable implements Function {
 	public boolean has(int index, Scriptable start) {
 		return binds().containsKey(index);
 	}
-
+/* <p>
+ * The JavaScript code "lhs instanceof rhs" causes rhs.hasInstance(lhs) to
+  * be called.
+*/
 	@Override
 	public boolean hasInstance(Scriptable instance) {
 		for (int i=0 ;i<100 ;i++) {
 			Object c=ScriptableObject.getProperty(instance, Scriptables.CONSTRUCTOR);
-			if (equals(this)) return true;
+			if (equals(c)) return true;
 			if (c instanceof Scriptable) {
 				Scriptable cs = (Scriptable) c;
 				Object p=ScriptableObject.getProperty(cs, Scriptables.PROTOTYPE);

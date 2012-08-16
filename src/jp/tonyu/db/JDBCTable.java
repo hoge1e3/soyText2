@@ -73,14 +73,14 @@ public class JDBCTable<T extends JDBCRecord> {
         return "delete from "+nameSym();
     }
     public JDBCRecordCursor<T> order() throws SQLException, NotInReadTransactionException {
-        ResultSet cur=db.execQuery(selectFrom()+";");
+        JDBCCursor cur=db.execQuery(selectFrom()+";");
         return new JDBCRecordCursor<T>(rec, cur);
     }
     public JDBCRecordCursor<T> order(String orderSpec) throws SQLException, NotInReadTransactionException {
         return order(OrderBy.parse(orderSpec));
     }
     public JDBCRecordCursor<T> order(OrderBy ord) throws SQLException, NotInReadTransactionException {
-        ResultSet c=db.execQuery(selectFrom()+" order by "+ord+";");
+        JDBCCursor c=db.execQuery(selectFrom()+" order by "+ord+";");
         return new JDBCRecordCursor<T>(rec, c);
     }
     static String columnNameList(String... columnNames) {

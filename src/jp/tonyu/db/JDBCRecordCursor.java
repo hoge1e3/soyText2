@@ -66,7 +66,7 @@ public class JDBCRecordCursor<T extends JDBCRecord> implements ResultSet,Iterabl
             }
         };
 	}
-	public JDBCRecordCursor(T record, ResultSet cur) {
+	public JDBCRecordCursor(T record, JDBCCursor cur) {
 		this.cur=cur;
 		this.record=record;
 	}

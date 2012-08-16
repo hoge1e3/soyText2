@@ -13,6 +13,7 @@ import jp.tonyu.db.NotInReadTransactionException;
 import jp.tonyu.db.NotInWriteTransactionException;
 import jp.tonyu.db.PrimaryKeySequence;
 import jp.tonyu.db.ReadAction;
+import jp.tonyu.db.TransactionMode;
 import jp.tonyu.db.WriteAction;
 import jp.tonyu.debug.Log;
 import java.sql.SQLException;
@@ -27,7 +28,8 @@ public class LogManager {
 	}
 	public void printAll() {
 		try {
-			sdb.readTransaction(new ReadAction () {
+		    sdb.transaction(TransactionMode.READ);
+		    sdb.readTransaction(new ReadAction () {
 				@Override
 				public void run(JDBCHelper db) throws SQLException, NotInReadTransactionException {
 					JDBCRecordCursor<LogRecord> c = sdb.logTable().all();

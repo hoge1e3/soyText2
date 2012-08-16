@@ -110,6 +110,12 @@ public class LTRTest {
 
         }
 
+        @Override
+        public void rollback() {
+            // TODO 自動生成されたメソッド・スタブ
+
+        }
+
     }
     public static void main(String[] args) {
         DS d = new DS();

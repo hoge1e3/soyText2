@@ -38,14 +38,12 @@ public class SDB implements DocumentSet {
     // public static final String PRIMARY_DBID_TXT = "primaryDbid.txt";
     JDBCHelper helper;
     static final int version=3;
-    // TransactionMode mode;
+    TransactionMode mode;
     @Override
     public synchronized void transaction(TransactionMode mode) {
-        // this.mode=mode;
-        /*
-         * if (mode==TransactionMode.READ) { looseTransaction.read(action); } if
-         * (mode==TransactionMode.WRITE) { looseTransaction.write(action); }
-         */
+        if (this.mode!=null) Log.die("Already in "+mode);
+        this.mode=mode;
+        Log.d(this, "Enter trans mode="+mode);
     }
     /*
      * @Override public Object transactionMode() { return mode; }
@@ -53,8 +51,30 @@ public class SDB implements DocumentSet {
     @Override
     public void commit() {
         try {
+            Log.d(this, "Commit from1 "+mode);
+            synchronized (this) {
+                if (mode==null) Log.die("Not in transaction");
+                Log.d(this, "Commit from2 "+mode);
+                mode=null;
+            }
             helper.commit();
         } catch (SQLException e) {
+            e.printStackTrace();
+            Log.die(e);
+        }
+    }
+    @Override
+    public void rollback() {
+        try {
+            Log.d(this, "Rollback from1 "+mode);
+            synchronized (this) {
+                if (mode==null) Log.die("Not in transaction");
+                Log.d(this, "Rollback from2 "+mode);
+                mode=null;
+            }
+            helper.rollback();
+        } catch (SQLException e) {
+            e.printStackTrace();
             Log.die(e);
         }
     }
@@ -92,6 +112,7 @@ public class SDB implements DocumentSet {
         // looseTransaction=new LooseTransaction(this);
         Class.forName("org.sqlite.JDBC");
         Connection conn=DriverManager.getConnection("jdbc:sqlite:"+file);
+        conn.setAutoCommit(false);
         helper=new JDBCHelper(conn, version) {
             @Override
             public Class<? extends JDBCRecord>[] tables(int version) {
@@ -176,7 +197,7 @@ public class SDB implements DocumentSet {
             while (cur.next()) {
                 DocumentRecord d=cur.fetch();
                 if (action.run(d))
-                    break;
+                   break;
             }
             cur.close();
         } catch (SQLException e) {
@@ -379,7 +400,7 @@ public class SDB implements DocumentSet {
             throw new RuntimeException(e);
         }
     }
-    public void printLog() {
+    public void printLog() throws NotInReadTransactionException {
         logManager.printAll();
     }
     public void importLog(LogRecord curlog) throws SQLException, NotInWriteTransactionException {
