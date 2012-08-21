@@ -1212,7 +1212,7 @@ var JSLINT = (function () {
             source_row = lines[line];
             line += 1;
             at = source_row.search(/ \t/);
-            if (at >= 0) {
+            if (at >= 0 && !option.mixed) {
                 warn_at('mixed', line, at + 1);
             }
             source_row = source_row.replace(/\t/g, tab);

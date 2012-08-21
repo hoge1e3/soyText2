@@ -82,9 +82,18 @@ public class JSSession {
 		ScriptableObject.putProperty(utils, "isDocument", HashLiteralConv.isDocument);
 		ScriptableObject.putProperty(utils, "debug", new Debug());
 		ScriptableObject.putProperty(utils, "safeEval", safeEval);
+		ScriptableObject.putProperty(utils, "contentChecker", newContentChecker);
+
 
 		Context.exit();
 	}
+	   static BuiltinFunc newContentChecker=new BuiltinFunc() {
+	       @Override
+	    public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
+
+	        return new ContentChecker(args[0]+"");
+	    }
+	   };
 	static BuiltinFunc safeEval=new BuiltinFunc() {
 
 		@Override

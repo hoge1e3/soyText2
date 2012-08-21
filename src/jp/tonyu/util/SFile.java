@@ -144,7 +144,7 @@ public class SFile implements Iterable<SFile>{
 		return moveTo(backupFile(dir));
 	}
 	public SFile backupFile(String dir) {
-		String d=new TDate().toString("yyyy_MMdd_hh_mm_ss_");
+		String d=new TDate().toString("yyyy_MMdd_HH_mm_ss_");
 		SFile bdir=parent();
 		if (dir!=null) bdir=bdir.rel(dir);
 		SFile backupFile = bdir.rel(d+name());

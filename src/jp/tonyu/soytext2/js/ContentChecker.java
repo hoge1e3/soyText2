@@ -15,6 +15,7 @@ import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.js.ContextRunnable;
 import jp.tonyu.js.Scriptables;
 import jp.tonyu.js.Wrappable;
+import jp.tonyu.util.A;
 import jp.tonyu.util.MapAction;
 import jp.tonyu.util.Maps;
 import jp.tonyu.util.SPrintf;
@@ -60,6 +61,11 @@ public class ContentChecker implements IDocumentLoader, Wrappable {
 	//Scriptable initializedObject;
 	final private Map<String, String> newVars;
 	final private DocumentLoaderScriptable scope;
+	boolean syntaxCheckOnly=false;
+	public ContentChecker(String content) {
+	    this(content, new HashMap<String,String>(),new String[0]);
+	    syntaxCheckOnly=true;
+	}
 	public ContentChecker(String content, Map<String, String> newVars,String[]reqs) {
 		super();
 		final JSSession jssession = DocumentLoader.curJsSesssion();
@@ -75,7 +81,7 @@ public class ContentChecker implements IDocumentLoader, Wrappable {
 	@Override
 	public void extend(DocumentScriptable dst, Scriptable src) {
 		objectInitialized=true;
-		
+
 	}
 	@Override
 	public Object byId(String id) {
@@ -84,65 +90,35 @@ public class ContentChecker implements IDocumentLoader, Wrappable {
 	public boolean check() {
 		//final Ref<Boolean> res=Ref.create(false);
 		JSSession.withContext(new ContextRunnable() {
-			
+
 			@SuppressWarnings("serial")
 			@Override
 			public Object run(Context cx) {
 				try {
-					//final Set<String> undefinedSymbols=new HashSet<String>();
-					//undefinedSymbols.clear();
-					//final BlankScriptableObject tools=new BlankScriptableObject(jssession.root);
-					//BlankScriptableObject extender=new BlankScriptableObject();
-					/*extender.put("byId", new BuiltinFunc() {
-						@Override
-						public Object call(Context cx, Scriptable scope, Scriptable thisObj,
-								Object[] args) {
-							return dummyDocument(args[0]);
-						}
+				    if (syntaxCheckOnly) {
+				        objectInitialized=true;
+                        changedContent.delete(0, changedContent.length());
+                        changedContent.append(content);
+				        cx.compileString(content, "checkSyntax", 1, null);
+				        return true;
+				    } else {
+				        changedContent.delete(0, changedContent.length());
+				        Maps.entries(newVars).each(new MapAction<String, String>() {
 
-
-					});
-					tools.put("_", 0);
-					tools.put("$", extender);
-					final BlankScriptableObject scope=new BlankScriptableObject(jssession.root) {
-						@Override
-						public Object get(String name, Scriptable start) {
-							Object r = super.get(name, start);
-							System.out.println("Get - "+name+" - "+r);
-							if (r==UniqueTag.NOT_FOUND && !tools.has(name, tools)) {
-								undefinedSymbols.add(name);
-								return null;
-							}
-							return r;
-						}
-						public void put(String name, Scriptable start, Object value) {
-							System.out.println("Put - "+name+" - "+value);
-							if (value instanceof Undefined) undefinedSymbols.add(name);
-							else {
-								if (undefinedSymbols.contains(name)) {
-									undefinedSymbols.remove(name);
-								}
-							}
-							super.put(name, start, value);
-						}
-					};
-					scope.setPrototype(tools);*/
-					changedContent.delete(0, changedContent.length());
-					Maps.entries(newVars).each(new MapAction<String, String>() {
-						
-						@Override
-						public void run(String key, String value) {
-							changedContent.append(SPrintf.sprintf("var %s=%s;\n", key,value));
-						}
-					});
-					changedContent.append(content);
-					
-					Object result = cx.evaluateString(scope , changedContent.toString(), "check" , 1, null);
-					return result;
+				            @Override
+				            public void run(String key, String value) {
+				                changedContent.append(SPrintf.sprintf("var %s=%s;\n", key,value));
+				            }
+				        });
+				        changedContent.append(content);
+				        Object result = cx.evaluateString(scope , changedContent.toString(), "check" , 1, null);
+				        return result;
+				    }
 				} catch (Exception e) {
+				    e.printStackTrace();
 					errorOcurred=true;
 					errorMsg=e.getMessage();
-					
+
 					return null;
 				}
 			}
@@ -163,12 +139,12 @@ public class ContentChecker implements IDocumentLoader, Wrappable {
 	/*public static void main(String[] args) {
 		final ContentChecker c = new ContentChecker("var a,c; function () {a=b;}", new HashMap<String, String>());
 		JSSession.cur.enter(new JSSession(),	new Runnable() {
-			
+
 			@Override
 			public void run() {
 				System.out.println(c.check());
 				System.out.println(c.undefinedSymbols);
-				
+
 			}
 		});
 	}*/
@@ -193,7 +169,7 @@ public class ContentChecker implements IDocumentLoader, Wrappable {
 		child.setPrototype(prot);
 		root.put("test", root, child);
 		child.put("s","c");
-		Object res=c.evaluateString(root, 
+		Object res=c.evaluateString(root,
 				"var buf='';" +
 				"for (var x in test) { buf+=x+'='+test[x]+',';" +
 				"}; buf", "sourceName", 1, null);
@@ -216,113 +192,113 @@ public class ContentChecker implements IDocumentLoader, Wrappable {
 			}
 		};
 		Scriptable scope2=new Scriptable() {
-			
+
 			@Override
 			public void setPrototype(Scriptable prototype) {
 				// TODO Auto-generated method stub
 				Log.d("main:cont", "scope2:");
-				
+
 			}
-			
+
 			@Override
 			public void setParentScope(Scriptable parent) {
 				// TODO Auto-generated method stub
 				Log.d("main:cont", "Set Parent"+parent);
 			}
-			
+
 			@Override
 			public void put(int index, Scriptable start, Object value) {
 				// TODO Auto-generated method stub
 				Log.d("main:cont", "scope2:");
-			
+
 			}
-			
+
 			@Override
 			public void put(String name, Scriptable start, Object value) {
 				// TODO Auto-generated method stub
 				Log.d("main:cont2", name+"="+value);
-				
+
 			}
-			
+
 			@Override
 			public boolean hasInstance(Scriptable instance) {
 				// TODO Auto-generated method stub
 				return false;
 			}
-			
+
 			@Override
 			public boolean has(int index, Scriptable start) {
 				// TODO Auto-generated method stub
 				return false;
 			}
-			
+
 			@Override
 			public boolean has(String name, Scriptable start) {
 				Log.d("main:cont", "scope2:has");
 
 				return false;
 			}
-			
+
 			@Override
 			public Scriptable getPrototype() {
 				// TODO Auto-generated method stub
 				return null;
 			}
-			
+
 			@Override
 			public Scriptable getParentScope() {
 				// TODO Auto-generated method stub
 				return root;
 			}
-			
+
 			@Override
 			public Object[] getIds() {
 				// TODO Auto-generated method stub
 				return null;
 			}
-			
+
 			@Override
 			public Object getDefaultValue(Class<?> hint) {
 				// TODO Auto-generated method stub
 				return null;
 			}
-			
+
 			@Override
 			public String getClassName() {
 				// TODO Auto-generated method stub
 				return null;
 			}
-			
+
 			@Override
 			public Object get(int index, Scriptable start) {
 				// TODO Auto-generated method stub
 				return null;
 			}
-			
+
 			@Override
 			public Object get(String name, Scriptable start) {
 				// TODO Auto-generated method stub
 				Log.d("main:cont", "get - "+name+"="+start);
 				return null;
 			}
-			
+
 			@Override
 			public void delete(int index) {
 				// TODO Auto-generated method stub
-				
+
 			}
-			
+
 			@Override
 			public void delete(String name) {
 				// TODO Auto-generated method stub
-				
+
 			}
 		};
 		Scriptable scope3 = new DocumentLoaderScriptable(root, null, null);
 		c.evaluateString(scope1, "var t=3;"	, "test", 1, null);
 		c.evaluateString(scope2, "var t=3;"	, "test", 1, null);
 		c.evaluateString(scope3, "var t=3;"	, "test", 1, null);
-		
+
 	}
 	@Override
 	public Scriptable inherit(Function superClass, Scriptable overrideMethods) {

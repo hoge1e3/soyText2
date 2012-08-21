@@ -1,18 +1,18 @@
 var _top={__ie:navigator.userAgent.indexOf("MSIE") != -1};
 
 
-function attachIndentAdaptor(elem) {
 function $conv(id) {
    if (typeof(id)=="string") return document.getElementById(id);
    return id;
 }
-function addEventListener(elem,type,func) {
-   if (_top.__ie) {
-      elem.attachEvent("on"+type,func);
-   } else {
-      elem.addEventListener(type,func,false);
-   }
-}
+function attachIndentAdaptor(elem) {
+	function addEventListener(elem,type,func) {
+	   if (_top.__ie) {
+	      elem.attachEvent("on"+type,func);
+	   } else {
+	      elem.addEventListener(type,func,false);
+	   }
+	}
     elem=$conv(elem);
 	var nextInd=false;
 	var indDepth="";
@@ -37,13 +37,13 @@ function addEventListener(elem,type,func) {
 			indDepth+=" ";
 		 }
 		 if (!_top.__ie) {
-		    e.preventDefault(); 
-	        e.stopPropagation(); 
+		    e.preventDefault();
+	        e.stopPropagation();
 			setSelText(elem, "\n"+indDepth);
 			nextInd=false;
 		 } else {
-		    e.returnValue = false; 
-	        e.cancelBubble = true; 
+		    e.returnValue = false;
+	        e.cancelBubble = true;
 			setSelText(elem, "\n"+indDepth);
 			nextInd=false;
 		 }
@@ -59,8 +59,31 @@ function addEventListener(elem,type,func) {
 }
 var attachIndentAdapter=attachIndentAdaptor;
 
+function caretPos2RowCol(elem, pos) {
+	  elem=$conv(elem);
+	  var str=elem.value;
+	  str = str.replace(/\r/g,"");
+	  var lines = str.split(/\n/);
+	  var i=0;
+	  var res={row:1,col:1};
+	  while (i<lines.length) {
+		  var len=lines[i].length+1;
+		  pos-=len;
+		  if (pos>=0) {
+  		      res.row++;
+		      i++;
+		  } else {
+			  pos+=len;
+			  res.col=pos;
+			  break;
+		  }
+	  }
+	  return res;
+}
+
 function getCaretPos(elem){
   var __self=this;
+  elem=$conv(elem);
   if (_top.__ie) {
     var s = elem;
     if( document.selection ){
@@ -88,15 +111,15 @@ function setSelText(elem, text){
     r.text=text;
   } else {
     var s=elem;
-    var scrollPos = s.scrollTop; 
+    var scrollPos = s.scrollTop;
     var cont=s.value;
     var b=cont.substring (0,s.selectionStart)+text;
     s.value=b+cont.substring (s.selectionEnd);
     s.setSelectionRange(b.length,b.length);
-    s.scrollTop=scrollPos; 
+    s.scrollTop=scrollPos;
     //alert("["+cont+"]");
   }
-} 
+}
 
 
 function setRange(elem, from, to) {
@@ -111,5 +134,5 @@ function setRange(elem, from, to) {
     s.setSelectionRange(from,to);
     s.focus(); //select();
 	//s.scrollTop=s.scrollHeight/2;
-  } 
+  }
 }

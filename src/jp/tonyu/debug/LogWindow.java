@@ -27,4 +27,7 @@ public class LogWindow extends Frame {
 	public void println(String msg) {
 		text.append(msg+"\n");
 	}
+    public void print(String msg) {
+        text.append(msg);
+    }
 }

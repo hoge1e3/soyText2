@@ -3,6 +3,9 @@ package jp.tonyu.debug;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.HashSet;
+import java.util.Vector;
+
+import jp.tonyu.util.TDate;
 
 
 
@@ -14,6 +17,7 @@ public class Log {
 		}
 		lw.setVisible(true);
 	}
+	static StringBuilder buf=new StringBuilder();
 	static HashSet<String> whiteList=new HashSet<String>();
 	static HashSet<String> blackList=new HashSet<String>();
 	static boolean useWhiteList=false;
@@ -26,15 +30,43 @@ public class Log {
 		for (String s:blackLista) {
 			blackList.add(s);
 		}
+		runThread();
+	}
+	public static void runThread() {
+	    new Thread() {
+	        public void run() {
+	            while(true) {
+	                String r;
+	                synchronized (buf) {
+                        while (buf.length()==0) {
+                            try {
+                                buf.wait();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        r=buf.toString();
+                        buf.delete(0, buf.length());
+                    }
+	                System.out.print(r);
+	                if (lw!=null) lw.print(r);
+	            }
+	        }
+	    }.start();
+	}
+	public static void addBuf(String s) {
+	    synchronized (buf) {
+            buf.append(s+"\n");
+            buf.notifyAll();
+        }
 	}
 	public static void d(Object tag,Object content) {
 		//if ("ToValues".equals(tag) || "ClassIdx".equals(tag) ||"getSPClass".equals(tag)) {
 		tag=convTag(tag);
 	    if ( tagMatch(tag) && wordMatch(content)) {
 			String cont = "["+tag+"]"+content;
-			System.out.println(System.currentTimeMillis()+":"+cont);
-			System.out.flush();
-			if (lw!=null) lw.println(cont);
+			addBuf(new TDate().toString("yy/MM/dd HH:mm:ss.SSS")+":"+cont);
+			//System.out.flush();
 		}
 	}
 
