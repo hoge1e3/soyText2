@@ -318,7 +318,7 @@ public abstract class JDBCHelper {
     }
 
     private void debugQuery(String q) {
-        Log.d("query", q);
+        Log.d(this, "Query: "+q);
     }
     public JDBCCursor execQuery(String q) throws SQLException, NotInReadTransactionException {
         debugQuery(q);
@@ -332,10 +332,12 @@ public abstract class JDBCHelper {
         ResultSet r = st.executeQuery();
         return new JDBCCursor(this,st,r);
     }
+    static int cnt=0;
     private PreparedStatement prepareStatement(String q, Object... args)
             throws SQLException {
         PreparedStatement st = db.prepareStatement(q);
-        Log.d("query-prep", q+" args="+Util.join(",", args));
+        Log.d(this, "Query-prep: "+q+" args="+Util.join(",", args));
+        cnt++; //if (cnt>500) Log.die("Stop!");
         for (int i=0 ; i<args.length; i++) {
             if (args[i] instanceof String) {
                 String str = (String) args[i];

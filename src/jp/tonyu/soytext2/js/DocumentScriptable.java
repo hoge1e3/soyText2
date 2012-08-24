@@ -48,26 +48,41 @@ public class DocumentScriptable implements Function {
 	private static final Object GETTERKEY = "[[110414_051952@"+Origin.uid+"]]";
 	//Scriptable __proto__;
 	Map<Object, Object>_binds=new HashMap<Object, Object>();
-	final DocumentRecord d;
+	DocumentRecord _d;
+	final String _id;
 	public final DocumentLoader loader;
 	public static final String ONAPPLY="onApply",APPLY="apply",CALL="call";
 	private static final Object SETCONTENTANDSAVE = "setContentAndSave";
 	private static final Object GETCONTENT = "getContent";
+	static int cnt=0;
 	public DocumentRecord getDocument() {
-		return d;
+	    if (_d!=null) return _d;
+	    cnt++;
+	    //if (cnt>200) Log.die("Get much! "+_id);
+        //Log.d(this , "Get! "+_id);
+	    _d=loader.recordById(_id);
+	    if (_d==null) Log.die("Document "+_id+" is not exist");
+	    return _d;
 	}
 	private Map<Object, Object> binds() {
 		loadContent();
 		return _binds;
 	}
 	//static Map<String, DocumentScriptable> debugH=new HashMap<String, DocumentScriptable>();
-	public DocumentScriptable(final DocumentLoader loader,final DocumentRecord d) {
+	public DocumentScriptable(final DocumentLoader loader,String id) {
 		this.loader=loader;
-		this.d=d;
-		if (d.content==null) contentLoaded=true;
+		_id=id;
+		//this.d=d;
+
 		/*put("id",this , d.id );
 		put("lastUpdate",this, d.lastUpdate);
 		put("save",this, );*/
+	}
+	public DocumentScriptable(final DocumentLoader loader, DocumentRecord rec) {
+	    this.loader=loader;
+	    _d=rec;
+	    if (_d.content==null) contentLoaded=true; // When new document
+        _id=rec.id;
 	}
 	BuiltinFunc saveFunc =new BuiltinFunc() {
 
@@ -90,7 +105,7 @@ public class DocumentScriptable implements Function {
 		@Override
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 				Object[] args) {
-			return d.content;
+			return getDocument().content;
 		}
 	};
 	/*BuiltinFunc compileFunc =new BuiltinFunc() {
@@ -208,19 +223,30 @@ public class DocumentScriptable implements Function {
 	};
 
 	public Object get(Object key) {
-		if ("id".equals(key)) return d.id;
+	    //Log.d(this, "get - "+_id+"."+key);
+        if ("id".equals(key)) return _id;
+        if ("save".equals(key)) return saveFunc;
+        //if ("compile".equals(key)) return compileFunc;
+        if ("identityHashCode".equals(key)) return System.identityHashCode(this);
+        if ("hasOwnProperty".equals(key)) return hasOwnPropFunc;
+        if ("setBlob".equals(key)) return setBlobFunc;
+        if ("getBlob".equals(key)) return getBlobFunc;
+        if (SETCONTENTANDSAVE.equals(key)) return setContentAndSaveFunc;
+        if (GETCONTENT.equals(key)) return getContentFunc;
+        if (CALLSUPER.equals(key)) return callSuperFunc;
+        //if (RELOADFROMCONTENT.equals(key)) return reloadFromContentFunc;
+	    DocumentRecord d=getDocument();
+		// deprecated
 		if (DocumentRecord.LASTUPDATE.equals(key)) return d.lastUpdate;
 		if (DocumentRecord.OWNER.equals(key)) return d.owner;
 		if ("summary".equals(key)) return d.summary;
-		if ("identityHashCode".equals(key)) return System.identityHashCode(this);
-		if ("save".equals(key)) return saveFunc;
-		//if ("compile".equals(key)) return compileFunc;
-		if ("hasOwnProperty".equals(key)) return hasOwnPropFunc;
-		if ("setBlob".equals(key)) return setBlobFunc;
-		if ("getBlob".equals(key)) return getBlobFunc;
-		if (SETCONTENTANDSAVE.equals(key)) return setContentAndSaveFunc;
-		if (GETCONTENT.equals(key)) return getContentFunc;
-		if (CALLSUPER.equals(key)) return callSuperFunc;
+        // end of deprecated. use followings instead.
+        if ("_id".equals(key)) return d.id;
+        if (("_"+DocumentRecord.LASTUPDATE).equals(key)) return d.lastUpdate;
+        if (("_"+DocumentRecord.OWNER).equals(key)) return d.owner;
+        if ("_summary".equals(key)) return d.summary;
+        // end of use followings instead.
+
 		/*if (key instanceof DocumentScriptable) {
 			DocumentScriptable keyDoc = (DocumentScriptable) key;
 			key=JSSession.idref(keyDoc, d.documentSet);
@@ -400,9 +426,9 @@ public class DocumentScriptable implements Function {
 	public void save() {
 		refreshSummary();
 		refreshContent();
-		Log.d(this, "save() content changed to "+d.content);
+		Log.d(this, "save() content changed to "+getDocument().content);
 		PairSet<String,String> updatingIndex = indexUpdateMap();
-		loader.save(d, updatingIndex);
+		loader.save(getDocument(), updatingIndex);
 		//loader.getDocumentSet().save(d,updatingIndex);// d.save();
 	}
 	private PairSet<String,String> indexUpdateMap() {
@@ -433,7 +459,7 @@ public class DocumentScriptable implements Function {
 		}
 	}
 	public String id() {
-		return getDocument().id;
+		return _id;
 	}
 	private static void updateBackLinkIndex(final Scriptable s, final PairSet<String,String> idx) {
 		if (s instanceof NativeJavaObject) return;
@@ -469,10 +495,11 @@ public class DocumentScriptable implements Function {
 		}*/
 		//b.append(SPrintf.sprintf("$.extend(_,%s);",HashLiteralConv.toHashLiteral(this)));
 		b.append(HashLiteralConv.toHashLiteral(this));
-		d.content=b+"";
+		getDocument().content=b+"";
 	}
 	public void setContentAndSave(String content) {
-		d.content=content;
+		DocumentRecord d=getDocument();
+	    d.content=content;
 		if (d.content==null) Log.die("Content of "+d.id+" is null!");
 		String c=d.content;
 		if (c.length()>10000) c=c.substring(0,10000);
@@ -484,18 +511,21 @@ public class DocumentScriptable implements Function {
 		//loader.getDocumentSet().save(d, idx);//d.save();
 	}
 	public void reloadFromContent() {
-		if (d.content==null) Log.die("Content of "+d.id+" is null!");
+	    DocumentRecord d=getDocument();
+	    assert d.content!=null;
+		if (d.content==null) return; //Log.die("Content of "+d.id+" is null!");
 		loader.loadFromContent(d.content, this);
 		refreshSummary();
 	}
 	@Override
 	public String toString() {
-		return "(Docscr "+d.id+")";
+		return "(Docscr "+id()+")";
 	}
 	public void clear() {
 		binds().clear();
 	}
 	public void refreshSummary() {
+        DocumentRecord d=getDocument();
 		d.summary=genSummary();
 		Log.d(this, "Sumamry changed to "+d.summary);
 	}
@@ -508,7 +538,7 @@ public class DocumentScriptable implements Function {
 		if (res!=null && res!=UniqueTag.NOT_FOUND && ress.length()>0) return ress;
 		res=get(HttpContext.ATTR_BODY);ress = res+"";
 		if (res!=null && res!=UniqueTag.NOT_FOUND && ress.length()>0) return ress.substring(0,Math.min(ress.length(), 20));
-		return d.id;
+		return id();
 	}
 	@Override
     public Object call(Context cx, Scriptable scope, Scriptable thisObj,
@@ -588,4 +618,11 @@ public class DocumentScriptable implements Function {
 		PairSet<String,String> h = indexUpdateMap();
 		loader.getDocumentSet().updateIndex(getDocument(), h);
 	}
+    public boolean isRecordLoaded() {
+        return _d!=null;
+    }
+    public void loadRecord(DocumentRecord d) {
+        Log.d(this , "Loaded ! "+d);
+        _d=d;
+    }
 }

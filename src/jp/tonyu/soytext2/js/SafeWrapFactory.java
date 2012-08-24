@@ -30,6 +30,7 @@ public class SafeWrapFactory extends WrapFactory {
 		if (javaObject instanceof Map) {
 			return new MapScriptable((Map)javaObject);
 		}
+		Log.d(this, "Wrap "+javaObject+" in scope "+scope);
 		return super.wrapAsJavaObject(cx, scope, javaObject, staticType);
 		//Log.die(javaObject.getClass()+": Only Wrappable can be wrapped.");
 		//return null;

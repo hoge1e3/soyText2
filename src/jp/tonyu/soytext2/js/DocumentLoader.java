@@ -107,14 +107,24 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
      * Log.die(name+" not found "); return super.get(name, start); } }; }
      */
     /*
-     * (non-Javadoc)
-     *
-     * @see jp.tonyu.soytext2.js.IDocumentLoader#byId(java.lang.String)
+     * $.byId(id) returns some DocumentScriptable even if it is not exist.
+         it is for lazy loading of DocumentRecord to avoid much queries.
      */
     public DocumentScriptable byId(final String id) {
         DocumentScriptable o=objs.get(id);
         if (o!=null)
             return o;
+        return defaultDocumentScriptable(id);
+    }
+    public DocumentScriptable byIdOrNull(final String id) {
+        DocumentScriptable o=objs.get(id);
+        if (o!=null)
+            return o;
+        DocumentRecord r=recordById(id);
+        if (r==null) return null;
+        return defaultDocumentScriptable(r);
+    }
+    public DocumentRecord recordById(final String id) {
         final Ref<DocumentRecord> src=Ref.create(null);
         ltr.read(new LooseReadAction() {
             @Override
@@ -122,14 +132,16 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
                 src.set(Log.notNull(getDocumentSet(), "gds").byId(id));
             }
         });
-        if (src.get()==null)
-            return null;
-        return byRecord(src.get());
+        return src.get();
     }
     private DocumentScriptable byRecordOrCache(final DocumentRecord src) {
         DocumentScriptable o=objs.get(src.id);
-        if (o!=null)
+        if (o!=null) {
+            if (!o.isRecordLoaded()) {// It is needed for fullTextGrep
+                o.loadRecord(src);
+            }
             return o;
+        }
         return byRecord(src);
     }
     private DocumentScriptable byRecord(final DocumentRecord src) {
@@ -148,7 +160,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
         if (src.content!=null) {
             if (DocumentScriptable.lazyLoad==false) {
                 ind.append(" ");
-                Log.d("DLoader.loadFromContent", ind+"["+src.id+"]");// "+src.content);
+                Log.d(this, "DLoader.loadFromContent"+ ind+"["+src.id+"]");// "+src.content);
                 loadFromContent(src.content, o);
                 ind.delete(0, 1);
             }
@@ -190,6 +202,13 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
         if (objs.containsKey(src.id))
             Log.die("Already have "+src);
         objs.put(src.id, res);
+        return res;
+    }
+    private DocumentScriptable defaultDocumentScriptable(final String id) {
+        DocumentScriptable res=new DocumentScriptable(this, id);
+        if (objs.containsKey(id))
+            Log.die("Already have "+id);
+        objs.put(id, res);
         return res;
     }
     static StringBuffer ind=new StringBuffer();
@@ -326,7 +345,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
                     DocumentAction docAct=new DocumentAction() {
                         @Override
                         public boolean run(DocumentRecord d) throws NotInReadTransactionException {
-                            DocumentScriptable s=byId(d.id);
+                            DocumentScriptable s=byRecordOrCache(d);
                             return callDocIter(s , q , iter);
                         }
                     };

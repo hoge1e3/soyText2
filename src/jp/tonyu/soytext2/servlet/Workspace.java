@@ -22,7 +22,7 @@ public class Workspace {
 	}
 	public SFile multiDBHome() {
 		SFile res=home.rel("db");
-		res.mkdirs();
+		res.mkdirs(true);
 		//if (res.exists()) return res;
 		return res;
 	}

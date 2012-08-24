@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -15,8 +14,6 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.nio.channels.FileChannel;
 import java.util.Iterator;
-
-import jp.tonyu.debug.Log;
 
 public class SFile implements Iterable<SFile>{
 	java.io.File f;
@@ -36,6 +33,25 @@ public class SFile implements Iterable<SFile>{
 	public boolean exists() {
 		return f.exists();
 	}
+	public String relPath(SFile base) {
+	    if (equals(base)) {
+	        return ".";
+	    }
+	    if (parent()==null) throw new RuntimeException(this+" is not in "+base);
+	    return parent().relPath(base)+File.pathSeparator+name();
+	}
+	@Override
+	public boolean equals(Object obj) {
+	    if (obj instanceof SFile) {
+            SFile s=(SFile) obj;
+            return f.equals(s.f);
+        }
+	    return false;
+	}
+	@Override
+	public int hashCode() {
+	    return f.hashCode();
+	}
     public String text() throws IOException {
         return textEnc("utf-8");
     }
@@ -54,9 +70,12 @@ public class SFile implements Iterable<SFile>{
         return buf.toString();
     }
 	public void text(String content) throws FileNotFoundException {
+	    textEnc(content,"utf-8");
+	}
+	public void textEnc(String content,String encode) throws FileNotFoundException {
 		PrintWriter p;
 		try {
-			p = new PrintWriter(new OutputStreamWriter(outputStream(), "utf-8"));
+			p = new PrintWriter(new OutputStreamWriter(outputStream(), encode));
 			p.print(content);
 			p.close();
 		} catch (UnsupportedEncodingException e) {
@@ -64,9 +83,17 @@ public class SFile implements Iterable<SFile>{
 			e.printStackTrace();
 		}
 	}
-	public void mkdirs() {
-		File parentFile = f.getParentFile();
-		if (parentFile!=null) parentFile.mkdirs();
+	public boolean mkdirs(boolean toBeDir) {
+	    if (exists()) {
+	        return isDir()==toBeDir;
+	    }
+	    if (toBeDir) {
+	        return f.mkdirs();
+	    } else {
+	        File parentFile = f.getParentFile();
+	        if (parentFile!=null) return parentFile.mkdirs();
+	        return false;
+	    }
 	}
 	public boolean isDir() {
 		return f.exists() && f.isDirectory();
@@ -113,7 +140,7 @@ public class SFile implements Iterable<SFile>{
 		return javaIOFile().toString();
 	}
 	public OutputStream outputStream() throws FileNotFoundException {
-		mkdirs();
+		mkdirs(false);
 		return new FileOutputStream(f);
 	}
 	public String fullPath() {
@@ -130,6 +157,27 @@ public class SFile implements Iterable<SFile>{
 	public String[] lines() throws IOException {
 		return text().split("[\\r\\n]+");
 	}
+	// copy  path/of/this from another/path/of/dst
+	// if true, New folder another/path/of/dst/this will created
+    //       and path/of/this/a.txt will be copied into another/path/of/dst/this/a.txt
+	// if false, path/of/this/a.txt will be copied into another/path/of/dst/a.txt
+	public void copyDirTo(SFile dst, boolean createNewFolder) throws IOException {
+	    if (!isDir()) throw new RuntimeException(this +" is not a dir");
+	    SFile folder=(createNewFolder ? dst.rel(name()) : dst);
+	    copyDir( this,folder);
+	}
+	public static void copyDir(SFile curSrc, SFile curDst ) throws IOException {
+	    curDst.mkdirs(true);
+	    for (SFile f:curSrc) {
+	        SFile dstFile=curDst.rel(f.name());
+            if (f.isDir()) {
+	            copyDir(f, dstFile);
+	        } else {
+	            f.copyTo(dstFile);
+	        }
+	    }
+	}
+
 	public void copyTo(SFile dst) throws IOException {
 		copy(javaIOFile(),dst.javaIOFile());
 	}
@@ -156,7 +204,8 @@ public class SFile implements Iterable<SFile>{
 	}
 	public boolean moveTo(SFile dest) {
 		if (dest.exists()) return false;
-		dest.mkdirs();
+		if (isDir()) throw new RuntimeException("Dir is not supported");
+		dest.mkdirs(false);
 		boolean res=moveTo(dest.javaIOFile());
 		if (!res) {
 			try {

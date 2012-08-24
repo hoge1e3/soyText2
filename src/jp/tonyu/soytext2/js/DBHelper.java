@@ -10,6 +10,11 @@ import jp.tonyu.soytext2.search.expr.AttrOperator;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.Scriptable;
 
+/**
+ * DBHelper is referenced by 'db' in content
+ * @author shinya
+ *
+ */
 public class DBHelper implements Wrappable{
 	public final DocumentLoader loader;
 
@@ -56,8 +61,15 @@ public class DBHelper implements Wrappable{
 		DocumentScriptable d = loader.newDocument(obj);
 		return d;
 	}
+	/**
+	 *   db.byId(id) returns null if id is not found.
+         while $.byId(id) returns some DocumentScriptable even if it is not exist.
+         it is for lazy loading of DocumentRecord to avoid much queries.
+	 * @param id
+	 * @return
+	 */
 	public Object byId(String id) {
-		return loader.byId(id);
+		return loader.byIdOrNull(id);
 	}
 	public void debug(Object o) {
 		Log.d("db.debug", o);

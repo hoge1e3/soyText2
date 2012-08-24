@@ -171,6 +171,8 @@
 //     indent     the indentation factor
 //     maxerr     the maximum number of errors to allow
 //     maxlen     the maximum length of a source line
+//     mixed      true, if mixed tabs and spaces should be allowed
+//     movevar    true, if for (var i.. should be allowed
 //     newcap     true, if constructor names capitalization is ignored
 //     node       true, if Node.js globals should be predefined
 //     nomen      true, if names may have dangling _
@@ -345,6 +347,8 @@ var JSLINT = (function () {
             indent    :   10,
             maxerr    : 1000,
             maxlen    :  256,
+            mixed     : true,
+            movevar   : true,
             newcap    : true,
             node      : true,
             nomen     : true,
@@ -4374,8 +4378,14 @@ klass:              do {
             step_in('control');
             spaces(this, paren);
             no_space();
+            var hasVar=false;
             if (next_token.id === 'var') {
-                stop('move_var');
+                if (!option.movevar) {
+                   stop('move_var');
+                } else {
+                	hasVar=true;
+                   advance();
+                }
             }
             edge();
             if (peek(0).id === 'in') {
@@ -4389,7 +4399,11 @@ klass:              do {
                 case 'var':
                     break;
                 default:
-                    warn('bad_in_a', value);
+                	if (hasVar) {
+                		scope[value.string] = { name: value.string, writeable:true, funct:funct};
+                	} else {
+                        warn('bad_in_a', value);
+                	}
                 }
                 advance();
                 advance('in');

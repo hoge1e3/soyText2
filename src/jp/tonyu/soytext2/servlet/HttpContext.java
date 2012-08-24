@@ -679,7 +679,7 @@ public class HttpContext implements Wrappable {
 
 				@Override
 				public Object run(Context cx) {
-					String sf = cx.decompileFunction(f,0);
+					//String sf = cx.decompileFunction(f,0);
 					//Log.d("htpcon","Before exec func "+ sf );
 					/*if (sf.indexOf("HttpHelper")>=0) {
 						Log.die("Who did it?"); //ListLessons did it
