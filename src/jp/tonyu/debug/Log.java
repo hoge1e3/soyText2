@@ -33,7 +33,7 @@ public class Log {
 		runThread();
 	}
 	public static void runThread() {
-	    new Thread() {
+	    Thread t= new Thread() {
 	        public void run() {
 	            while(true) {
 	                String r;
@@ -52,7 +52,9 @@ public class Log {
 	                if (lw!=null) lw.print(r);
 	            }
 	        }
-	    }.start();
+	    };
+	    t.setDaemon(true);
+	    t.start();
 	}
 	public static void addBuf(String s) {
 	    synchronized (buf) {

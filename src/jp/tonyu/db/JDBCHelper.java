@@ -278,7 +278,7 @@ public abstract class JDBCHelper {
                             e.printStackTrace();
                             throw new SQLException(e);
                         }
-                        cur.next();
+                        //cur.next();
                     }
                     cur.close();
                 }

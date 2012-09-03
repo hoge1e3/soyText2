@@ -5,6 +5,8 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
 
 import jp.tonyu.db.DBAction;
 import jp.tonyu.db.JDBCHelper;
@@ -59,10 +61,24 @@ public class Test {
     public static void main(String[] args) throws SQLException, ClassNotFoundException, NotInReadTransactionException {
         final SDB s=new SDB(new File("C:/Users/shinya/Dropbox/workspace/stStorage/db/1.2010.tonyu.jp/main.db"));
         JDBCHelper db=s.getHelper();
+        /*Map<String, List<Map<String, Object>>> r=s.backup();
+        List<Map<String, Object>> d=r.get("DocumentRecord");
+        for (Map<String, Object> dd:d) {
+            System.out.println("Bk - "+dd.get("id"));
+        }*/
         ResultSet cur=db.execQuery("select * from DocumentRecord;");
-        //cur.close();
-        db.rollback();
-
+        while (cur.next()) {
+            String id=cur.getString("id");
+            System.out.println(id);
+            if (id.indexOf("106857")>=0) {
+                System.out.println(cur.getString("content"));
+            }
+        }
+        cur.close();
+        //db.close();
+        s.close();
+        //db.rollback();
+        System.out.println("End!");
     }
     public static void main234(String[] args) throws InterruptedException {
         final String s="abc";
