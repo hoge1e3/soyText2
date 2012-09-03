@@ -10,9 +10,9 @@ public class RowCol {
 		for (byteCount=0 ; byteCount<src.length() ; byteCount++) {
 			char ch=src.charAt(byteCount);
 			if (row>=r && col>=c) { return byteCount;}
-			if (ch=='\n') { 
+			if (ch=='\n') {
 				if (row>=r) { return byteCount; }
-				row++; col=0; 
+				row++; col=0;
 			} else {
 				col++;
 			}
@@ -25,14 +25,14 @@ public class RowCol {
 		if (cnt>=src.length()) cnt=src.length();
 		for (byteCount=0 ; byteCount<cnt ; byteCount++) {
 			char ch=src.charAt(byteCount);
-			if (ch=='\n') { 
-				row++; col=0; 
+			if (ch=='\n') {
+				row++; col=0;
 			} else {
 				col++;
 			}
 		}
 	}
-	
+
 	public CharSequence getSrc() {
 		return src;
 	}
@@ -44,13 +44,6 @@ public class RowCol {
 	}
 	public int getByteCount() {
 		return byteCount;
-	}
-	public static void main(String[] args) {
-		RowCol rc=new RowCol(new StringBuffer("おかき\nようかんみるく\nあいうえお"));
-		rc.setRowCol(1, 5);
-		System.out.println(rc);
-		rc.setByteCount(7);
-		System.out.println(rc);
 	}
 	public RowCol(CharSequence src) {
 		super();

@@ -11,6 +11,8 @@ import javax.servlet.http.HttpServletRequest;
 import jp.tonyu.js.Wrappable;
 import jp.tonyu.soytext2.js.MapScriptable;
 import jp.tonyu.soytext2.servlet.HttpContext;
+import jp.tonyu.util.A;
+import jp.tonyu.util.Maps;
 
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.FileUploadException;
@@ -28,7 +30,7 @@ public class FileUpload implements Wrappable {
 			ServletFileUpload upload = new ServletFileUpload(factory);
 			factory.setSizeThreshold(102400);
 			upload.setSizeMax(-1);
-			//upload.setHeaderEncoding("utf-8");
+			//req.setCharacterEncoding("utf-8");
 			List<FileItem> list = upload.parseRequest(req);
 			Iterator<FileItem> iterator = list.iterator();
 			while(iterator.hasNext()){
@@ -38,10 +40,16 @@ public class FileUpload implements Wrappable {
 					if((fileName != null) && (!fileName.equals(""))){
 						fileName=(new File(fileName)).getName();
 						InputStream str=fItem.getInputStream();
-						res.put(fileName, new WrappedInputStream(str));
+						HashMap<String, Object> vsrc=new HashMap<String, Object>();
+						vsrc.put("filename", fileName);
+						vsrc.put("body", new WrappedInputStream(str));
+						res.put(fItem.getFieldName(), new MapScriptable(vsrc));
 					}
 				}else {
-					res.put(fItem.getFieldName(),fItem.getString());
+				    byte[] bytes= fItem.getString().getBytes("iso-8859-1");
+				    String val= new String(bytes, "utf-8");
+
+					res.put(fItem.getFieldName(),val);
 				}
 			}
 		}catch (FileUploadException e) {
@@ -51,5 +59,37 @@ public class FileUpload implements Wrappable {
 		}
 		return res;
 	}
+
+	   public static Scriptable receiveFile_old(HttpContext c) {
+	        HttpServletRequest req=c.getReq();
+	        MapScriptable res=new MapScriptable(new HashMap<String,Object>());
+	        try {
+	            DiskFileItemFactory factory = new DiskFileItemFactory();
+	            ServletFileUpload upload = new ServletFileUpload(factory);
+	            factory.setSizeThreshold(102400);
+	            upload.setSizeMax(-1);
+	            //upload.setHeaderEncoding("utf-8");
+	            List<FileItem> list = upload.parseRequest(req);
+	            Iterator<FileItem> iterator = list.iterator();
+	            while(iterator.hasNext()){
+	                FileItem fItem = iterator.next();
+	                if(!(fItem.isFormField())){
+	                    String fileName = fItem.getName();
+	                    if((fileName != null) && (!fileName.equals(""))){
+	                        fileName=(new File(fileName)).getName();
+	                        InputStream str=fItem.getInputStream();
+	                        res.put(fileName, new WrappedInputStream(str));
+	                    }
+	                }else {
+	                    res.put(fItem.getFieldName(),fItem.getString());
+	                }
+	            }
+	        }catch (FileUploadException e) {
+	            e.printStackTrace();
+	        }catch (Exception e) {
+	            e.printStackTrace();
+	        }
+	        return res;
+	    }
 
 }
