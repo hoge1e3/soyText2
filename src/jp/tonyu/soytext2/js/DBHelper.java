@@ -1,9 +1,23 @@
 package jp.tonyu.soytext2.js;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.sql.SQLException;
+import java.util.Map;
+import java.util.Vector;
+
+import jp.tonyu.db.NotInWriteTransactionException;
 import jp.tonyu.debug.Log;
+import jp.tonyu.js.AllPropAction;
+import jp.tonyu.js.Scriptables;
 import jp.tonyu.js.Wrappable;
 import jp.tonyu.soytext2.document.DocumentRecord;
+import jp.tonyu.soytext2.document.DocumentSet;
+import jp.tonyu.soytext2.document.HashBlob;
 import jp.tonyu.soytext2.document.IndexRecord;
+import jp.tonyu.soytext2.document.LooseWriteAction;
+import jp.tonyu.soytext2.document.PairSet;
+import jp.tonyu.soytext2.file.ReadableBinData;
 import jp.tonyu.soytext2.search.QueryBuilder;
 import jp.tonyu.soytext2.search.expr.AttrOperator;
 
@@ -75,7 +89,7 @@ public class DBHelper implements Wrappable{
 		Log.d("db.debug", o);
 	}
 	public Object byIdOrCreate(String id) {
-		Object res=loader.byId(id);
+		Object res=loader.byIdOrNull(id);
 		if (res!=null) return res;
 		return loader.newDocument(id);
 
@@ -89,4 +103,46 @@ public class DBHelper implements Wrappable{
 	public String dbid() {
 		return loader.getDocumentSet().getDBID();
 	}
+	public Object exportDocument(DocumentScriptable d) throws IllegalArgumentException, NoSuchFieldException, IllegalAccessException {
+	    Map<String, Object> m=d.getDocument().toMap();
+	    return new MapScriptable(m);
+	}
+	public void importDocuments(final Scriptable scr) {
+	    // TODO: must be imported updated record at once ( To avoid 404 link )
+	    //  Use DocumentLodaer:: importDocuments!!
+	    final Vector<DocumentRecord> recs=new Vector<DocumentRecord>();
+	    Scriptables.each(scr, new AllPropAction() {
+            @Override
+            public void run(Object key, Object value) {
+                if (value instanceof Scriptable) {
+                    DocumentRecord d=new DocumentRecord();
+                    Scriptable scr=(Scriptable) value;
+                    Map<String, Object> m=Scriptables.toStringKeyMap(scr);
+                    d.copyFrom(m);
+                    recs.add(d);
+                }
+            }
+        });
+	    loader.ltr.write(new LooseWriteAction() {
+            @Override
+            public void run() throws NotInWriteTransactionException {
+                try {
+                    loader.importDocuments(recs);
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    Log.die(e);
+                }
+            }
+        });
+	}
+
+    public HashBlob hashBlob(String hash) {
+        return loader.hashBlob(hash);
+    }
+    public HashBlob writeHashBlob(ReadableBinData i) throws IOException {
+        return loader.writeHashBlob(i);
+    }
+    public HashBlob writeHashBlob(InputStream i) throws IOException {
+        return loader.writeHashBlob(i);
+    }
 }

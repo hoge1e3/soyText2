@@ -109,7 +109,7 @@ public class Log {
 	}
 
 	public static void die(Exception e) {
-		die("Wrapped Exception :"+e);
+		die("Log:die Wrapped Exception :"+e);
 	}
 	public static StringWriter errorLog=new StringWriter();
 	public static void e(Exception e) {

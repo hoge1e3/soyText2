@@ -50,7 +50,7 @@ public class Workspace {
 	}
 	public String getPrimaryDBID() throws IOException {
 		SFile id=primaryDBFile();
-		return id.text();
+		return id.lines()[0];
 	}
 	private SFile primaryDBFile() {
 		return multiDBHome().rel(PRIMARY_DBID_TXT);

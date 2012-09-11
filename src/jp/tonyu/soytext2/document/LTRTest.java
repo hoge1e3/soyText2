@@ -1,6 +1,7 @@
 package jp.tonyu.soytext2.document;
 
 import java.io.File;
+import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.Map;
 
@@ -11,6 +12,7 @@ import jp.tonyu.db.TransactionMode;
 import jp.tonyu.db.WriteAction;
 import jp.tonyu.debug.Log;
 import jp.tonyu.soytext2.document.LTRTest.DS;
+import jp.tonyu.soytext2.file.ReadableBinData;
 
 public class LTRTest {
     static class DS implements DocumentSet {
@@ -112,6 +114,19 @@ public class LTRTest {
 
         @Override
         public void rollback() {
+            // TODO 自動生成されたメソッド・スタブ
+
+        }
+
+        @Override
+        public HashBlob getHashBlob(String hash) {
+            // TODO 自動生成されたメソッド・スタブ
+            return null;
+        }
+
+        @Override
+        public HashBlob writeHashBlob(InputStream i) {
+            return null;
             // TODO 自動生成されたメソッド・スタブ
 
         }

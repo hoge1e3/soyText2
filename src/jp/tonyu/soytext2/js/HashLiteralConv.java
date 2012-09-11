@@ -6,12 +6,14 @@ import jp.tonyu.debug.Log;
 import jp.tonyu.js.BuiltinFunc;
 import jp.tonyu.js.Scriptables;
 import jp.tonyu.js.Wrappable;
+import jp.tonyu.soytext2.document.HashBlob;
 import jp.tonyu.util.Maps;
 import jp.tonyu.util.Resource;
 
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Function;
 import org.mozilla.javascript.NativeJavaArray;
+import org.mozilla.javascript.NativeJavaObject;
 import org.mozilla.javascript.Scriptable;
 import org.mozilla.javascript.ScriptableObject;
 
@@ -29,7 +31,7 @@ public class HashLiteralConv {
 		return compiled;
 	}*/
 	public static BuiltinFunc decompile=new BuiltinFunc() {
-		
+
 		@Override
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 				Object[] args) {
@@ -40,23 +42,40 @@ public class HashLiteralConv {
 		}
 	};
 	public static BuiltinFunc isDocument=new BuiltinFunc() {
-		
+
 		@Override
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 				Object[] args) {
 			Object fun=args[0];
 			return fun instanceof DocumentScriptable;
 		}
-	}; 
+	};
+	   public static BuiltinFunc isHashBlob=new BuiltinFunc() {
+
+	        @Override
+	        public Object call(Context cx, Scriptable scope, Scriptable thisObj,
+	                Object[] args) {
+	            Object fun=args[0];
+	            if (fun instanceof NativeJavaObject) {
+                    NativeJavaObject n=(NativeJavaObject) fun;
+                    Object o=n.unwrap();
+                    Log.d("IsHashBlob", o);
+                    return o instanceof HashBlob;
+                }
+	            return false;
+	        }
+	    };
+
 	public static BuiltinFunc isJavaNative=new BuiltinFunc() {
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj, Object[] args) {
 			if (args.length==0) return null;
+            if  (args[0] instanceof NativeJavaObject) return args[0].getClass().getCanonicalName() ;
 			if  (args[0] instanceof Wrappable) return args[0].getClass().getCanonicalName() ;
 			return null;
 		}
 	};
 	static BuiltinFunc debug=new BuiltinFunc() {
-		
+
 		@Override
 		public Object call(Context cx, Scriptable scope, Scriptable thisObj,
 				Object[] args) {
@@ -74,7 +93,7 @@ public class HashLiteralConv {
 	public static String toHashLiteral(Object res) {
 		JSSession jss = DocumentLoader.curJsSesssion();
 		Scriptable u=jss.utils;
-		Function f=(Function)ScriptableObject.getProperty(u, GENERATE_CONTENT);		
+		Function f=(Function)ScriptableObject.getProperty(u, GENERATE_CONTENT);
 		return jss.call(f, new Object[]{res})+"";
 	}
 	public static void main(String[] args) {
@@ -171,7 +190,7 @@ public class HashLiteralConv {
 			return "null";
 		} else {
 			return "NOT COMVERT"+value;
-		}  
+		}
 	}
 	static String document(DocumentScriptable d) {
 		return "$.byId(\""+d.getDocument().id+"\")";
@@ -182,13 +201,13 @@ public class HashLiteralConv {
 	 */
 	/*public static void main(String[] args) {
 		JSSession.cur.enter(new JSSession(), new Runnable() {
-			
+
 			@Override
 			public void run() {
 				JSSession jsSession = JSSession.cur.get();
 				Object res=jsSession.eval("r={a:3, b:[2,3]};");
 				System.out.println(toHashLiteral(res));
-				
+
 			}
 		});
 	}*/

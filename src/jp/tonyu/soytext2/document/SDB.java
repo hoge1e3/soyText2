@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -29,6 +30,9 @@ import jp.tonyu.db.ReadAction;
 import jp.tonyu.db.TransactionMode;
 import jp.tonyu.db.WriteAction;
 import jp.tonyu.debug.Log;
+import jp.tonyu.soytext2.file.BinData;
+import jp.tonyu.soytext2.file.ReadableBinData;
+import jp.tonyu.util.MD5;
 import jp.tonyu.util.SFile;
 import jp.tonyu.util.TDate;
 import net.arnx.jsonic.JSON;
@@ -161,6 +165,53 @@ public class SDB implements DocumentSet {
     }
     public File getBlob(String id) {
         return blobDir.rel(id).javaIOFile();
+    }
+    public SFile getHashBlobDir() {
+        return homeDir.rel("hashBlob");
+    }
+    @Override
+    public HashBlob getHashBlob(final String hash) {
+        final SFile f=getHashBlobFile(hash);
+        return new HashBlob() {
+            @Override
+            public InputStream getInputStream() throws IOException {
+                return f.inputStream();
+            }
+
+            @Override
+            public String getHash() {
+                return hash;
+            }
+
+            @Override
+            public boolean exists() {
+                return f.exists();
+            }
+        };
+    }
+    private SFile getHashBlobFile(final String hash) {
+        return getHashBlobDir().rel(hash);
+    }
+    @Override
+    public HashBlob writeHashBlob(InputStream i) {
+        SFile tmp=getHashBlobDir().rel(Math.random()+"");
+        try {
+            tmp.readFrom(i);
+            String h=MD5.crypt(tmp.inputStream());
+            HashBlob res=getHashBlob(h);
+            if (!res.exists()) {
+                SFile f=getHashBlobFile(h);
+                tmp.copyTo(f);
+            }
+            tmp.delete();
+            return res;
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        return null;
+
     }
     // DocumentRecord documentRecord=new DocumentRecord();
     // LogRecord logRecord=new LogRecord();
@@ -305,7 +356,7 @@ public class SDB implements DocumentSet {
     public String dbidPart(DocumentRecord d) {
         if (d==null||d.id==null)
             return null;
-        String[] s=d.id.split("@");
+        String[] s=d.id.split("@"); // TODO: @.
         if (s.length<=1)
             return null;
         return s[1];
@@ -313,10 +364,14 @@ public class SDB implements DocumentSet {
     public int serialPart(DocumentRecord d) {
         if (d==null||d.id==null)
             return 0;
-        String[] s=d.id.split("@");
+        String[] s=d.id.split("@"); // TODO: @.
         if (s.length<=0)
             return 0;
-        return Integer.parseInt(s[0]);
+        try {
+            return Integer.parseInt(s[0]);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
     public void restoreFromRealtimeBackup(SFile src, Set<String> updated) throws SQLException, JSONException,
             FileNotFoundException, IOException, NotInWriteTransactionException {
@@ -333,9 +388,6 @@ public class SDB implements DocumentSet {
         d.copyTo(dst);
         save(dst, new PairSet<String, String>(), false);
         updated.add(dst.id);
-        if (createdAtThisDB(dst)) {
-            logManager.liftUpLastNumber(serialPart(dst));
-        }
     }
     private void realtimeBackup(final DocumentRecord d) throws FileNotFoundException, IOException,
             NoSuchFieldException, IllegalAccessException {
@@ -372,7 +424,7 @@ public class SDB implements DocumentSet {
         try {
             log=logManager.write("create", "<sameAsThisId>");
             DocumentRecord d=new DocumentRecord();
-            d.id=log.id+"@"+dbid;
+            d.id=log.id+"@"+dbid;  // TODO: @.
             d.lastUpdate=log.id;
             d.lastAccessed=log.id;
             // cache.put(d.id, d);
@@ -391,6 +443,9 @@ public class SDB implements DocumentSet {
             log=logManager.write("create", id);
             DocumentRecord d=new DocumentRecord();
             d.id=id;
+            if (createdAtThisDB(d)) {
+                logManager.liftUpLastNumber(serialPart(d));
+            }
             d.lastUpdate=log.id;
             d.lastAccessed=log.id;
             // cache.put(d.id, d);

@@ -30,6 +30,7 @@ import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentSet;
 import jp.tonyu.soytext2.document.SDB;
 import jp.tonyu.soytext2.file.BinData;
+import jp.tonyu.soytext2.file.ReadableBinData;
 import jp.tonyu.soytext2.file.ZipMaker;
 import jp.tonyu.soytext2.js.ContentChecker;
 import jp.tonyu.soytext2.js.DocumentLoader;
@@ -173,7 +174,7 @@ public class HttpContext implements Wrappable {
 					if (m.lookingAt()) {
 						id=m.group(1);
 					} else id=value;
-					o=documentLoader.byId(id);
+					o=documentLoader.byIdOrNull(id);
 				} else 	if (type.startsWith("?str")) {
 					o=value;
 				} else {
@@ -181,7 +182,7 @@ public class HttpContext implements Wrappable {
 					String id;
 					if (m.lookingAt()) {
 						id=m.group(1);
-						o=documentLoader.byId(id);
+						o=documentLoader.byIdOrNull(id);
 					} else {
 						m = Literal.DQ.matcher(value);
 						if (m.lookingAt()) {
@@ -367,7 +368,7 @@ public class HttpContext implements Wrappable {
 	}
 	private DocumentScriptable getSyncProf(String name) {
 		String syncProfId=params().get(name);
-    	DocumentScriptable syncProf=documentLoader.byId(syncProfId);
+    	DocumentScriptable syncProf=documentLoader.byIdOrNull(syncProfId);
 		return syncProf;
 	}
 	static final String LOCAL_LAST_SYNCED= "localLastSynced";
@@ -636,7 +637,7 @@ public class HttpContext implements Wrappable {
 	private void view() throws IOException {
         String[] s=args();
 		String id = s[2];
-		DocumentScriptable d = (DocumentScriptable)documentLoader.byId(id);
+		DocumentScriptable d = (DocumentScriptable)documentLoader.byIdOrNull(id);
 		if (d != null)
 		{
 		    documentProcessor(d).proc();
@@ -653,7 +654,7 @@ public class HttpContext implements Wrappable {
 
 
 		String id=s[2];
-		final DocumentScriptable d= documentLoader.byId(id);
+		final DocumentScriptable d= documentLoader.byIdOrNull(id);
 
 		if (d!=null) {
 			boolean execed = exec(d);
@@ -781,7 +782,7 @@ public class HttpContext implements Wrappable {
 			String id=params().get("id");
 			if (c.check()) {
 				DocumentScriptable d;
-				if (id!=null && id.indexOf("@")>=0) {
+				if (id!=null && id.indexOf("@")>=0) { // TODO: @.
 					d = documentLoader.newDocument(id);
 				} else {
 					d = documentLoader.newDocument();
@@ -825,7 +826,7 @@ public class HttpContext implements Wrappable {
 		//   $soyText/customedit/00000?defaultEditor=id
 		String id=s[2];
 		String msg="";
-		target = documentLoader.byId(id);
+		target = documentLoader.byIdOrNull(id);
 		if (target==null) {
 		    notfound(id);
 		    return false;
@@ -867,7 +868,7 @@ public class HttpContext implements Wrappable {
 		//   $soyText/edit/00000
 		String id=s[2];
 		String msg="";
-		target = documentLoader.byId(id);
+		target = documentLoader.byIdOrNull(id);
 		if (target==null) {
 		    notfound(id);
 		    return;
@@ -922,7 +923,7 @@ public class HttpContext implements Wrappable {
 		String[] s=args();
 		//   $soyText/edit/00000
 		String id=s[2];
-		DocumentScriptable d = documentLoader.byId(id);
+		DocumentScriptable d = documentLoader.byIdOrNull(id);
 		if (d==null) {
 		    notfound(id);
 		} else if (req.getMethod().equals("POST")) {
@@ -1251,7 +1252,7 @@ public class HttpContext implements Wrappable {
 			e.printStackTrace();
 		}
 	}*/
-	public void write(BinData data) throws IOException {
+	public void write(ReadableBinData data) throws IOException {
 		write(data.getInputStream());
 	}
 	public void write(InputStream in) throws IOException {

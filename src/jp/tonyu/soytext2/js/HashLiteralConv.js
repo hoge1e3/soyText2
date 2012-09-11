@@ -33,6 +33,8 @@ SoyText.generateContent=function (d) {
 	function expr(value,ctx) {
 		if (isDocument(value)) {
 	        return document(value,ctx);
+		} else if (isHashBlob(value)) {
+			return hashBlob(value);
 	     } else if (typeof value=="number") {
 	        return value;
 	     } else if (typeof value=="boolean") {
@@ -99,6 +101,9 @@ SoyText.generateContent=function (d) {
 	function isDocument(d) {
 		return SoyText.isDocument(d);
 	}
+	function isHashBlob(d) {
+		return SoyText.isHashBlob(d);
+	}
     function str(s) {
 	     s=s.replace(/\\/g,"\\\\")
 	        .replace(/\n/g,"\\n")
@@ -120,6 +125,9 @@ SoyText.generateContent=function (d) {
 			 return "$.byId("+str(d.id)+")";
 		 }
     }
+	function hashBlob(h,ctx) {
+		return "$.hashBlob("+str(h.getHash())+")";
+	}
     function rept(str,times) {
     	var res="";
     	for (;times>0;times--) res+=str;

@@ -1,5 +1,7 @@
 package jp.tonyu.soytext2.js;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashMap;
@@ -19,6 +21,7 @@ import jp.tonyu.js.Scriptables;
 import jp.tonyu.js.StringPropAction;
 import jp.tonyu.js.Wrappable;
 import jp.tonyu.soytext2.auth.AuthenticatorList;
+import jp.tonyu.soytext2.document.HashBlob;
 import jp.tonyu.soytext2.document.IndexAction;
 import jp.tonyu.soytext2.document.DocumentRecord;
 import jp.tonyu.soytext2.document.DocumentAction;
@@ -29,6 +32,7 @@ import jp.tonyu.soytext2.document.LooseTransaction;
 import jp.tonyu.soytext2.document.LooseWriteAction;
 import jp.tonyu.soytext2.document.PairSet;
 import jp.tonyu.soytext2.document.UpdatingDocumentAction;
+import jp.tonyu.soytext2.file.ReadableBinData;
 import jp.tonyu.soytext2.search.Query;
 import jp.tonyu.soytext2.search.QueryBuilder;
 import jp.tonyu.soytext2.search.QueryResult;
@@ -177,13 +181,13 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
         }
         return o;
     }
-    public DocumentScriptable reload(String id) {
+    /*public DocumentScriptable reloadFromRecord(String id) {
         DocumentScriptable res=objs.get(id);
         if (res==null)
-            return byId(id);
+            return byIdOrNull(id);
         res.setContentAndSave(res.getDocument().content);
         return res;
-    }
+    }*/
     public void save(final DocumentRecord d, final PairSet<String, String> updatingIndex) {
         if (d.content==null)
             Log.die("Content of "+d.id+" is null!");
@@ -227,6 +231,17 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
             dst.put(ERROR_MSG, e.getMessage());
             dst.put(ERROR_CONTENT, newContent);
         }
+    }
+    public HashBlob hashBlob(String hash) {
+        //ReadableBinData b=documentSet.getHashBlob(hash);
+        return documentSet.getHashBlob(hash);
+    }
+    public HashBlob writeHashBlob(ReadableBinData i) throws IOException {
+        return writeHashBlob(i.getInputStream());
+    }
+    public HashBlob writeHashBlob(InputStream i) {
+        HashBlob r=documentSet.writeHashBlob(i);
+        return r;
     }
     public static JSSession curJsSesssion() {
         return cur.get().jsSession();
@@ -361,7 +376,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
                         @Override
                         public boolean run(IndexRecord i) {
                             Log.d("Index Matched", i.document);
-                            DocumentScriptable s=(DocumentScriptable) byId(i.document);
+                            DocumentScriptable s=(DocumentScriptable) byIdOrNull(i.document);
                             return callDocIter(s , q , iter);
                         }
                     };
@@ -444,7 +459,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
                 Matcher m=idpatWiki.matcher(str);
                 if (m.matches()) {
                     String id=m.group(1);
-                    DocumentScriptable refd=byId(id);
+                    DocumentScriptable refd=byIdOrNull(id);
                     if (refd==null)
                         Log.die("[["+id+"]] not found");
                     dst.put(refd, value);
@@ -498,10 +513,10 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
         return inherit(klass, fields);
     }
     public DocumentScriptable rootDocument() {
-        return byId(rootDocumentId());
+        return byIdOrNull(rootDocumentId());
     }
     public String rootDocumentId() {
-        return "root@"+documentSet.getDBID();
+        return "root@"+documentSet.getDBID();  // TODO: @.
     }
     AuthenticatorList auth;
     public AuthenticatorList authenticator() {
@@ -533,10 +548,8 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
     }
     /**
      *
-     * @param dr
-     *            DocumentRecord to be imported
-     * @return true if DocumentScriptable having id equals to dr.id in
-     *         objs(cache)
+     * @param drs
+     *            DocumentRecords to be imported
      * @throws SQLException
      * @throws NotInWriteTransactionException
      */
@@ -562,7 +575,7 @@ public class DocumentLoader implements Wrappable, IDocumentLoader {
         }
         // if (((SDB)documentSet).useIndex()) {
         for (String id : willUpdateIndex) {
-            DocumentScriptable s=byId(id);
+            DocumentScriptable s=byIdOrNull(id);
             s.refreshIndex();
         }
         // }

@@ -38,7 +38,7 @@ public class RestoreFromRealtimeBackup {
 		DocumentLoader l=new DocumentLoader(s);
 		for (String id:updated) {
 			Log.d("Restore", "Refresh index of "+id);
-			DocumentScriptable ds = l.byId(id);
+			DocumentScriptable ds = l.byIdOrNull(id);
 			if (ds==null) Log.d("Restore", "Why!? "+id+" is not exist!!");
 			ds.refreshIndex();
 		}

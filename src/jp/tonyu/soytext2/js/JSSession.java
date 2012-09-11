@@ -73,6 +73,7 @@ public class JSSession {
         ScriptableObject.putProperty(utils, "decompile", HashLiteralConv.decompile);
         ScriptableObject.putProperty(utils, "isJavaNative", HashLiteralConv.isJavaNative);
         ScriptableObject.putProperty(utils, "isDocument", HashLiteralConv.isDocument);
+        ScriptableObject.putProperty(utils, "isHashBlob", HashLiteralConv.isHashBlob);
         ScriptableObject.putProperty(utils, "debug", new Debug());
         ScriptableObject.putProperty(utils, "safeEval", safeEval);
         ScriptableObject.putProperty(utils, "bindings", bindings);

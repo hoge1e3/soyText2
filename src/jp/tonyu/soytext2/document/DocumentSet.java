@@ -1,11 +1,14 @@
 package jp.tonyu.soytext2.document;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.Map;
 
 import jp.tonyu.db.NotInReadTransactionException;
 import jp.tonyu.db.NotInWriteTransactionException;
 import jp.tonyu.db.TransactionMode;
+import jp.tonyu.soytext2.file.BinData;
+import jp.tonyu.soytext2.file.ReadableBinData;
 
 public interface DocumentSet {
 	public DocumentRecord newDocument() throws NotInWriteTransactionException;
@@ -16,6 +19,8 @@ public interface DocumentSet {
 	public void transaction(TransactionMode mode);
     //public Object transactionMode();//, Runnable action);
 	public File getBlob(String id);
+	public HashBlob getHashBlob(String hash);
+	public HashBlob writeHashBlob(InputStream i);
     public void commit();
     public void rollback();
 	public int log( String date, String action, String target, String option)  throws NotInWriteTransactionException;
