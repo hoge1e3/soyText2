@@ -27,5 +27,9 @@ public interface HashBlob extends ReadableBinData, Wrappable {
     }*/
     public String getHash();
     public boolean exists();
+    public String text();
+    /*
+     public String text() {  StringgetInputStream().
+     */
 
 }

@@ -4,7 +4,10 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -186,6 +189,15 @@ public class SDB implements DocumentSet {
             @Override
             public boolean exists() {
                 return f.exists();
+            }
+            @Override
+            public String text() {
+                try {
+                    return f.text();
+                } catch(IOException e) {
+                    e.printStackTrace();
+                    return null;
+                }
             }
         };
     }

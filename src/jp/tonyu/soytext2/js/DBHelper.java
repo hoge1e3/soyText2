@@ -9,6 +9,7 @@ import java.util.Vector;
 import jp.tonyu.db.NotInWriteTransactionException;
 import jp.tonyu.debug.Log;
 import jp.tonyu.js.AllPropAction;
+import jp.tonyu.js.NumberPropAction;
 import jp.tonyu.js.Scriptables;
 import jp.tonyu.js.Wrappable;
 import jp.tonyu.soytext2.document.DocumentRecord;
@@ -108,8 +109,7 @@ public class DBHelper implements Wrappable{
 	    return new MapScriptable(m);
 	}
 	public void importDocuments(final Scriptable scr) {
-	    // TODO: must be imported updated record at once ( To avoid 404 link )
-	    //  Use DocumentLodaer:: importDocuments!!
+	    // must be imported updated record at once ( To avoid 404 link )
 	    final Vector<DocumentRecord> recs=new Vector<DocumentRecord>();
 	    Scriptables.each(scr, new AllPropAction() {
             @Override
