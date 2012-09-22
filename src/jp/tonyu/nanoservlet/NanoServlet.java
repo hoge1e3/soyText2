@@ -11,7 +11,7 @@ public class NanoServlet extends NanoHTTPD {
 	HttpServlet servlet;
 	/**
 	 * Run HttpServlet on NanoHTTPD
-	 * 
+	 *
 	 * @param port   Port number
 	 * @param servlet  servlet which runs on NanoHTTPD
 	 * @throws IOException
@@ -29,7 +29,7 @@ public class NanoServlet extends NanoHTTPD {
 	@Override
 	public Response serve(String uri, String method, Properties header,
 			Properties parms, Properties files) {
-		HttpServletRequest req=new RequestWrapper(uri, method,	 header, parms);
+		HttpServletRequest req=new RequestWrapper(uri, method,	 header, parms , files);
 		ResponseWrapper res = new ResponseWrapper(this);
 		try {
 			if (stopped) {
@@ -45,7 +45,7 @@ public class NanoServlet extends NanoHTTPD {
 			e.printStackTrace();
 		}
 		return res.close();
-		
+
 	}
 	public boolean hasToBeStopped() {
 		return stopped;
@@ -53,6 +53,6 @@ public class NanoServlet extends NanoHTTPD {
 	public void stop() {
 		super.stop();
 		if (autoRestart!=null) autoRestart.stop();
-		
+
 	}
 }

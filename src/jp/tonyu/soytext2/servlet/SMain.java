@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import jp.tonyu.debug.Log;
+import jp.tonyu.js.Wrappable;
 import jp.tonyu.nanoservlet.AutoRestart;
 import jp.tonyu.nanoservlet.NanoServlet;
 import jp.tonyu.soytext2.document.SDB;
@@ -32,8 +33,8 @@ public class SMain extends HttpServlet {
 	}
 
 	private void doIt(final HttpServletRequest req2, final HttpServletResponse res2) {
-		final HttpServletRequest req=new WrappableRequest(req2);
-		final HttpServletResponse res=new WrappableResponse(res2);
+		final HttpServletRequest req=wrapRequest(req2);
+		final HttpServletResponse res=wrapResponse(res2);
 		try {
 			initServlet();
 		} catch (SQLException e1) {
@@ -86,6 +87,20 @@ public class SMain extends HttpServlet {
 			}
 		});
 	}
+
+    private HttpServletResponse wrapResponse(final HttpServletResponse res2) {
+        if (res2 instanceof Wrappable) {
+            return res2;
+        }
+        return new WrappableResponse(res2);
+    }
+
+    private HttpServletRequest wrapRequest(final HttpServletRequest req2) {
+        if (req2 instanceof Wrappable) {
+            return req2;
+        }
+        return new WrappableRequest(req2);
+    }
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse res)
 			throws ServletException, IOException {

@@ -232,7 +232,7 @@ public class HttpContext implements Wrappable {
 			@Override
 			public void run() {
 				try {
-					Log.d("htpcon","Before proc2");
+					Log.d("htpcon","Before proc2 "+req.getPathInfo());
 					proc2();
 					Log.d("htpcon","After proc2");
 				}catch (Exception e) {

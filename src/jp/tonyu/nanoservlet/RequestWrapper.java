@@ -18,20 +18,31 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import jp.tonyu.js.Wrappable;
+import jp.tonyu.soytext2.file.FileProperty;
 
 
-public class RequestWrapper implements HttpServletRequest,Wrappable {
+public class RequestWrapper implements HttpServletRequest,Wrappable,FileProperty {
 	String uri;
 	String method;
 	Properties header;
 	Properties parms;
+	Properties files;
+	@Override
+	public Properties getFiles() {
+	    return files;
+	}
+	@Override
+	public Properties getParams() {
+	    return parms;
+	}
 	public RequestWrapper(String uri, String method, Properties header,
-			Properties parms) {
+			Properties parms, Properties files) {
 		super();
 		this.uri = uri;
 		this.method = method;
 		this.header = header;
 		this.parms = parms;
+		this.files = files;
 	}
 	public void notimpl() {
 		throw new RuntimeException("Not implemented");
